@@ -15,7 +15,8 @@
   "includeForks": true,
   "packageRules": [
     {
-      "packageNames": ["github.com/cloudflare/cloudflare-go"]
+      "packageNames": ["github.com/cloudflare/cloudflare-go"],
+      "updateTypes": "digest"
     }
   ]
 }

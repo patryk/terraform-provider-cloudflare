@@ -2,6 +2,7 @@
   "extends": ["config:base"],
   "labels": ["dependencies"],
   "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
   "gomodTidy": true,
   "ignoreDeps": [
     "golang.org/x/crypto", 

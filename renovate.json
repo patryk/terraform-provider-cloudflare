@@ -12,5 +12,10 @@
     "labels": ["security"],
     "assignees": ["@patryk", "@jacobbednarz"]
   },
-  "includeForks": true
+  "includeForks": true,
+  "packageRules": [
+    {
+      "packageNames": ["github.com/cloudflare/cloudflare-go"]
+    }
+  ]
 }

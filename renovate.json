@@ -17,7 +17,7 @@
   "packageRules": [
     {
       "packageNames": ["github.com/cloudflare/cloudflare-go"],
-      "updateTypes": ["major","minor","patch","pin","digest","lockFileMaintenance","rollback","bump"],
+      "updateTypes": ["pin","digest","lockFileMaintenance","rollback","bump"],
       "ignoreUnstable": false
     }
   ]

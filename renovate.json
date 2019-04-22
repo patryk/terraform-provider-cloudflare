@@ -17,7 +17,8 @@
   "packageRules": [
     {
       "packageNames": ["github.com/cloudflare/cloudflare-go"],
-      "updateTypes": ["digest"]
+      "updateTypes": ["digest"],
+      "ignoreUnstable": false
     }
   ]
 }

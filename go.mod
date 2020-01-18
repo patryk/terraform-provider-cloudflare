@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/terraform v0.11.13
 	github.com/mitchellh/cli v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/zclconf/go-cty v0.0.0-20190325193335-fd76348b9329 // indirect
 	golang.org/x/crypto v0.0.0-20190310223557-c2843e01d9a2 // indirect

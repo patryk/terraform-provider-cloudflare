@@ -1,15 +1,16 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/net/idna"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -128,7 +129,7 @@ func resourceCloudflareZoneCreate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] Creating Cloudflare Zone: name %s", zoneName)
 
-	zone, err := client.CreateZone(zoneName, jumpstart, account, zoneType)
+	zone, err := client.CreateZone(context.Background(), zoneName, jumpstart, account, zoneType)
 
 	if err != nil {
 		return fmt.Errorf("Error creating zone %q: %s", zoneName, err)
@@ -138,7 +139,7 @@ func resourceCloudflareZoneCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if paused, ok := d.GetOk("paused"); ok {
 		if paused.(bool) == true {
-			_, err := client.ZoneSetPaused(zone.ID, paused.(bool))
+			_, err := client.ZoneSetPaused(context.Background(), zone.ID, paused.(bool))
 
 			if err != nil {
 				return fmt.Errorf("Error updating zone_id %q: %s", zone.ID, err)
@@ -147,7 +148,7 @@ func resourceCloudflareZoneCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if plan, ok := d.GetOk("plan"); ok {
-		if err := setRatePlan(client, zone.ID, plan.(string), true); err != nil {
+		if err := setRatePlan(client, zone.ID, plan.(string), true, d); err != nil {
 			return err
 		}
 	}
@@ -159,7 +160,7 @@ func resourceCloudflareZoneRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*cloudflare.API)
 	zoneID := d.Id()
 
-	zone, err := client.ZoneDetails(zoneID)
+	zone, err := client.ZoneDetails(context.Background(), zoneID)
 
 	log.Printf("[DEBUG] ZoneDetails: %#v", zone)
 	log.Printf("[DEBUG] ZoneDetails error: %#v", err)
@@ -199,14 +200,14 @@ func resourceCloudflareZoneRead(d *schema.ResourceData, meta interface{}) error 
 func resourceCloudflareZoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudflare.API)
 	zoneID := d.Id()
-	zone, _ := client.ZoneDetails(zoneID)
+	zone, _ := client.ZoneDetails(context.Background(), zoneID)
 
 	log.Printf("[INFO] Updating Cloudflare Zone: id %s", zoneID)
 
 	if paused, ok := d.GetOkExists("paused"); ok && d.HasChange("paused") {
 		log.Printf("[DEBUG] _ paused")
 
-		_, err := client.ZoneSetPaused(zoneID, paused.(bool))
+		_, err := client.ZoneSetPaused(context.Background(), zoneID, paused.(bool))
 
 		if err != nil {
 			return fmt.Errorf("Error updating zone_id %q: %s", zoneID, err)
@@ -228,7 +229,7 @@ func resourceCloudflareZoneUpdate(d *schema.ResourceData, meta interface{}) erro
 		wasFreePlan := existingPlan.(string) == "free"
 		planID := newPlan.(string)
 
-		if err := setRatePlan(client, zoneID, planID, wasFreePlan); err != nil {
+		if err := setRatePlan(client, zoneID, planID, wasFreePlan, d); err != nil {
 			return err
 		}
 	}
@@ -242,7 +243,7 @@ func resourceCloudflareZoneDelete(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] Deleting Cloudflare Zone: id %s", zoneID)
 
-	_, err := client.DeleteZone(zoneID)
+	_, err := client.DeleteZone(context.Background(), zoneID)
 
 	if err != nil {
 		return fmt.Errorf("Error deleting Cloudflare Zone: %s", err)
@@ -264,35 +265,26 @@ func flattenMeta(d *schema.ResourceData, meta cloudflare.ZoneMeta) map[string]in
 
 // setRatePlan handles the internals of creating or updating a zone
 // subscription rate plan.
-func setRatePlan(client *cloudflare.API, zoneID, planID string, isNewPlan bool) error {
+func setRatePlan(client *cloudflare.API, zoneID, planID string, isNewPlan bool, d *schema.ResourceData) error {
 	if isNewPlan {
-		if err := client.ZoneSetPlan(zoneID, subscriptionIDOfRatePlans[planID]); err != nil {
+		if err := client.ZoneSetPlan(context.Background(), zoneID, subscriptionIDOfRatePlans[planID]); err != nil {
 			return fmt.Errorf("Error setting plan %s for zone %q: %s", planID, zoneID, err)
 		}
 	} else {
-		if err := client.ZoneUpdatePlan(zoneID, subscriptionIDOfRatePlans[planID]); err != nil {
+		if err := client.ZoneUpdatePlan(context.Background(), zoneID, subscriptionIDOfRatePlans[planID]); err != nil {
 			return fmt.Errorf("Error updating plan %s for zone %q: %s", planID, zoneID, err)
 		}
 	}
 
-	// Due to the async delivery of the subscription service, there is
-	// potential that the update is made and we query the zone endpoint
-	// before it's propagated. To handle this, a poor mans retry and
-	// backoff mechanism will try to compare the current zone state and
-	// what we intend for it to be and if they don't match, try again
-	// after a brief pause.
-	backoffTimes := []int{1, 3, 5}
-	for _, i := range backoffTimes {
-		zone, _ := client.ZoneDetails(zoneID)
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		zone, _ := client.ZoneDetails(context.Background(), zoneID)
 
-		if zone.PlanPending.LegacyID == planID {
-			break
+		if zone.Plan.LegacyID != planID {
+			return resource.RetryableError(fmt.Errorf("plan ID change has not yet propagated"))
 		}
 
-		time.Sleep(time.Duration(i) * time.Second)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func planIDForName(name string) string {

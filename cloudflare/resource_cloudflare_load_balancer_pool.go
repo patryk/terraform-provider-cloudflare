@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -118,6 +119,27 @@ var originsElem = &schema.Resource{
 			Optional: true,
 			Default:  true,
 		},
+
+		"header": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"header": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"values": {
+						Type:     schema.TypeSet,
+						Required: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+				},
+			},
+			Set: HashByMapKey("header"),
+		},
 	},
 }
 
@@ -149,7 +171,7 @@ func resourceCloudflareLoadBalancerPoolCreate(d *schema.ResourceData, meta inter
 
 	log.Printf("[DEBUG] Creating Cloudflare Load Balancer Pool from struct: %+v", loadBalancerPool)
 
-	r, err := client.CreateLoadBalancerPool(loadBalancerPool)
+	r, err := client.CreateLoadBalancerPool(context.Background(), loadBalancerPool)
 	if err != nil {
 		return errors.Wrap(err, "error creating load balancer pool")
 	}
@@ -194,12 +216,34 @@ func resourceCloudflareLoadBalancerPoolUpdate(d *schema.ResourceData, meta inter
 
 	log.Printf("[DEBUG] Updating Cloudflare Load Balancer Pool from struct: %+v", loadBalancerPool)
 
-	_, err := client.ModifyLoadBalancerPool(loadBalancerPool)
+	_, err := client.ModifyLoadBalancerPool(context.Background(), loadBalancerPool)
 	if err != nil {
 		return errors.Wrap(err, "error updating load balancer pool")
 	}
 
 	return resourceCloudflareLoadBalancerPoolRead(d, meta)
+}
+
+func expandLoadBalancerPoolHeader(cfgSet interface{}) map[string][]string {
+	header := make(map[string][]string)
+	cfgList := cfgSet.(*schema.Set).List()
+	for _, item := range cfgList {
+		cfg := item.(map[string]interface{})
+		header[cfg["header"].(string)] = expandInterfaceToStringList(cfg["values"].(*schema.Set).List())
+	}
+	return header
+}
+
+func flattenLoadBalancerPoolHeader(header map[string][]string) *schema.Set {
+	flattened := make([]interface{}, 0)
+	for k, v := range header {
+		cfg := map[string]interface{}{
+			"header": k,
+			"values": schema.NewSet(schema.HashString, flattenStringList(v)),
+		}
+		flattened = append(flattened, cfg)
+	}
+	return schema.NewSet(HashByMapKey("header"), flattened)
 }
 
 func expandLoadBalancerOrigins(originSet *schema.Set) (origins []cloudflare.LoadBalancerOrigin) {
@@ -211,6 +255,11 @@ func expandLoadBalancerOrigins(originSet *schema.Set) (origins []cloudflare.Load
 			Enabled: o["enabled"].(bool),
 			Weight:  o["weight"].(float64),
 		}
+
+		if header, ok := o["header"]; ok {
+			origin.Header = expandLoadBalancerPoolHeader(header)
+		}
+
 		origins = append(origins, origin)
 	}
 	return
@@ -219,7 +268,7 @@ func expandLoadBalancerOrigins(originSet *schema.Set) (origins []cloudflare.Load
 func resourceCloudflareLoadBalancerPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudflare.API)
 
-	loadBalancerPool, err := client.LoadBalancerPoolDetails(d.Id())
+	loadBalancerPool, err := client.LoadBalancerPoolDetails(context.Background(), d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "HTTP status 404") {
 			log.Printf("[INFO] Load balancer pool %s no longer exists", d.Id())
@@ -241,7 +290,7 @@ func resourceCloudflareLoadBalancerPoolRead(d *schema.ResourceData, meta interfa
 	d.Set("created_on", loadBalancerPool.CreatedOn.Format(time.RFC3339Nano))
 	d.Set("modified_on", loadBalancerPool.ModifiedOn.Format(time.RFC3339Nano))
 
-	if err := d.Set("origins", flattenLoadBalancerOrigins(loadBalancerPool.Origins)); err != nil {
+	if err := d.Set("origins", flattenLoadBalancerOrigins(d, loadBalancerPool.Origins)); err != nil {
 		log.Printf("[WARN] Error setting origins on load balancer pool %q: %s", d.Id(), err)
 	}
 
@@ -252,7 +301,7 @@ func resourceCloudflareLoadBalancerPoolRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func flattenLoadBalancerOrigins(origins []cloudflare.LoadBalancerOrigin) *schema.Set {
+func flattenLoadBalancerOrigins(d *schema.ResourceData, origins []cloudflare.LoadBalancerOrigin) *schema.Set {
 	flattened := make([]interface{}, 0)
 	for _, o := range origins {
 		cfg := map[string]interface{}{
@@ -260,7 +309,9 @@ func flattenLoadBalancerOrigins(origins []cloudflare.LoadBalancerOrigin) *schema
 			"address": o.Address,
 			"enabled": o.Enabled,
 			"weight":  o.Weight,
+			"header":  flattenLoadBalancerPoolHeader(o.Header),
 		}
+
 		flattened = append(flattened, cfg)
 	}
 	return schema.NewSet(schema.HashResource(originsElem), flattened)
@@ -271,7 +322,7 @@ func resourceCloudflareLoadBalancerPoolDelete(d *schema.ResourceData, meta inter
 
 	log.Printf("[INFO] Deleting Cloudflare Load Balancer Pool: %s ", d.Id())
 
-	err := client.DeleteLoadBalancerPool(d.Id())
+	err := client.DeleteLoadBalancerPool(context.Background(), d.Id())
 	if err != nil {
 		return errors.Wrap(err, "error deleting Cloudflare Load Balancer Pool")
 	}

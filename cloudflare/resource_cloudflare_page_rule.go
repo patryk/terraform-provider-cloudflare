@@ -1,8 +1,10 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -529,7 +531,7 @@ func resourceCloudflarePageRuleCreate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Cloudflare Page Rule create configuration: %#v", newPageRule)
 
-	r, err := client.CreatePageRule(zoneID, newPageRule)
+	r, err := client.CreatePageRule(context.Background(), zoneID, newPageRule)
 	if err != nil {
 		return fmt.Errorf("Failed to create page rule: %s", err)
 	}
@@ -555,7 +557,7 @@ func resourceCloudflarePageRuleRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*cloudflare.API)
 	zoneID := d.Get("zone_id").(string)
 
-	pageRule, err := client.PageRule(zoneID, d.Id())
+	pageRule, err := client.PageRule(context.Background(), zoneID, d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid Page Rule identifier") || // api bug - this indicates non-existing resource
 			strings.Contains(err.Error(), "HTTP status 404") {
@@ -642,7 +644,7 @@ func resourceCloudflarePageRuleUpdate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Cloudflare Page Rule update configuration: %#v", updatePageRule)
 
-	if err := client.UpdatePageRule(zoneID, d.Id(), updatePageRule); err != nil {
+	if err := client.UpdatePageRule(context.Background(), zoneID, d.Id(), updatePageRule); err != nil {
 		return fmt.Errorf("Failed to update Cloudflare Page Rule: %s", err)
 	}
 
@@ -655,7 +657,7 @@ func resourceCloudflarePageRuleDelete(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Deleting Cloudflare Page Rule: %s, %s", zoneID, d.Id())
 
-	if err := client.DeletePageRule(zoneID, d.Id()); err != nil {
+	if err := client.DeletePageRule(context.Background(), zoneID, d.Id()); err != nil {
 		return fmt.Errorf("Error deleting Cloudflare Page Rule: %s", err)
 	}
 
@@ -745,14 +747,14 @@ func transformFromCloudflarePageRuleAction(pageRuleAction *cloudflare.PageRuleAc
 					fieldOutput[fieldID] = fieldValue
 				}
 
-				if itemExistsInSlice(fieldOutput["exclude"], "*") {
-					fieldOutput["exclude"] = []interface{}{"*"}
+				if reflect.TypeOf(fieldOutput["exclude"]).Kind() == reflect.String && fieldOutput["exclude"] == "*" {
 					fieldOutput["ignore"] = true
+					fieldOutput["exclude"] = []interface{}{}
 				}
 
-				if itemExistsInSlice(fieldOutput["include"], "*") {
-					fieldOutput["include"] = []interface{}{}
+				if reflect.TypeOf(fieldOutput["include"]).Kind() == reflect.String && fieldOutput["include"] == "*" {
 					fieldOutput["ignore"] = false
+					fieldOutput["include"] = []interface{}{}
 				}
 
 				output[sectionID] = []interface{}{fieldOutput}
@@ -887,21 +889,26 @@ func transformToCloudflarePageRuleAction(id string, value interface{}, d *schema
 						}
 
 						if sectionOutput["ignore"].(bool) {
-							sectionOutput["exclude"] = []interface{}{"*"}
+							sectionOutput["exclude"] = "*"
 						}
-
-						delete(sectionOutput, "ignore")
 					}
 
 					exclude, ok1 := sectionOutput["exclude"]
 					include, ok2 := sectionOutput["include"]
+					ignore := sectionOutput["ignore"]
 
 					// Ensure that if no `include`, `exclude` or `ignore` attributes are
 					// set, we default to including all query string parameters in the
 					// cache key.
-					if (!ok1 || len(exclude.([]interface{})) == 0) && (!ok2 || len(include.([]interface{})) == 0) {
-						sectionOutput["include"] = []interface{}{"*"}
+					if ignore == nil || !ignore.(bool) {
+						if (!ok1 || len(exclude.([]interface{})) == 0) && (!ok2 || len(include.([]interface{})) == 0) {
+							sectionOutput["include"] = "*"
+						}
 					}
+
+					// Clean up the payload and ensure we don't send `ignore` property
+					// despite using it in the schema.
+					delete(sectionOutput, "ignore")
 
 					output[sectionID] = sectionOutput
 				default:

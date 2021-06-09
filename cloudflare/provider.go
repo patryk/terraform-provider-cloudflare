@@ -24,7 +24,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("CLOUDFLARE_EMAIL", nil),
-				Description: "A registered Cloudflare email address.",
+				Description: "A registered Cloudflare email address",
 			},
 
 			"api_key": {
@@ -40,14 +40,14 @@ func Provider() terraform.ResourceProvider {
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("CLOUDFLARE_API_TOKEN", nil),
 				Description:  "The API Token for operations.",
-				ValidateFunc: validation.StringMatch(regexp.MustCompile("[A-Za-z0-9-_]{40}"), "API tokens must only contain characters a-z, A-Z, 0-9 and underscores"),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile("[A-Za-z0-9-_]{40}"), "API tokens must only contain characters a-z, A-Z, 0-9, hyphens and underscores"),
 			},
 
 			"api_user_service_key": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("CLOUDFLARE_API_USER_SERVICE_KEY", nil),
-				Description: "A special Cloudflare API key good for a restricted set of endpoints.",
+				Description: "A special Cloudflare API key good for a restricted set of endpoints",
 			},
 
 			"rps": {
@@ -89,7 +89,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("CLOUDFLARE_ACCOUNT_ID", nil),
-				Description: "Configure API client to always use that account.",
+				Description: "Configure API client to always use that account",
 			},
 		},
 
@@ -105,11 +105,13 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"cloudflare_access_application":                     resourceCloudflareAccessApplication(),
+			"cloudflare_access_ca_certificate":                  resourceCloudflareAccessCACertificate(),
 			"cloudflare_access_policy":                          resourceCloudflareAccessPolicy(),
 			"cloudflare_access_group":                           resourceCloudflareAccessGroup(),
 			"cloudflare_access_rule":                            resourceCloudflareAccessRule(),
 			"cloudflare_access_service_token":                   resourceCloudflareAccessServiceToken(),
 			"cloudflare_access_identity_provider":               resourceCloudflareAccessIdentityProvider(),
+			"cloudflare_access_mutual_tls_certificate":          resourceCloudflareAccessMutualTLSCertificate(),
 			"cloudflare_account_member":                         resourceCloudflareAccountMember(),
 			"cloudflare_api_token":                              resourceCloudflareApiToken(),
 			"cloudflare_argo":                                   resourceCloudflareArgo(),
@@ -122,6 +124,7 @@ func Provider() terraform.ResourceProvider {
 			"cloudflare_custom_hostname_fallback_origin":        resourceCloudflareCustomHostnameFallbackOrigin(),
 			"cloudflare_custom_pages":                           resourceCloudflareCustomPages(),
 			"cloudflare_custom_ssl":                             resourceCloudflareCustomSsl(),
+			"cloudflare_device_posture_rule":                    resourceCloudflareDevicePostureRule(),
 			"cloudflare_filter":                                 resourceCloudflareFilter(),
 			"cloudflare_firewall_rule":                          resourceCloudflareFirewallRule(),
 			"cloudflare_healthcheck":                            resourceCloudflareHealthcheck(),
@@ -138,6 +141,7 @@ func Provider() terraform.ResourceProvider {
 			"cloudflare_rate_limit":                             resourceCloudflareRateLimit(),
 			"cloudflare_record":                                 resourceCloudflareRecord(),
 			"cloudflare_spectrum_application":                   resourceCloudflareSpectrumApplication(),
+			"cloudflare_teams_list":                             resourceCloudflareTeamsList(),
 			"cloudflare_waf_group":                              resourceCloudflareWAFGroup(),
 			"cloudflare_waf_package":                            resourceCloudflareWAFPackage(),
 			"cloudflare_waf_rule":                               resourceCloudflareWAFRule(),

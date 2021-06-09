@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"reflect"
@@ -324,8 +325,8 @@ func TestCacheKeyFieldsNilValue(t *testing.T) {
 		t.Fatalf("Unexpected error transforming page rule action: %s", err)
 	}
 
-	if !reflect.DeepEqual(pageRuleAction.Value.(map[string]interface{})["query_string"], map[string]interface{}{"include": []interface{}{"*"}}) {
-		t.Fatalf("Unexpected transformToCloudflarePageRuleAction result, expected %#v, got %#v", map[string]interface{}{"include": []interface{}{"*"}}, pageRuleAction.Value.(map[string]interface{})["query_string"])
+	if !reflect.DeepEqual(pageRuleAction.Value.(map[string]interface{})["query_string"], map[string]interface{}{"include": "*"}) {
+		t.Fatalf("Unexpected transformToCloudflarePageRuleAction result, expected %#v, got %#v", map[string]interface{}{"include": "*"}, pageRuleAction.Value.(map[string]interface{})["query_string"])
 	}
 }
 
@@ -515,14 +516,43 @@ func TestAccCloudflarePageRuleCacheKeyFieldsExcludeAllQueryString(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.check_presence.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.include.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.host.0.resolved", "true"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.query_string.0.exclude.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.query_string.0.ignore", "true"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccCloudflarePageRuleCacheKeyFields2(t *testing.T) {
+func TestAccCloudflarePageRuleCacheKeyFieldsExcludeMultipleValuesQueryString(t *testing.T) {
+	var pageRule cloudflare.PageRule
+	domain := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	pageRuleTarget := fmt.Sprintf("%s.%s", rnd, domain)
+	resourceName := fmt.Sprintf("cloudflare_page_rule.%s", rnd)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflarePageRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflarePageRuleConfigCacheKeyFieldsExcludeMultipleValuesQueryString(zoneID, rnd, pageRuleTarget),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflarePageRuleExists(resourceName, &pageRule),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.cookie.0.check_presence.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.cookie.0.include.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.check_presence.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.include.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.host.0.resolved", "true"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.query_string.0.exclude.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflarePageRuleCacheKeyFieldsNoQueryStringValuesDefined(t *testing.T) {
 	var pageRule cloudflare.PageRule
 	domain := os.Getenv("CLOUDFLARE_DOMAIN")
 	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
@@ -534,13 +564,68 @@ func TestAccCloudflarePageRuleCacheKeyFields2(t *testing.T) {
 		CheckDestroy: testAccCheckCloudflarePageRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckCloudflarePageRuleConfigCacheKeyFields2(zoneID, target),
+				Config: testAccCheckCloudflarePageRuleConfigCacheKeyFieldsNoQueryStringValuesDefined(zoneID, target),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudflarePageRuleExists("cloudflare_page_rule.test", &pageRule),
 					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.header.0.exclude.#", "1"),
 					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.host.0.resolved", "false"),
 					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.user.0.device_type", "true"),
 					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.user.0.geo", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflarePageRuleCacheKeyFieldsIncludeAllQueryStringValues(t *testing.T) {
+	var pageRule cloudflare.PageRule
+	domain := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	target := fmt.Sprintf("test-cache-key-fields.%s", domain)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflarePageRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflarePageRuleConfigCacheKeyFieldsIncludeAllQueryStringValues(zoneID, target),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflarePageRuleExists("cloudflare_page_rule.test", &pageRule),
+					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.header.0.exclude.#", "1"),
+					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.host.0.resolved", "false"),
+					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.user.0.device_type", "true"),
+					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.user.0.geo", "true"),
+					resource.TestCheckResourceAttr("cloudflare_page_rule.test", "actions.0.cache_key_fields.0.query_string.0.ignore", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflarePageRuleCacheKeyFieldsIncludeMultipleValuesQueryString(t *testing.T) {
+	var pageRule cloudflare.PageRule
+	domain := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	pageRuleTarget := fmt.Sprintf("%s.%s", rnd, domain)
+	resourceName := fmt.Sprintf("cloudflare_page_rule.%s", rnd)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflarePageRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflarePageRuleConfigCacheKeyFieldsIncludeMultipleValuesQueryString(zoneID, rnd, pageRuleTarget),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflarePageRuleExists(resourceName, &pageRule),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.cookie.0.check_presence.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.cookie.0.include.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.check_presence.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.header.0.include.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.host.0.resolved", "true"),
+					resource.TestCheckResourceAttr(resourceName, "actions.0.cache_key_fields.0.query_string.0.include.#", "2"),
 				),
 			},
 		},
@@ -597,7 +682,7 @@ func testAccCheckCloudflarePageRuleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.PageRule(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		_, err := client.PageRule(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("PageRule still exists")
 		}
@@ -701,7 +786,7 @@ func testAccCheckCloudflarePageRuleExists(n string, pageRule *cloudflare.PageRul
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundPageRule, err := client.PageRule(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		foundPageRule, err := client.PageRule(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -725,7 +810,7 @@ func testAccManuallyDeletePageRule(name string, initialID *string) resource.Test
 
 		client := testAccProvider.Meta().(*cloudflare.API)
 		*initialID = rs.Primary.ID
-		err := client.DeletePageRule(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		err := client.DeletePageRule(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -940,7 +1025,34 @@ resource "cloudflare_page_rule" "%[3]s" {
 }`, zoneID, target, rnd)
 }
 
-func testAccCheckCloudflarePageRuleConfigCacheKeyFields2(zoneID, target string) string {
+func testAccCheckCloudflarePageRuleConfigCacheKeyFieldsExcludeMultipleValuesQueryString(zoneID, rnd, target string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_page_rule" "%[3]s" {
+	zone_id = "%[1]s"
+	target = "%[3]s"
+	actions {
+		cache_key_fields {
+			cookie {
+				check_presence = ["cookie_presence"]
+				include = ["cookie_include"]
+			}
+			header {
+				check_presence = ["header_presence"]
+				include = ["header_include"]
+			}
+			host {
+				resolved = true
+			}
+			query_string {
+				exclude = ["query1", "query2"]
+			}
+			user {}
+		}
+	}
+}`, zoneID, target, rnd)
+}
+
+func testAccCheckCloudflarePageRuleConfigCacheKeyFieldsNoQueryStringValuesDefined(zoneID, target string) string {
 	return fmt.Sprintf(`
 resource "cloudflare_page_rule" "test" {
 	zone_id = "%s"
@@ -960,6 +1072,57 @@ resource "cloudflare_page_rule" "test" {
 		}
 	}
 }`, zoneID, target)
+}
+
+func testAccCheckCloudflarePageRuleConfigCacheKeyFieldsIncludeAllQueryStringValues(zoneID, target string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_page_rule" "test" {
+	zone_id = "%s"
+	target = "%s"
+	actions {
+		cache_key_fields {
+			cookie {}
+			header {
+				exclude = ["origin"]
+			}
+			host {}
+			query_string {
+				ignore = false
+			}
+			user {
+				device_type = true
+				geo = true
+			}
+		}
+	}
+}`, zoneID, target)
+}
+
+func testAccCheckCloudflarePageRuleConfigCacheKeyFieldsIncludeMultipleValuesQueryString(zoneID, rnd, target string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_page_rule" "%[3]s" {
+	zone_id = "%[1]s"
+	target = "%[3]s"
+	actions {
+		cache_key_fields {
+			cookie {
+				check_presence = ["cookie_presence"]
+				include = ["cookie_include"]
+			}
+			header {
+				check_presence = ["header_presence"]
+				include = ["header_include"]
+			}
+			host {
+				resolved = true
+			}
+			query_string {
+				include = ["query1", "query2"]
+			}
+			user {}
+		}
+	}
+}`, zoneID, target, rnd)
 }
 
 func testAccCheckCloudflarePageRuleConfigCacheTTLByStatus(zoneID, target, rnd string) string {

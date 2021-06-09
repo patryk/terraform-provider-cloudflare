@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -175,9 +176,9 @@ func resourceCloudflareAccessApplicationCreate(d *schema.ResourceData, meta inte
 
 	var accessApplication cloudflare.AccessApplication
 	if identifier.Type == AccountType {
-		accessApplication, err = client.CreateAccessApplication(identifier.Value, newAccessApplication)
+		accessApplication, err = client.CreateAccessApplication(context.Background(), identifier.Value, newAccessApplication)
 	} else {
-		accessApplication, err = client.CreateZoneLevelAccessApplication(identifier.Value, newAccessApplication)
+		accessApplication, err = client.CreateZoneLevelAccessApplication(context.Background(), identifier.Value, newAccessApplication)
 	}
 	if err != nil {
 		return fmt.Errorf("error creating Access Application for %s %q: %s", identifier.Type, identifier.Value, err)
@@ -198,9 +199,9 @@ func resourceCloudflareAccessApplicationRead(d *schema.ResourceData, meta interf
 
 	var accessApplication cloudflare.AccessApplication
 	if identifier.Type == AccountType {
-		accessApplication, err = client.AccessApplication(identifier.Value, d.Id())
+		accessApplication, err = client.AccessApplication(context.Background(), identifier.Value, d.Id())
 	} else {
-		accessApplication, err = client.ZoneLevelAccessApplication(identifier.Value, d.Id())
+		accessApplication, err = client.ZoneLevelAccessApplication(context.Background(), identifier.Value, d.Id())
 	}
 
 	if err != nil {
@@ -267,9 +268,9 @@ func resourceCloudflareAccessApplicationUpdate(d *schema.ResourceData, meta inte
 
 	var accessApplication cloudflare.AccessApplication
 	if identifier.Type == AccountType {
-		accessApplication, err = client.UpdateAccessApplication(identifier.Value, updatedAccessApplication)
+		accessApplication, err = client.UpdateAccessApplication(context.Background(), identifier.Value, updatedAccessApplication)
 	} else {
-		accessApplication, err = client.UpdateZoneLevelAccessApplication(identifier.Value, updatedAccessApplication)
+		accessApplication, err = client.UpdateZoneLevelAccessApplication(context.Background(), identifier.Value, updatedAccessApplication)
 	}
 	if err != nil {
 		return fmt.Errorf("error updating Access Application for %s %q: %s", identifier.Type, identifier.Value, err)
@@ -294,9 +295,9 @@ func resourceCloudflareAccessApplicationDelete(d *schema.ResourceData, meta inte
 	}
 
 	if identifier.Type == AccountType {
-		err = client.DeleteAccessApplication(identifier.Value, appID)
+		err = client.DeleteAccessApplication(context.Background(), identifier.Value, appID)
 	} else {
-		err = client.DeleteZoneLevelAccessApplication(identifier.Value, appID)
+		err = client.DeleteZoneLevelAccessApplication(context.Background(), identifier.Value, appID)
 	}
 	if err != nil {
 		return fmt.Errorf("error deleting Access Application for %s %q: %s", identifier.Type, identifier.Value, err)
@@ -348,6 +349,15 @@ func convertCORSSchemaToStruct(d *schema.ResourceData) (*cloudflare.AccessApplic
 		CORSConfig.AllowAllOrigins = d.Get("cors_headers.0.allow_all_origins").(bool)
 		CORSConfig.AllowCredentials = d.Get("cors_headers.0.allow_credentials").(bool)
 		CORSConfig.MaxAge = d.Get("cors_headers.0.max_age").(int)
+
+		// Prevent misconfigurations of CORS when `Access-Control-Allow-Origin` is
+		// a wildcard (aka all origins) and using credentials.
+		// See https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSNotSupportingCredentials
+		if CORSConfig.AllowCredentials {
+			if contains(CORSConfig.AllowedOrigins, "*") || CORSConfig.AllowAllOrigins {
+				return nil, errors.New("CORS credentials are not permitted when all origins are allowed")
+			}
+		}
 
 		// Ensure that should someone forget to set allowed methods (either
 		// individually or *), we throw an error to prevent getting into an

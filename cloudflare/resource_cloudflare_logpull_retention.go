@@ -1,9 +1,9 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"time"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -38,12 +38,12 @@ func resourceCloudflareLogpullRetentionSet(d *schema.ResourceData, meta interfac
 	zoneID := d.Get("zone_id").(string)
 	status := d.Get("enabled").(bool)
 
-	_, err := client.SetLogpullRetentionFlag(zoneID, status)
+	_, err := client.SetLogpullRetentionFlag(context.Background(), zoneID, status)
 	if err != nil {
 		return fmt.Errorf("error setting Logpull Retention for zone ID %q: %s", zoneID, err)
 	}
 
-	d.SetId(stringChecksum(time.Now().String()))
+	d.SetId(stringChecksum("logpull-retention/" + zoneID))
 
 	return resourceCloudflareLogpullRetentionRead(d, meta)
 }
@@ -52,7 +52,7 @@ func resourceCloudflareLogpullRetentionRead(d *schema.ResourceData, meta interfa
 	client := meta.(*cloudflare.API)
 	zoneID := d.Get("zone_id").(string)
 
-	logpullConf, err := client.GetLogpullRetentionFlag(zoneID)
+	logpullConf, err := client.GetLogpullRetentionFlag(context.Background(), zoneID)
 	if err != nil {
 		return fmt.Errorf("error getting Logpull Retention for zone ID %q: %s", zoneID, err)
 	}
@@ -66,7 +66,7 @@ func resourceCloudflareLogpullRetentionDelete(d *schema.ResourceData, meta inter
 	client := meta.(*cloudflare.API)
 	zoneID := d.Get("zone_id").(string)
 
-	_, err := client.SetLogpullRetentionFlag(zoneID, false)
+	_, err := client.SetLogpullRetentionFlag(context.Background(), zoneID, false)
 	if err != nil {
 		return fmt.Errorf("error setting Logpull Retention for zone ID %q: %s", zoneID, err)
 	}
@@ -82,7 +82,7 @@ func resourceCloudflareLogpullRetentionImport(d *schema.ResourceData, meta inter
 	log.Printf("[DEBUG] Importing Cloudflare Logpull Retention option for zone ID: %s", zoneID)
 
 	d.Set("zone_id", zoneID)
-	d.SetId(stringChecksum(time.Now().String()))
+	d.SetId(stringChecksum("logpull-retention/" + zoneID))
 
 	resourceCloudflareLogpullRetentionRead(d, meta)
 

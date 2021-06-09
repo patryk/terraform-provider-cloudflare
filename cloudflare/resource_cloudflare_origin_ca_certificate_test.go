@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -31,7 +32,10 @@ func TestAccCloudflareOriginCACertificate_Basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckApiUserServiceKey(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckCloudflareOriginCACertificateDestroy,
 		Steps: []resource.TestStep{
@@ -43,7 +47,12 @@ func TestAccCloudflareOriginCACertificate_Basic(t *testing.T) {
 					resource.TestMatchResourceAttr(name, "id", regexp.MustCompile("^[0-9]+$")),
 					resource.TestCheckResourceAttr(name, "csr", csr),
 					resource.TestCheckResourceAttr(name, "request_type", "origin-rsa"),
+					resource.TestCheckResourceAttr(name, "requested_validity", "7"),
 				),
+			},
+			{
+				ResourceName: name,
+				ImportState:  true,
 			},
 		},
 	})
@@ -57,7 +66,7 @@ func testAccCheckCloudflareOriginCACertificateDestroy(s *terraform.State) error 
 			continue
 		}
 
-		cert, err := client.OriginCertificate(rs.Primary.ID)
+		cert, err := client.OriginCertificate(context.Background(), rs.Primary.ID)
 		if err == nil && cert.RevokedAt == (time.Time{}) {
 			return fmt.Errorf("Origin CA Certificate still exists: %s", rs.Primary.ID)
 		}
@@ -78,7 +87,7 @@ func testAccCheckCloudflareOriginCACertificateExists(name string, cert *cloudfla
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundOriginCACertificate, err := client.OriginCertificate(rs.Primary.ID)
+		foundOriginCACertificate, err := client.OriginCertificate(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return err
 		}

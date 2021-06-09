@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -121,6 +122,20 @@ var AccessGroupOptionSchemaElement = &schema.Resource{
 				Type: schema.TypeString,
 			},
 		},
+		"login_method": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"device_posture": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 		"gsuite": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -234,9 +249,9 @@ func resourceCloudflareAccessGroupRead(d *schema.ResourceData, meta interface{})
 
 	var accessGroup cloudflare.AccessGroup
 	if identifier.Type == AccountType {
-		accessGroup, err = client.AccessGroup(identifier.Value, d.Id())
+		accessGroup, err = client.AccessGroup(context.Background(), identifier.Value, d.Id())
 	} else {
-		accessGroup, err = client.ZoneLevelAccessGroup(identifier.Value, d.Id())
+		accessGroup, err = client.ZoneLevelAccessGroup(context.Background(), identifier.Value, d.Id())
 	}
 
 	if err != nil {
@@ -282,9 +297,9 @@ func resourceCloudflareAccessGroupCreate(d *schema.ResourceData, meta interface{
 
 	var accessGroup cloudflare.AccessGroup
 	if identifier.Type == AccountType {
-		accessGroup, err = client.CreateAccessGroup(identifier.Value, newAccessGroup)
+		accessGroup, err = client.CreateAccessGroup(context.Background(), identifier.Value, newAccessGroup)
 	} else {
-		accessGroup, err = client.CreateZoneLevelAccessGroup(identifier.Value, newAccessGroup)
+		accessGroup, err = client.CreateZoneLevelAccessGroup(context.Background(), identifier.Value, newAccessGroup)
 	}
 	if err != nil {
 		return fmt.Errorf("error creating Access Group for ID %q: %s", accessGroup.ID, err)
@@ -314,9 +329,9 @@ func resourceCloudflareAccessGroupUpdate(d *schema.ResourceData, meta interface{
 
 	var accessGroup cloudflare.AccessGroup
 	if identifier.Type == AccountType {
-		accessGroup, err = client.UpdateAccessGroup(identifier.Value, updatedAccessGroup)
+		accessGroup, err = client.UpdateAccessGroup(context.Background(), identifier.Value, updatedAccessGroup)
 	} else {
-		accessGroup, err = client.UpdateZoneLevelAccessGroup(identifier.Value, updatedAccessGroup)
+		accessGroup, err = client.UpdateZoneLevelAccessGroup(context.Background(), identifier.Value, updatedAccessGroup)
 	}
 	if err != nil {
 		return fmt.Errorf("error updating Access Group for ID %q: %s", d.Id(), err)
@@ -340,9 +355,9 @@ func resourceCloudflareAccessGroupDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if identifier.Type == AccountType {
-		err = client.DeleteAccessGroup(identifier.Value, d.Id())
+		err = client.DeleteAccessGroup(context.Background(), identifier.Value, d.Id())
 	} else {
-		err = client.DeleteZoneLevelAccessGroup(identifier.Value, d.Id())
+		err = client.DeleteZoneLevelAccessGroup(context.Background(), identifier.Value, d.Id())
 	}
 	if err != nil {
 		return fmt.Errorf("error deleting Access Group for ID %q: %s", d.Id(), err)
@@ -521,6 +536,14 @@ func BuildAccessGroupCondition(options map[string]interface{}) []interface{} {
 					group = append(group, cloudflare.AccessGroupGeo{Geo: struct {
 						CountryCode string `json:"country_code"`
 					}{CountryCode: value.(string)}})
+				case "login_method":
+					group = append(group, cloudflare.AccessGroupLoginMethod{LoginMethod: struct {
+						ID string `json:"id"`
+					}{ID: value.(string)}})
+				case "device_posture":
+					group = append(group, cloudflare.AccessGroupDevicePosture{DevicePosture: struct {
+						ID string `json:"integration_uid"`
+					}{ID: value.(string)}})
 				}
 			}
 		}
@@ -541,6 +564,7 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 	commonName := ""
 	authMethod := ""
 	geos := []string{}
+	loginMethod := []string{}
 	oktaID := ""
 	oktaGroups := []string{}
 	gsuiteID := ""
@@ -552,7 +576,7 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 	azureIDs := []string{}
 	samlAttrName := ""
 	samlAttrValue := ""
-	samlID := ""
+	devicePostureRuleIDs := []string{}
 
 	for _, group := range accessGroup {
 		for groupKey, groupValue := range group.(map[string]interface{}) {
@@ -589,6 +613,10 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 				for _, geo := range groupValue.(map[string]interface{}) {
 					geos = append(geos, geo.(string))
 				}
+			case "login_method":
+				for _, method := range groupValue.(map[string]interface{}) {
+					loginMethod = append(loginMethod, method.(string))
+				}
 			case "okta":
 				oktaCfg := groupValue.(map[string]interface{})
 				oktaID = oktaCfg["identity_provider_id"].(string)
@@ -596,7 +624,7 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 			case "gsuite":
 				gsuiteCfg := groupValue.(map[string]interface{})
 				gsuiteID = gsuiteCfg["identity_provider_id"].(string)
-				gsuiteEmails = append(gsuiteEmails, gsuiteCfg["name"].(string))
+				gsuiteEmails = append(gsuiteEmails, gsuiteCfg["email"].(string))
 			case "github-organization":
 				githubCfg := groupValue.(map[string]interface{})
 				githubID = githubCfg["identity_provider_id"].(string)
@@ -608,12 +636,15 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 				azureIDs = append(azureIDs, azureCfg["id"].(string))
 			case "saml":
 				samlCfg := groupValue.(map[string]interface{})
-				samlID = samlCfg["identity_provider_id"].(string)
 				samlAttrName = samlCfg["attribute_name"].(string)
 				samlAttrValue = samlCfg["attribute_value"].(string)
 			case "group":
 				for _, group := range groupValue.(map[string]interface{}) {
 					groups = append(groups, group.(string))
+				}
+			case "device_posture":
+				for _, dprID := range groupValue.(map[string]interface{}) {
+					devicePostureRuleIDs = append(devicePostureRuleIDs, dprID.(string))
 				}
 			default:
 				log.Printf("[DEBUG] Access Group key %q not transformed", groupKey)
@@ -663,6 +694,12 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 		})
 	}
 
+	if len(loginMethod) > 0 {
+		data = append(data, map[string]interface{}{
+			"login_method": loginMethod,
+		})
+	}
+
 	if len(oktaGroups) > 0 && oktaID != "" {
 		data = append(data, map[string]interface{}{
 			"okta": []interface{}{
@@ -704,13 +741,12 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 		})
 	}
 
-	if samlID != "" && samlAttrName != "" && samlAttrValue != "" {
+	if samlAttrName != "" && samlAttrValue != "" {
 		data = append(data, map[string]interface{}{
 			"saml": []interface{}{
 				map[string]interface{}{
-					"identity_provider_id": samlID,
-					"attribute_name":       samlAttrName,
-					"attribute_value":      samlAttrValue,
+					"attribute_name":  samlAttrName,
+					"attribute_value": samlAttrValue,
 				}},
 		})
 	}
@@ -718,6 +754,12 @@ func TransformAccessGroupForSchema(accessGroup []interface{}) []map[string]inter
 	if len(groups) > 0 {
 		data = append(data, map[string]interface{}{
 			"group": groups,
+		})
+	}
+
+	if len(devicePostureRuleIDs) > 0 {
+		data = append(data, map[string]interface{}{
+			"device_posture": devicePostureRuleIDs,
 		})
 	}
 

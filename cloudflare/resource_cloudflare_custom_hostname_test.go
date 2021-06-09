@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -260,6 +261,7 @@ func TestAccCloudflareCustomHostname_UpdatingZoneForcesNewResource(t *testing.T)
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAltZoneID(t)
+			testAccPreCheckAltDomain(t)
 		},
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -272,8 +274,7 @@ func TestAccCloudflareCustomHostname_UpdatingZoneForcesNewResource(t *testing.T)
 				),
 			},
 			{
-				ExpectNonEmptyPlan: true,
-				Config:             testAccCheckCloudflareCustomHostnameBasic(altZoneID, rnd, altDomain),
+				Config: testAccCheckCloudflareCustomHostnameBasic(altZoneID, rnd, altDomain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudflareCustomHostnameExists(resourceName, &after),
 					testAccCheckCloudflareCustomHostnameRecreated(&before, &after),
@@ -332,7 +333,7 @@ func testAccCheckCloudflareCustomHostnameExists(n string, customHostname *cloudf
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundCustomHostname, err := client.CustomHostname(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		foundCustomHostname, err := client.CustomHostname(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -369,6 +370,66 @@ func TestAccCloudflareRecord_TtlValidation(t *testing.T) {
 	})
 }
 
+func TestAccCloudflareRecord_ExplicitProxiedFalse(t *testing.T) {
+	t.Parallel()
+	zoneName := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	resourceName := "cloudflare_record." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflareRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareRecordConfigExplicitProxied(zoneID, rnd, zoneName, "false", "300"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "proxied", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ttl", "300"),
+				),
+			},
+			{
+				Config: testAccCheckCloudflareRecordConfigExplicitProxied(zoneID, rnd, zoneName, "true", "1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "proxied", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ttl", "1"),
+				),
+			},
+			{
+				Config: testAccCheckCloudflareRecordConfigExplicitProxied(zoneID, rnd, zoneName, "false", "300"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "proxied", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ttl", "300"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareRecord_MXWithPriorityZero(t *testing.T) {
+	t.Parallel()
+	zoneName := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	resourceName := "cloudflare_record." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflareRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareRecordConfigMXWithPriorityZero(zoneID, rnd, zoneName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "priority", "0"),
+					resource.TestCheckResourceAttr(resourceName, "value", "."),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudflareRecord_TtlValidationUpdate(t *testing.T) {
 	t.Parallel()
 	domain := os.Getenv("CLOUDFLARE_DOMAIN")
@@ -412,7 +473,7 @@ func testAccCheckCloudflareRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.DNSRecord(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		_, err := client.DNSRecord(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Record still exists")
 		}
@@ -424,7 +485,7 @@ func testAccCheckCloudflareRecordDestroy(s *terraform.State) error {
 func testAccManuallyDeleteRecord(record *cloudflare.DNSRecord) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*cloudflare.API)
-		err := client.DeleteDNSRecord(record.ZoneID, record.ID)
+		err := client.DeleteDNSRecord(context.Background(), record.ZoneID, record.ID)
 		if err != nil {
 			return err
 		}
@@ -494,7 +555,7 @@ func testAccCheckCloudflareRecordExists(n string, record *cloudflare.DNSRecord) 
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundRecord, err := client.DNSRecord(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		foundRecord, err := client.DNSRecord(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -642,5 +703,30 @@ resource "cloudflare_record" "foobar" {
 	type = "CNAME"
 	proxied = true
 	ttl = 3600
+}`, zoneID, name, zoneName)
+}
+
+func testAccCheckCloudflareRecordConfigExplicitProxied(zoneID, name, zoneName, proxied, ttl string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_record" "%[2]s" {
+	zone_id = "%[1]s"
+	name = "%[2]s"
+	value = "%[3]s"
+	type = "CNAME"
+	proxied = %[4]s
+	ttl = %[5]s
+}`, zoneID, name, zoneName, proxied, ttl)
+}
+
+func testAccCheckCloudflareRecordConfigMXWithPriorityZero(zoneID, name, zoneName string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_record" "%[2]s" {
+	zone_id = "%[1]s"
+	name = "%[2]s"
+	value = "."
+	type = "MX"
+	priority = 0
+	proxied = false
+	ttl = 300
 }`, zoneID, name, zoneName)
 }

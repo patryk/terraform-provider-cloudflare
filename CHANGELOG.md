@@ -1,5 +1,77 @@
 ## Unreleased
 
+**Improvements**
+
+* `resource/cloudflare_origin_ca`: Ignore decreasing `requested_validity` ([#1043](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1078))
+* `resource/waf_override`: Allow `rules` to be optional ([#1090](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1090))
+
+## 2.21.0 (May 26th, 2021)
+
+- **New resource**: `cloudflare_device_posture_rule` ([#1058](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1058))
+- **New resource**: `cloudflare_teams_list` ([#1058](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1058))
+
+**Improvements**
+
+* provider: Update to terraform-plugin-sdk v1.17.1 ([#1035](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1035), [#1043](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1043))
+* `resource/cloudflare_logpush_job`: Allow `ownership_challenge` to be optional to account for Datadog, Splunk or S3-Compatible endpoints ([#1048](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1048))
+* `resource/cloudflare_access_group`: Add support for `login_method` ([#1066](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1066))
+* `resource/cloudflare_load_balancer`: Add support for `promixity` based steering ([#1072](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1072))
+* `resource/cloudflare_access_application`: Prevent bad CORS configuration when credentials and all origins are permitted ([#1073](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1073))
+* `resource/cloudflare_access_service_tokens`: Allow configuration to manage automatic renewal when the threshold is crossed and Terraform operations are performed within the window ([#1057](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1057))
+* `resource/cloudflare_load_balancer_pool`: Allow support for `Host` header settings ([#1042](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1042))
+
+**Fixes**
+
+* `resource/cloudflare_access_policy`: Allow empty slices in blocks when building policies ([#1034](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1034))
+* `resource/cloudflare_load_balancer`: Fix `override` attributes `pop_pools` and `region_pools` referencing incorrect values causing a panic ([#1039](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1039))
+ 
+## 2.20.0 (April 15th, 2021)
+
+**New resource**: `cloudflare_access_ca_certificate` ([#995](https://github.com/cloudflare/terraform-provider-cloudflare/issues/995))
+
+**Improvements**
+
+* `resource/cloudflare_access_application`: Improve documentation for `Import` usage ([#1002](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1002))
+* `resource/cloudflare_logpush_job`: Update documentation to reflect requirements for `destination_conf` to match across all uses ([#1024](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1024)) 
+* `resource/cloudflare_custom_hostname_fallback`: Better handle service lag when updating existing resources by attempting retries ([#1014](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1014)) 
+* `resource/cloudflare_waf_group`: Simplify error handling using inbuilt helpers ([#1015](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1015)) 
+* `resource/cloudflare_waf_rule`: Simplify error handling using inbuilt helpers ([#1015](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1015)) 
+* `resource/cloudflare_waf_package`: Simplify error handling using inbuilt helpers ([#1015](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1015)) 
+* `resource/cloudflare_access_group`: Add support for `login_method` ([#1018](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1018))
+* provider: Update to cloudflare-go v0.16.0 ([#1018](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1018))
+* provider: Update to terraform-plugin-sdk v1.16.1 ([#1003](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1003))
+* `resource/cloudflare_load_balancer`: Add support for `rules` ([#1016](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1016)) 
+
+## 2.19.2 (March 15th, 2021)
+
+**Fixes**
+
+* `resource/cloudflare_record`: Address regression from 2.19.1 by checking the API response instead of the schema output for `Priority` ([#992](https://github.com/cloudflare/terraform-provider-cloudflare/issues/992))
+ 
+## 2.19.1 (March 11th, 2021)
+
+**Fixes**
+
+* `resource/cloudflare_record`: Update `Priority` handling for MX parked records ([#986](https://github.com/cloudflare/terraform-provider-cloudflare/issues/986))
+ 
+## 2.19.0 (March 10th, 2021)
+
+**Fixes**
+
+* `resource/cloudflare_access_group`: Fix crash when constructing a GSuite group ([#940](https://github.com/cloudflare/terraform-provider-cloudflare/issues/940)) 
+* `resource/cloudflare_access_policy`: Make `precedence` required ([#941](https://github.com/cloudflare/terraform-provider-cloudflare/issues/941)) 
+* `resource/cloudflare_access_group`: Fix crash when constructing a SAML group ([#948](https://github.com/cloudflare/terraform-provider-cloudflare/issues/948)) 
+* `resource/cloudflare_zone`: Update `Retry` logic to look at an available field for passing conditions ([#973](https://github.com/cloudflare/terraform-provider-cloudflare/issues/973))
+* `resource/cloudflare_page_rule`: Allow ignoring/including all query string parameters for `cache_key_fields` ([#975](https://github.com/cloudflare/terraform-provider-cloudflare/issues/975))
+
+**Improvements**
+
+* `resource/cloudflare_access_policy`: Enable zone and account level resources to be imported ([#956](https://github.com/cloudflare/terraform-provider-cloudflare/issues/956)) 
+* `resource/cloudflare_origin_ca_certificate`: Smoother import process with less recreation ([#955](https://github.com/cloudflare/terraform-provider-cloudflare/issues/955)) 
+* provider: Update internals to match `cloudflare-go` 0.14 for better error handling and context aware methods ([#976](https://github.com/cloudflare/terraform-provider-cloudflare/issues/976)) 
+
+## 2.18.0 (February 3rd, 2021)
+
 * **New Resource:** `cloudflare_argo_tunnel` ([#905](https://github.com/cloudflare/terraform-provider-cloudflare/issues/905))
 * **New Resource:** `cloudflare_worker_cron_trigger` ([#926](https://github.com/cloudflare/terraform-provider-cloudflare/issues/926))
 

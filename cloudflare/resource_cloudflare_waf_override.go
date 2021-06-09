@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -34,7 +35,7 @@ func resourceCloudflareWAFOverride() *schema.Resource {
 				},
 			},
 			"rules": {
-				Required: true,
+				Optional: true,
 				Type:     schema.TypeMap,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -79,7 +80,7 @@ func resourceCloudflareWAFOverrideRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*cloudflare.API)
 	zoneID := d.Get("zone_id").(string)
 
-	override, err := client.WAFOverride(zoneID, d.Id())
+	override, err := client.WAFOverride(context.Background(), zoneID, d.Id())
 	if err != nil {
 		if strings.Contains(err.Error(), "wafuriconfig.api.not_found") {
 			log.Printf("[INFO] WAF override %s no longer exists", d.Id())
@@ -91,10 +92,13 @@ func resourceCloudflareWAFOverrideRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("zone_id", zoneID)
 	d.Set("urls", override.URLs)
-	d.Set("rules", override.Rules)
 	d.Set("paused", override.Paused)
 	d.Set("description", override.Description)
 	d.Set("priority", override.Priority)
+
+	if len(override.Rules) != 0 {
+		d.Set("rules", override.Rules)
+	}
 
 	if len(override.Groups) != 0 {
 		d.Set("groups", override.Groups)
@@ -114,7 +118,7 @@ func resourceCloudflareWAFOverrideCreate(d *schema.ResourceData, meta interface{
 	zoneID := d.Get("zone_id").(string)
 	newOverride, _ := buildWAFOverride(d)
 
-	override, err := client.CreateWAFOverride(zoneID, newOverride)
+	override, err := client.CreateWAFOverride(context.Background(), zoneID, newOverride)
 	if err != nil {
 		return fmt.Errorf("failed to create WAF override: %s", err)
 	}
@@ -130,7 +134,7 @@ func resourceCloudflareWAFOverrideUpdate(d *schema.ResourceData, meta interface{
 	overrideID := d.Get("override_id").(string)
 	updatedOverride, _ := buildWAFOverride(d)
 
-	_, err := client.UpdateWAFOverride(zoneID, overrideID, updatedOverride)
+	_, err := client.UpdateWAFOverride(context.Background(), zoneID, overrideID, updatedOverride)
 	if err != nil {
 		return fmt.Errorf("failed to update WAF override: %s", err)
 	}
@@ -143,7 +147,7 @@ func resourceCloudflareWAFOverrideDelete(d *schema.ResourceData, meta interface{
 	overrideID := d.Get("override_id").(string)
 	zoneID := d.Get("zone_id").(string)
 
-	err := client.DeleteWAFOverride(zoneID, overrideID)
+	err := client.DeleteWAFOverride(context.Background(), zoneID, overrideID)
 	if err != nil {
 		return fmt.Errorf("failed to delete WAF override ID %s: %s", overrideID, err)
 	}
@@ -182,12 +186,13 @@ func buildWAFOverride(d *schema.ResourceData) (cloudflare.WAFOverride, error) {
 		builtOverride.URLs = append(builtOverride.URLs, url.(string))
 	}
 
-	rules := d.Get("rules").(map[string]interface{})
-	rulesMap := make(map[string]string)
-	for ruleID, state := range rules {
-		rulesMap[ruleID] = state.(string)
+	if rules, ok := d.GetOk("rules"); ok {
+		rulesMap := make(map[string]string)
+		for ruleID, state := range rules.(map[string]interface{}) {
+			rulesMap[ruleID] = state.(string)
+		}
+		builtOverride.Rules = rulesMap
 	}
-	builtOverride.Rules = rulesMap
 
 	if pausedValue, ok := d.GetOk("paused"); ok {
 		builtOverride.Paused = pausedValue.(bool)

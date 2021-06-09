@@ -1,18 +1,16 @@
 package cloudflare
 
 import (
+	"context"
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
-	"regexp"
 	"sort"
 	"strings"
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	errors "github.com/pkg/errors"
 )
 
 func expandInterfaceToStringList(list interface{}) []string {
@@ -88,7 +86,8 @@ func itemExistsInSlice(slice interface{}, item interface{}) bool {
 	s := reflect.ValueOf(slice)
 
 	if s.Kind() != reflect.Slice {
-		panic("Invalid data-type")
+		log.Print("[DEBUG] invalid data type detected")
+		return false
 	}
 
 	for i := 0; i < s.Len(); i++ {
@@ -111,43 +110,6 @@ func findIndex(a []interface{}, x interface{}) (int, bool) {
 	return 0, false
 }
 
-type CloudflareAPIError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-type CloudflareAPIErrorResponse struct {
-	Errors []CloudflareAPIError `json:"errors"`
-}
-
-func cloudflareErrorIsOneOfCodes(err error, codes []int) bool {
-	errorMsg := errors.Cause(err).Error()
-
-	// We will parse the error message only if it's an error 400, in which
-	// case we need to verify the kind of error.
-	r := regexp.MustCompile(`^HTTP status 400: content "(.*)"$`)
-	submatchs := r.FindStringSubmatch(errorMsg)
-	if submatchs != nil {
-		jsonData := strings.Replace(submatchs[1], "\\\"", "\"", -1)
-		log.Printf("[DEBUG][cloudflareErrorIsCode] error matching status 400, content: %#v", jsonData)
-
-		var cfer CloudflareAPIErrorResponse
-		unmarshalErr := json.Unmarshal([]byte(jsonData), &cfer)
-
-		// We check that there is only one error and that its code
-		// matches what we expected
-		if unmarshalErr == nil && len(cfer.Errors) == 1 {
-			for _, code := range codes {
-				if cfer.Errors[0].Code == code {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
-}
-
 func boolFromString(status string) bool {
 	if status == "on" {
 		return true
@@ -166,7 +128,7 @@ func getAccountIDFromZoneID(d *schema.ResourceData, client *cloudflare.API) (str
 	accountID := d.Get("account_id").(string)
 	if accountID == "" {
 		zoneID := d.Get("zone_id").(string)
-		zone, err := client.ZoneDetails(zoneID)
+		zone, err := client.ZoneDetails(context.Background(), zoneID)
 		if err != nil {
 			return "", fmt.Errorf("error retrieving zone for zone_id %q: %s", zoneID, err)
 		}
@@ -198,7 +160,7 @@ func initIdentifier(d *schema.ResourceData) (*AccessIdentifier, error) {
 	accountID := d.Get("account_id").(string)
 	zoneID := d.Get("zone_id").(string)
 	if accountID == "" && zoneID == "" {
-		return nil, fmt.Errorf("error creating Access Application: zone_id or account_id required")
+		return nil, fmt.Errorf("error creating Access resource: zone_id or account_id required")
 	}
 
 	if accountID != "" {

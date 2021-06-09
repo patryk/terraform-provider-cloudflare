@@ -8,9 +8,9 @@ description: |-
 
 # cloudflare_logpush_job
 
-Provides a resource which manages Cloudflare Logpush jobs. On it's own, this
-resource cannot be automatically created. In order to have this automated, you
-must have:
+Provides a resource which manages Cloudflare Logpush jobs. For Logpush jobs pushing to Amazon S3, Google Cloud Storage,
+Microsoft Azure or Sumo Logic, this resource cannot be automatically created. In order to have this automated, you must
+have:
 
 - `cloudflare_logpush_ownership_challenge`: Configured to generate the challenge
   to confirm ownership of the destination.
@@ -25,6 +25,9 @@ Please see
 [`cloudflare_logpush_ownership_challenge`](/docs/providers/cloudflare/r/logpush_ownership_challenge.html)
 for how to use that resource and the third party provider documentation if you
 choose to automate the intermediate step of fetching the ownership challenge contents.
+
+~> **Important:** If you're using this approach, the `destination_conf` values must
+match identically in all resources. Otherwise the challenge validation will fail.
 
 ```hcl
 resource "cloudflare_logpush_ownership_challenge" "ownership_challenge" {
@@ -43,7 +46,7 @@ resource "cloudflare_logpush_job" "example_job" {
   name = "My-logpush-job"
   logpull_options = "fields=RayID,ClientIP,EdgeStartTimestamp&timestamps=rfc3339"
   destination_conf = "s3://my-bucket-path?region=us-west-2"
-  ownership_challenge = aws_s3_bucket_object.challenge_file.body
+  ownership_challenge = data.aws_s3_bucket_object.challenge_file.body
   dataset = "http_requests"
 }
 ```
@@ -81,7 +84,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the logpush job to create. Must match the regular expression `^[a-zA-Z0-9\-\.]*$`.
 * `zone_id` - (Required) The zone ID where the logpush job should be created.
 * `destination_conf` - (Required) Uniquely identifies a resource (such as an s3 bucket) where data will be pushed. Additional configuration parameters supported by the destination may be included. See [Logpush destination documentation](https://developers.cloudflare.com/logs/logpush/logpush-configuration-api/understanding-logpush-api/#destination).
-* `ownership_challenge` - (Required) Ownership challenge token to prove destination ownership. See [Developer documentation](https://developers.cloudflare.com/logs/logpush/logpush-configuration-api/understanding-logpush-api/#usage).
 * `dataset` - (Required) Which type of dataset resource to use. Available values are `"firewall_events"`, `"http_requests"`, and `"spectrum_events"`.
 * `logpull_options` - (Optional) Configuration string for the Logshare API. It specifies things like requested fields and timestamp formats. See [Logpull options documentation](https://developers.cloudflare.com/logs/logpush/logpush-configuration-api/understanding-logpush-api/#options).
+* `ownership_challenge` - (Optional) Ownership challenge token to prove destination ownership, required when destination is Amazon S3, Google Cloud Storage,
+  Microsoft Azure or Sumo Logic. See [Developer documentation](https://developers.cloudflare.com/logs/logpush/logpush-configuration-api/understanding-logpush-api/#usage).
 * `enabled` - (Optional) Whether to enable the job.

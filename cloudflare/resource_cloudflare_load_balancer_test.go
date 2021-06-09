@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -139,6 +140,41 @@ func TestAccCloudflareLoadBalancer_GeoBalanced(t *testing.T) {
 	})
 }
 
+func TestAccCloudflareLoadBalancer_Rules(t *testing.T) {
+	t.Parallel()
+	var loadBalancer cloudflare.LoadBalancer
+	zone := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_load_balancer." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckCloudflareLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigRules(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// checking our overrides of default values worked
+					resource.TestCheckResourceAttr(name, "description", "rules lb"),
+					resource.TestCheckResourceAttr(name, "rules.0.name", "test rule 1"),
+					resource.TestCheckResourceAttr(name, "rules.0.condition", "dns.qry.type == 28"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.#", "1"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.0.steering_policy", "geo"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.0.session_affinity_attributes.samesite", "Auto"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.0.session_affinity_attributes.secure", "Auto"),
+					resource.TestCheckResourceAttr(name, "rules.#", "3"),
+					resource.TestCheckResourceAttr(name, "rules.1.fixed_response.message_body", "hello"),
+					resource.TestCheckResourceAttr(name, "rules.2.overrides.0.region_pools.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccCloudflareLoadBalancer_DuplicatePool(t *testing.T) {
 	t.Parallel()
 	zone := os.Getenv("CLOUDFLARE_DOMAIN")
@@ -254,7 +290,7 @@ func testAccCheckCloudflareLoadBalancerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.LoadBalancerDetails(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		_, err := client.LoadBalancerDetails(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("load balancer still exists: %s", rs.Primary.ID)
 		}
@@ -275,7 +311,7 @@ func testAccCheckCloudflareLoadBalancerExists(n string, loadBalancer *cloudflare
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundLoadBalancer, err := client.LoadBalancerDetails(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		foundLoadBalancer, err := client.LoadBalancerDetails(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -342,7 +378,7 @@ func testAccManuallyDeleteLoadBalancer(name string, loadBalancer *cloudflare.Loa
 		rs, _ := s.RootModule().Resources[name]
 		client := testAccProvider.Meta().(*cloudflare.API)
 		*initialId = loadBalancer.ID
-		err := client.DeleteLoadBalancer(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		err := client.DeleteLoadBalancer(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -424,6 +460,49 @@ resource "cloudflare_load_balancer" "%[3]s" {
   pop_pools {
     pop = "LAX"
     pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  }
+}`, zoneID, zone, id)
+}
+
+func testAccCheckCloudflareLoadBalancerConfigRules(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-%[3]s.%[2]s"
+  steering_policy = ""
+  description = "rules lb"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  rules {
+    name = "test rule 1"
+    condition = "dns.qry.type == 28"
+    overrides {
+      steering_policy = "geo"
+      session_affinity_attributes = {
+        samesite = "Auto"
+        secure = "Auto"
+      }
+    }
+  }
+  rules {
+    name = "test rule 2"
+    condition = "dns.qry.type == 28"
+    fixed_response = {
+      message_body = "hello"
+      status_code = "200"
+      content_type = "html"
+      location = "www.example.com"
+    }
+  }
+  rules {
+    name = "test rule 3"
+    condition = "dns.qry.type == 28"
+    overrides {
+      region_pools {
+		    region = "ENAM"
+		    pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+	    }
+    }
   }
 }`, zoneID, zone, id)
 }

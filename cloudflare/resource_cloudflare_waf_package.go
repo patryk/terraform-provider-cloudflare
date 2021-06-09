@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
-
-const CLOUDFLARE_INVALID_OR_REMOVED_WAF_PACKAGE_ID_ERROR = 1002
 
 func resourceCloudflareWAFPackage() *schema.Resource {
 	return &schema.Resource{
@@ -53,21 +52,15 @@ func resourceCloudflareWAFPackage() *schema.Resource {
 	}
 }
 
-func errorIsWAFPackageNotFound(err error) bool {
-	return cloudflareErrorIsOneOfCodes(err, []int{
-		CLOUDFLARE_INVALID_OR_REMOVED_WAF_PACKAGE_ID_ERROR,
-	})
-}
-
 func resourceCloudflareWAFPackageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudflare.API)
 
 	packageID := d.Get("package_id").(string)
 	zoneID := d.Get("zone_id").(string)
 
-	pkg, err := client.WAFPackage(zoneID, packageID)
+	pkg, err := client.WAFPackage(context.Background(), zoneID, packageID)
 	if err != nil {
-		if errorIsWAFPackageNotFound(err) {
+		if err.(*cloudflare.APIRequestError).InternalErrorCodeIs(1002) {
 			d.SetId("")
 			return nil
 		}
@@ -90,7 +83,7 @@ func resourceCloudflareWAFPackageCreate(d *schema.ResourceData, meta interface{}
 	sensitivity := d.Get("sensitivity").(string)
 	actionMode := d.Get("action_mode").(string)
 
-	pkg, err := client.WAFPackage(zoneID, packageID)
+	pkg, err := client.WAFPackage(context.Background(), zoneID, packageID)
 	if err != nil {
 		return fmt.Errorf("Unable to find WAF Package %s", packageID)
 	}
@@ -124,7 +117,7 @@ func resourceCloudflareWAFPackageDelete(d *schema.ResourceData, meta interface{}
 	packageID := d.Get("package_id").(string)
 	zoneID := d.Get("zone_id").(string)
 
-	pkg, err := client.WAFPackage(zoneID, packageID)
+	pkg, err := client.WAFPackage(context.Background(), zoneID, packageID)
 	if err != nil {
 		return err
 	}
@@ -140,7 +133,7 @@ func resourceCloudflareWAFPackageDelete(d *schema.ResourceData, meta interface{}
 			ActionMode:  defaultActionMode,
 		}
 
-		_, err = client.UpdateWAFPackage(zoneID, packageID, options)
+		_, err = client.UpdateWAFPackage(context.Background(), zoneID, packageID, options)
 		if err != nil {
 			return err
 		}
@@ -162,7 +155,7 @@ func resourceCloudflareWAFPackageUpdate(d *schema.ResourceData, meta interface{}
 		ActionMode:  actionMode,
 	}
 
-	_, err := client.UpdateWAFPackage(zoneID, packageID, options)
+	_, err := client.UpdateWAFPackage(context.Background(), zoneID, packageID, options)
 	if err != nil {
 		return err
 	}
@@ -184,7 +177,7 @@ func resourceCloudflareWAFPackageImport(d *schema.ResourceData, meta interface{}
 		return nil, fmt.Errorf("invalid id (\"%s\") specified, should be in format \"zoneID/PackageID\" for import", d.Id())
 	}
 
-	pkg, err := client.WAFPackage(zoneID, packageID)
+	pkg, err := client.WAFPackage(context.Background(), zoneID, packageID)
 	if err != nil {
 		return nil, err
 	}

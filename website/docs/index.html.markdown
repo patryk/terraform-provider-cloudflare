@@ -14,7 +14,43 @@ before it can be used.
 
 Use the navigation to the left to read about the available resources.
 
+## Getting Started
+
+Try the [Host a Static Website with S3 and Cloudflare](https://learn.hashicorp.com/tutorials/terraform/cloudflare-static-website) tutorial on HashiCorp Learn. In this tutorial, you will set up a static website using AWS S3 as an object store and Cloudflare for DNS, SSL and CDN, then create Cloudflare page rules to always redirect HTTPS and temporarily redirect certain paths.
+
 ## Example Usage
+
+### Terraform >= 0.13
+
+```hcl
+# Configure the Cloudflare provider using the required_providers stanza required with Terraform 0.13 and beyond
+# You may optionally use version directive to prevent breaking changes occurring unannounced.
+terraform {
+  required_providers {
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "cloudflare" { 
+  email   = var.cloudflare_email
+  api_key = var.cloudflare_api_key
+}
+
+# Create a record
+resource "cloudflare_record" "www" {
+  # ...
+}
+
+# Create a page rule
+resource "cloudflare_page_rule" "www" {
+  # ...
+}
+```
+
+### Terraform < 0.13
 
 ```hcl
 # Configure the Cloudflare provider.

@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -12,7 +13,6 @@ import (
 )
 
 func TestAccCloudflareCustomSSL_Basic(t *testing.T) {
-	t.Parallel()
 	var customSSL cloudflare.ZoneCustomSSL
 	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
 	rnd := generateRandomResourceName()
@@ -66,7 +66,7 @@ func testAccCheckCloudflareCustomSSLDestroy(s *terraform.State) error {
 			continue
 		}
 
-		err := client.DeleteSSL(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		err := client.DeleteSSL(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("cert still exists")
 		}
@@ -87,7 +87,7 @@ func testAccCheckCloudflareCustomSSLExists(n string, customSSL *cloudflare.ZoneC
 		}
 
 		client := testAccProvider.Meta().(*cloudflare.API)
-		foundCustomSSL, err := client.SSLDetails(rs.Primary.Attributes["zone_id"], rs.Primary.ID)
+		foundCustomSSL, err := client.SSLDetails(context.Background(), rs.Primary.Attributes["zone_id"], rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,6 @@ func testAccCheckCloudflareCustomSSLExists(n string, customSSL *cloudflare.ZoneC
 }
 
 func TestAccCloudflareCustomSSLWithEmptyGeoRestrictions(t *testing.T) {
-	t.Parallel()
 	var customSSL cloudflare.ZoneCustomSSL
 	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
 	rnd := generateRandomResourceName()

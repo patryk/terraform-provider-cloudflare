@@ -1,8 +1,10 @@
 package cloudflare
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -50,7 +52,7 @@ func resourceCloudflareLogpushJob() *schema.Resource {
 			},
 			"ownership_challenge": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
@@ -66,14 +68,22 @@ func getJobFromResource(d *schema.ResourceData) (cloudflare.LogpushJob, error) {
 		}
 	}
 
+	destConf := d.Get("destination_conf").(string)
+	ownershipChallenge := d.Get("ownership_challenge").(string)
+	var re = regexp.MustCompile(`^((datadog|splunk)://|s3://.+endpoint=)`)
+
+	if ownershipChallenge == "" && !re.MatchString(destConf) {
+		return cloudflare.LogpushJob{}, fmt.Errorf("ownership_challenge must be set for the provided destination_conf")
+	}
+
 	job := cloudflare.LogpushJob{
 		ID:                 id,
 		Enabled:            d.Get("enabled").(bool),
 		Name:               d.Get("name").(string),
 		Dataset:            d.Get("dataset").(string),
 		LogpullOptions:     d.Get("logpull_options").(string),
-		DestinationConf:    d.Get("destination_conf").(string),
-		OwnershipChallenge: d.Get("ownership_challenge").(string),
+		DestinationConf:    destConf,
+		OwnershipChallenge: ownershipChallenge,
 	}
 
 	return job, nil
@@ -86,7 +96,7 @@ func resourceCloudflareLogpushJobRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("could not extract Logpush job from resource - invalid identifier (%s): %v", d.Id(), err)
 	}
 
-	job, err := client.LogpushJob(d.Get("zone_id").(string), jobID)
+	job, err := client.LogpushJob(context.Background(), d.Get("zone_id").(string), jobID)
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			log.Printf("[INFO] Could not find LogpushJob with id: %q", jobID)
@@ -119,7 +129,7 @@ func resourceCloudflareLogpushJobCreate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Creating Cloudflare Logpush Job from struct: %+v", job)
 
-	j, err := client.CreateLogpushJob(d.Get("zone_id").(string), job)
+	j, err := client.CreateLogpushJob(context.Background(), d.Get("zone_id").(string), job)
 	if err != nil {
 		return fmt.Errorf("error creating logpush job: %v", err)
 	}
@@ -144,7 +154,7 @@ func resourceCloudflareLogpushJobUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] Updating Cloudflare Logpush Job from struct: %+v", job)
 
-	updateErr := client.UpdateLogpushJob(d.Get("zone_id").(string), job.ID, job)
+	updateErr := client.UpdateLogpushJob(context.Background(), d.Get("zone_id").(string), job.ID, job)
 
 	if updateErr != nil {
 		return fmt.Errorf("error updating logpush job: %+v", job.ID)
@@ -162,7 +172,7 @@ func resourceCloudflareLogpushJobDelete(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Deleting Cloudflare Logpush job from zone :%+v with id: %+v", d.Get("zone_id"), job.ID)
 
-	deleteErr := client.DeleteLogpushJob(d.Get("zone_id").(string), job.ID)
+	deleteErr := client.DeleteLogpushJob(context.Background(), d.Get("zone_id").(string), job.ID)
 	if deleteErr != nil {
 		if strings.Contains(err.Error(), "job not found") {
 			log.Printf("[INFO] Could not find logpush job with id: %q", job.ID)

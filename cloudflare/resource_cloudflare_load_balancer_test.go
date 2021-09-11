@@ -506,3 +506,15 @@ resource "cloudflare_load_balancer" "%[3]s" {
   }
 }`, zoneID, zone, id)
 }
+
+func testAccCheckCloudflareLoadBalancerConfigLatitudeLongitude(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-latitude-longitude-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  latitude = 23.5
+  longitude = -11.1
+}`, zoneID, zone, id)
+}

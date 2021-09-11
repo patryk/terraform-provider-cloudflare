@@ -1,9 +1,84 @@
 ## Unreleased
 
+* **New resource**: `cloudflare_teams_account` ([#1173](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1173)) 
+* **New resource**: `cloudflare_teams_rule` ([#1173](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1173))
+
+**Improvements**
+
+* provider: Update to cloudflare-go v0.22.0 ([#1184](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1184)
+* `resource/cloudflare_ruleset`: add support for Transform Rules ([#1169](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1169))
+* `resource/cloudflare_ruleset`: add support for WAF payload logging ([#1174](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1174))
+
+**Fixes**
+
+* `resource/cloudflare_zone_settings_override`: remap `zero_rtt` => `0rtt` for resource delete ([#1175](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1175))
+* `resource/cloudflare_ruleset`: fix state handling for terraform-plugin-sdk v2 ([#1183](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1183))
+
+## 2.26.1 (August 30th, 2021)
+
+**Fixes**
+
+* `resource/cloudflare_ruleset`: Send a single payload for rules instead of many individual payloads to prevent overwriting previous rules ([#1171](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1171))
+
+## 2.26.0 (August 27th, 2021)
+
+* **New resource**: `cloudflare_notification_policy` ([#1138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1138)) 
+* **New resource**: `cloudflare_notification_policy_webhooks` ([#1151](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1151)) 
+* **New resource**: `cloudflare_ruleset` ([#1143](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1143)) 
+* **New resource**: `cloudflare_teams_location` ([#1154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1154)) 
+* **New datasource**: `cloudflare_origin_ca_root_certificate` ([#1158](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1158)) 
+ 
+**Improvements**
+
+* `resource/cloudflare_waiting_room`: Add support for `json_response_enabled` as an argument ([#1122](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1122))
+ 
+## 2.25.0 (August 4th, 2021)
+
+**Improvements**
+
+* `resource/cloudflare_access_device_posture_rule`: Add support for `domain_joined`, `firewall`, `os_version`, and `disk_encryption` ([#1137](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1137))
+* provider: bump `cloudflare-go` to v0.20.0 ([#1146](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1146))
+
+## 2.24.0 (July 19th, 2021)
+
+**Improvements**
+
+* `resource/cloudflare_logpush_job`: Add support for `"nel_reports"` as a dataset ([#1122](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1122))
+* `resource/cloudflare_custom_hostname`: Allow SSL options to be optional when not required ([#1131](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1131))
+* `resource/cloudflare_access_identity_provider`: Support optional Okta API token ([#1119](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1119))
+* `resource/cloudflare_load_balancer_pool`: Add support for load shedding ([#1108](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1108))
+* `resource/cloudflare_load_balancer_pool`: Add support for longitude and latitude ([#1093](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1093))
+
+**Fixes**
+
+* `resource/cloudflare_record`: Use correct `Import` method on resource ([#1116](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1116))
+* `resource/cloudflare_worker_cron_trigger`: Account for deletion of scripts and force a refresh of triggers ([#1121](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1121))
+* `resource/cloudflare_rate_limit`: Handle `origin_traffic` missing from API response ([#1125](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1125))
+* `resource/cloudflare_record`: Support `allow_overwrite` for root records ([#1129](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1129))
+
+## 2.23.0 (June 30th, 2021)
+
+- **New resource**: `cloudflare_waiting_room` ([#1053](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1053)) 
+
+**Improvements**
+
+* `datasource/cloudflare_waf_rules`: Export `default_mode` as an attribute ([#1079](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1079))
+
+**Fixes**
+
+* `resource/cloudflare_access_application`: Revert removal of schema changes causing existing applications unable to re-apply ([#1118](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1118))
+
+## 2.22.0 (June 25th, 2021)
+
+- **New resource**: `cloudflare_static_route` ([#1098](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1098))
+
 **Improvements**
 
 * `resource/cloudflare_origin_ca`: Ignore decreasing `requested_validity` ([#1043](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1078))
 * `resource/waf_override`: Allow `rules` to be optional ([#1090](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1090))
+* `resource/cloudflare_zone`: Don't attempt to set free zone rate plans as that is already the default ([#1102](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1102))
+* `resource/cloudflare_access_application`: Ability to set `type` for Applications ([#1076](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1076))
+* `resource/cloudflare_zone_lockdown`: Update documentation to show examples of multiple configurations ([#1106](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1106))
 
 ## 2.21.0 (May 26th, 2021)
 

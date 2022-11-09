@@ -1,14 +1,29 @@
-## 3.27.0 (Unreleased)
+## 3.28.0 (Unreleased)
+
+BUG FIXES:
+
+* resource/access_application: Fix issue where empty CORS headers state causes panics ([#2010](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2010))
+
+DEPENDENCIES:
+
+* provider: bumps dependabot/fetch-metadata from 1.3.4 to 1.3.5 ([#2008](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2008))
+
+## 3.27.0 (November 2nd, 2022)
 
 FEATURES:
 
 * **New Resource:** `cloudflare_access_organization` ([#1961](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1961))
+* **New Resource:** `cloudflare_dlp_profile` ([#1984](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1984))
+* **New Resource:** `cloudflare_total_tls` ([#1979](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1979))
+* **New Resource:** `cloudflare_waiting_room_rules` ([#1957](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1957))
 
 ENHANCEMENTS:
 
 * resource/cloudflare_access_application: add support for `app_launcher`, `biso`, `dash_sso` and `warp` to the schema ([#1988](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1988))
 * resource/cloudflare_load_balancer_monitor: support defining explicit `account_id` for resources ([#1986](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1986))
 * resource/cloudflare_load_balancer_pool: support defining explicit `account_id` for resources ([#1986](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1986))
+* resource/cloudflare_logpush_job: add support for "access_requests" dataset parameter ([#2001](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2001))
+* resource/cloudflare_teams_list: handle pagination for larger Team List accounts ([#1706](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1706))
 * test: use `T.Setenv` to set env vars in provider tests ([#1985](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1985))
 
 BUG FIXES:
@@ -17,6 +32,7 @@ BUG FIXES:
 
 DEPENDENCIES:
 
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.52.0 to 0.53.0 ([#1995](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1995))
 * provider: bumps github.com/stretchr/testify from 1.8.0 to 1.8.1 ([#1993](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1993))
 
 ## 3.26.0 (19th October, 2022)

@@ -58,7 +58,7 @@ resource "cloudflare_access_group" "test_group" {
 
 ### Optional
 
-- `account_id` (String) The account identifier to target for the resource. Conflicts with `zone_id`.
+- `account_id` (String) The account identifier to target for the resource. Conflicts with `zone_id`. **Modifying this attribute will force creation of a new resource.**
 - `exclude` (Block List) (see [below for nested schema](#nestedblock--exclude))
 - `require` (Block List) (see [below for nested schema](#nestedblock--require))
 - `zone_id` (String) The zone identifier to target for the resource. Conflicts with `account_id`.
@@ -87,6 +87,7 @@ Optional:
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--include--gsuite))
 - `ip` (List of String)
+- `ip_list` (List of String)
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--include--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--include--saml))
@@ -172,6 +173,7 @@ Optional:
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--exclude--gsuite))
 - `ip` (List of String)
+- `ip_list` (List of String)
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--exclude--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--exclude--saml))
@@ -257,6 +259,7 @@ Optional:
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--require--gsuite))
 - `ip` (List of String)
+- `ip_list` (List of String)
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--require--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--require--saml))

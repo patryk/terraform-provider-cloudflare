@@ -30,7 +30,7 @@ resource "cloudflare_account" "example" {
 ### Optional
 
 - `enforce_twofactor` (Boolean) Whether 2FA is enforced on the account. Defaults to `false`.
-- `type` (String) Account type. Available values: `enterprise`, `standard`. Defaults to `standard`.
+- `type` (String) Account type. Available values: `enterprise`, `standard`. Defaults to `standard`. **Modifying this attribute will force creation of a new resource.**
 
 ### Read-Only
 
@@ -39,6 +39,7 @@ resource "cloudflare_account" "example" {
 ## Import
 
 Import is supported using the following syntax:
+
 ```shell
 $ terraform import cloudflare_account.example <account_id>
 ```

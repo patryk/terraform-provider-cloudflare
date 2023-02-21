@@ -1,4 +1,307 @@
-## 3.28.0 (Unreleased)
+## 4.1.0 (Unreleased)
+
+## 4.0.0 (February 21st, 2023)
+
+> **Warning** Prior to upgrading you should ensure you have adequate backups in the event you need to rollback to version 3. This is a major version bump and involves backwards incompatible changes.
+
+[3.x to 4.x upgrade guide](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/guides/version-4-upgrade)
+
+BREAKING CHANGES:
+
+* datasource/cloudflare_waf_groups: removed in favour of `cloudflare_rulesets` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_packages: removed in favour of `cloudflare_rulesets` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_rules: removed in favour of `cloudflare_rulesets` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* provider: `account_id` is no longer available as a global configuration option. Instead, use the resource specific attributes. ([#2139](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2139))
+* resource/cloudflare_access_bookmark: resource has been removed in favour of configuration on `cloudflare_access_application` ([#2136](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2136))
+* resource/cloudflare_access_rule: require explicit `zone_id` or `account_id` and remove implicit fallback to user level rules ([#2157](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2157))
+* resource/cloudflare_account_member: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_account_member: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_argo_tunnel: resource has been renamed to `cloudflare_tunnel` ([#2135](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2135))
+* resource/cloudflare_ip_list: removed in favour of `cloudflare_list` ([#2137](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2137))
+* resource/cloudflare_load_balancer: Migrate session_affinity_attributes from TypeMap to TypeSet ([#1959](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1959))
+* resource/cloudflare_load_balancer: `session_affinity_attributes.drain_duration` is now `TypeInt` instead of `TypeString` ([#1959](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1959))
+* resource/cloudflare_load_balancer_monitor: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_monitor: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_load_balancer_pool: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_pool: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_spectrum_application: `edge_ip_connectivity` is now nested under `edge_ips` as `connectivity` ([#2219](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2219))
+* resource/cloudflare_spectrum_application: `edge_ips.type` is now a required field ([#2219](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2219))
+* resource/cloudflare_spectrum_application: `edge_ips` now contains nested attributes other than IP ranges. `type` and `connectivity` have been added. `edge_ips.ips` contains the static IP addresses that used to reside at `edge_ips`. ([#2219](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2219))
+* resource/cloudflare_waf_group: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_override: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_package: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_rule: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_workers_kv: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_kv_namespace: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv_namespace: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_script: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_script: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_zone: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_zone: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+
+## 3.35.0 (February 20th, 2023)
+
+FEATURES:
+
+* **New Data Source:** `cloudflare_rulesets` ([#2220](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2220))
+
+ENHANCEMENTS:
+
+* resource/cloudflare_argo_tunnel: mark `tunnel_token` as sensitive ([#2231](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2231))
+* resource/cloudflare_device_settings_policy: Add new flag MS IP Exclusion for device policies ([#2236](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2236))
+* resource/cloudflare_dlp_profile: Add new `allowed_match_count` field to profiles ([#2210](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2210))
+
+BUG FIXES:
+
+* resource/cloudflare_logpush_job: fixing typo in comment ([#2238](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2238))
+* resource/cloudflare_record: always send tags object which allows removal of unwanted tags ([#2205](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2205))
+* resource/cloudflare_tunnel_config: use correct notation for nested lists ([#2235](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2235))
+
+INTERNAL:
+
+* internal: bump Go version to 1.20 ([#2243](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2243))
+
+DEPENDENCIES:
+
+* provider: bump golang.org/x/net to v0.7.0 ([#2245](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2245))
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.60.0 to 0.61.0 ([#2240](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2240))
+* provider: bumps github.com/hashicorp/terraform-plugin-framework-validators from 0.9.0 to 0.10.0 ([#2227](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2227))
+* provider: bumps github.com/hashicorp/terraform-plugin-mux from 0.8.0 to 0.9.0 ([#2228](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2228))
+* provider: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.1 to 2.25.0 ([#2239](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2239))
+* provider: bumps golang.org/x/net from 0.6.0 to 0.7.0 ([#2241](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2241))
+
+## 3.34.0 (February 8th, 2023)
+
+BREAKING CHANGES:
+
+* datasource/cloudflare_waf_groups: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_packages: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_rules: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* provider: `account_id` is no longer available as a global configuration option. Instead, use the resource specific attributes. ([#2139](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2139))
+* resource/cloudflare_access_bookmark: resource has been removed in favour of configuration on `cloudflare_access_application` ([#2136](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2136))
+* resource/cloudflare_access_rule: require explicit `zone_id` or `account_id` and remove implicit fallback to user level rules ([#2157](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2157))
+* resource/cloudflare_account_member: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_account_member: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_argo_tunnel: resource has been renamed to `cloudflare_tunnel` ([#2135](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2135))
+* resource/cloudflare_ip_list: removed in favour of `cloudflare_list` ([#2137](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2137))
+* resource/cloudflare_load_balancer: Migrate session_affinity_attributes from TypeMap to TypeSet ([#1959](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1959))
+* resource/cloudflare_load_balancer: `session_affinity_attributes.drain_duration` is now `TypeInt` instead of `TypeString` ([#1959](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1959))
+* resource/cloudflare_load_balancer_monitor: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_monitor: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_load_balancer_pool: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_pool: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_notification_policy: alert types `block_notification_review_accepted` and `workers_uptime` have been removed. ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_notification_policy: alert types `g6_health_alert` has been renamed to `load_balancing_health_alert` ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_notification_policy: alert types `g6_pool_toggle_alert` has been renamed to `load_balancing_pool_enablement_alert` ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_notification_policy: alert types `scriptmonitor_alert_new_max_length_script_url` has been renamed to `scriptmonitor_alert_new_max_length_resource_url` ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_notification_policy: alert types `scriptmonitor_alert_new_scripts` has been renamed to `scriptmonitor_alert_new_resources` ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_waf_group: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_override: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_package: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_rule: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_workers_kv: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_kv_namespace: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv_namespace: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_script: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_script: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_zone: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_zone: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+
+FEATURES:
+
+* **New Resource:** `cloudflare_mtls_certificate` ([#2182](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2182))
+* **New Resource:** `cloudflare_queue` ([#2134](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2134))
+
+ENHANCEMENTS:
+
+* resource/cloudflare_notification_policy: alert types `block_notification_block_removed`, `fbm_dosd_attack`, `scriptmonitor_alert_new_max_length_resource_url`, `scriptmonitor_alert_new_resources`, `tunnel_health_event`, `tunnel_update_event` have been added. ([#2215](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2215))
+* resource/cloudflare_ruleset: Preserve IDs of unmodified rules when updating rulesets ([#2172](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2172))
+* resource/cloudflare_ruleset: add support for `score_per_period` and `score_response_header_name` ([#2177](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2177))
+* resource/cloudflare_worker_script: add support for `queue_binding` ([#2134](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2134))
+
+BUG FIXES:
+
+* resource/cloudflare_account_member: allow `status` to be computed when not provided ([#2217](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2217))
+* resource/cloudflare_page_rule: fix failing page rules acceptance tests ([#2213](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2213))
+* resource/cloudflare_page_rule: make cache_key_fields optional to align with API constraints ([#2192](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2192))
+* resource/cloudflare_page_rule: remove empty cookie and header fields when applying this resource ([#2208](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2208))
+* resource/cloudflare_pages_project: changing `name` will now force recreation of the project ([#2216](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2216))
+
+DEPENDENCIES:
+
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.59.0 to 0.60.0 ([#2204](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2204))
+* provider: bumps goreleaser/goreleaser-action from 4.1.0 to 4.2.0 ([#2201](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2201))
+
+## 3.33.1 (January 25th, 2023)
+
+BUG FIXES:
+
+* provider: remove conflicting `ExactlyOneOf` schema validation from framework schema ([#2185](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2185))
+
+## 3.33.0 (January 25th, 2023)
+
+BREAKING CHANGES:
+
+* datasource/cloudflare_waf_groups: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_packages: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* datasource/cloudflare_waf_rules: removed with no current replacement ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* provider: `account_id` is no longer available as a global configuration option. Instead, use the resource specific attributes. ([#2139](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2139))
+* resource/cloudflare_access_bookmark: resource has been removed in favour of configuration on `cloudflare_access_application` ([#2136](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2136))
+* resource/cloudflare_access_rule: require explicit `zone_id` or `account_id` and remove implicit fallback to user level rules ([#2157](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2157))
+* resource/cloudflare_account_member: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_account_member: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_argo_tunnel: resource has been renamed to `cloudflare_tunnel` ([#2135](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2135))
+* resource/cloudflare_ip_list: removed in favour of `cloudflare_list` ([#2137](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2137))
+* resource/cloudflare_load_balancer_monitor: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_monitor: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_load_balancer_pool: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_load_balancer_pool: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_waf_group: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_override: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_package: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_waf_rule: removed in favour of `cloudflare_ruleset` ([#2138](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2138))
+* resource/cloudflare_workers_kv: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_kv_namespace: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_kv_namespace: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_workers_script: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_workers_script: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+* resource/cloudflare_zone: `account_id` is now required ([#2153](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2153))
+* resource/cloudflare_zone: no longer sets `client.AccountID` internally and relies on the resource provided value ([#2154](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2154))
+
+ENHANCEMENTS:
+
+* provider: mux `terraform-plugin-sdk/v2` and `terraform-plugin-framework` ([#2170](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2170))
+* resource/cloudflare_access_group: supports ip_list property. ([#2073](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2073))
+* resource/cloudflare_access_organization: add support for `user_seat_expiration_inactive_time` ([#2115](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2115))
+* resource/cloudflare_ruleset: do not let edge_ttl: default be zero ([#2143](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2143))
+* resource/cloudflare_teams_accounts: adds support for `mailto_address` and `mailto_subject` blockpage settings ([#2146](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2146))
+* resource/cloudflare_teams_rules: adds egress rule settings. ([#2159](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2159))
+
+BUG FIXES:
+
+* resource/cloudflare_record: fix issue with DNS comments and tags not being set for new records ([#2148](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2148))
+
+DEPENDENCIES:
+
+* provider: bumps dependabot/fetch-metadata from 1.3.5 to 1.3.6 ([#2183](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2183))
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.58.1 to 0.59.0 ([#2166](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2166))
+
+## 3.32.0 (January 11th, 2023)
+
+FEATURES:
+
+* **New Resource:** `cloudflare_device_managed_networks` ([#2126](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2126))
+
+ENHANCEMENTS:
+
+* provider: `X-Auth-Email`, `X-Auth-Key`, `X-Auth-User-Service-Key` and `Authorization` values are now automatically redacted from debug logs ([#2123](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2123))
+* provider: use inbuilt cloudflare-go logger for HTTP interactions ([#2123](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2123))
+* resource/cloudflare_device_posture_rule: add ability to create crowdstrike s2s posture rule creation ([#2128](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2128))
+* resource/cloudflare_origin_ca: support all authentication schemes ([#2124](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2124))
+* resource/cloudflare_pages_project: adds support for `always_use_latest_compatibility_date`, `fail_open`, `service_binding` and `usage_model` ([#2083](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2083))
+* resource/cloudflare_record: add support for tags and comments. ([#2105](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2105))
+
+DEPENDENCIES:
+
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.57.1 to 0.58.1 ([#2122](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2122))
+
+## 3.31.0 (December 28th, 2022)
+
+NOTES:
+
+* resource/cloudflare_worker_script: supports explicit `account_id` instead of inheriting global values ([#2102](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2102))
+
+FEATURES:
+
+* **New Resource:** `cloudflare_tiered_cache` ([#2101](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2101))
+
+ENHANCEMENTS:
+
+* resource/cloudflare_access_application: makes allowed_idps type to set ([#2094](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2094))
+* resource/cloudflare_custom_hostname: add support for defining custom metadata ([#2107](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2107))
+
+BUG FIXES:
+
+* resource/cloudflare_api_shield: allow for empty auth_id_characteristics ([#2091](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2091))
+* resource/cloudflare_ruleset: allow edge_ttl -> default to be optional ([#2097](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2097))
+
+DEPENDENCIES:
+
+* provider: bumps actions/stale from 6 to 7 ([#2098](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2098))
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.56.0 to 0.57.0 ([#2102](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2102))
+
+## 3.30.0 (December 14th, 2022)
+
+FEATURES:
+
+* **New Data Source:** `cloudflare_load_balancer_pools` ([#1228](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1228))
+* **New Resource:** `cloudflare_url_normalization_settings` ([#1878](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1878))
+
+ENHANCEMENTS:
+
+* resource/cloudflare_workers_script: add support for `analytics_engine_binding` bindings ([#2051](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2051))
+
+BUG FIXES:
+
+* resource/access_application: fix issue where session_duration always showed a diff for bookmark apps ([#2076](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2076))
+* resource/cloudflare_ruleset: fix issue where SSL setting is based of security level ([#2088](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2088))
+* resource/cloudflare_split_tunnel: handle nested attribute changes and ignore ordering ([#2066](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2066))
+
+DEPENDENCIES:
+
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.55.0 to 0.56.0 ([#2075](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2075))
+* provider: bumps goreleaser/goreleaser-action from 3.2.0 to 4.1.0 ([#2087](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2087))
+
+## 3.29.0 (November 30th, 2022)
+
+NOTES:
+
+* datasource/api_token_permission_groups: `permissions` attribute has been deprecated in favour of individual resource level attributes. ([#1960](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1960))
+
+FEATURES:
+
+* **New Resource:** `cloudflare_device_settings_policy` ([#1926](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1926))
+* **New Resource:** `cloudflare_tunnel_config` ([#2041](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2041))
+
+ENHANCEMENTS:
+
+* resource/cloudflare_fallback_domain: Add creating fallback domains for device policies ([#1926](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1926))
+* resource/cloudflare_logpush_job: add support for `workers_trace_events` ([#2025](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2025))
+* resource/cloudflare_origin_ca_certificate: add logic to renew certificate and add a new flag to set if we should renew earlier ([#2048](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2048))
+* resource/cloudflare_origin_ca_certificate: trigger a replacement when `csr` is changed ([#2055](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2055))
+* resource/cloudflare_origin_ca_certificate: trigger a replacement when `validity` is changed ([#2046](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2046))
+* resource/cloudflare_pages_domain: add note about needing to make a separate `cloudflare_record`. ([#2060](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2060))
+* resource/cloudflare_pages_project: add note about linking git accounts to Cloudflare account. ([#2060](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2060))
+* resource/cloudflare_ruleset: add support for importing existing resources ([#2054](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2054))
+* resource/cloudflare_split_tunnel: Add configuring split tunnel for device policies ([#1926](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1926))
+* resource/cloudflare_workers_kv: add support for explicitly setting `account_id` on the resource ([#2049](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2049))
+* resource/cloudflare_workers_kv_namespace: add support for explicitly setting `account_id` on the resource ([#2049](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2049))
+* resource/cloudflare_workers_kv_namespace: swap internals to use new method signatures from cloudflare-go release ([#2049](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2049))
+
+BUG FIXES:
+
+* datasource/api_token_permission_groups: add `user`, `account` and `zone` attributes to contain only those specific resource level permissions. ([#1960](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1960))
+* resource/access_policy: Fix issue where only last SAML rule group was applied in
+Access policy ([#2033](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2033))
+* resource/cloudflare_account: Fix uninitialized cloudflare.Account.Settings ([#2034](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2034))
+* resource/cloudflare_custom_hostname: remove `ForceNew` on `wait_for_ssl_pending_validation` ([#2027](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2027))
+* resource/cloudflare_list: Do not reapply changes if only list order changed. ([#2063](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2063))
+* resource/cloudflare_record: Fix null MX record creation ([#2038](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2038))
+* resource/cloudflare_spectrum_application: ignore ordering of `edge_ips` ([#2032](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2032))
+* resource/cloudflare_workers_kv: `key` changes force creation of a new resource ([#2044](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2044))
+
+DEPENDENCIES:
+
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.54.0 to 0.55.0 ([#2049](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2049))
+
+## 3.28.0 (November 16th, 2022)
+
+ENHANCEMENTS:
+
+* resource/cloudflare_zone: add new plans for zone subscriptions ([#2023](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2023))
 
 BUG FIXES:
 
@@ -7,6 +310,8 @@ BUG FIXES:
 DEPENDENCIES:
 
 * provider: bumps dependabot/fetch-metadata from 1.3.4 to 1.3.5 ([#2008](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2008))
+* provider: bumps github.com/cloudflare/cloudflare-go from 0.53.0 to 0.54.0 ([#2016](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2016))
+* provider: bumps github.com/hashicorp/terraform-plugin-sdk/v2 from 2.24.0 to 2.24.1 ([#2024](https://github.com/cloudflare/terraform-provider-cloudflare/issues/2024))
 
 ## 3.27.0 (November 2nd, 2022)
 
@@ -35,7 +340,7 @@ DEPENDENCIES:
 * provider: bumps github.com/cloudflare/cloudflare-go from 0.52.0 to 0.53.0 ([#1995](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1995))
 * provider: bumps github.com/stretchr/testify from 1.8.0 to 1.8.1 ([#1993](https://github.com/cloudflare/terraform-provider-cloudflare/issues/1993))
 
-## 3.26.0 (19th October, 2022)
+## 3.26.0 (October 19th, 2022)
 
 ENHANCEMENTS:
 

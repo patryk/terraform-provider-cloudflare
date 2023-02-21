@@ -17,7 +17,7 @@ across all zones within the same account.
 # IP list
 resource "cloudflare_list" "example" {
   account_id  = "f037e56e89293a057740de681ac9abbe"
-  name        = "example list"
+  name        = "example_list"
   description = "example IPs for a list"
   kind        = "ip"
 
@@ -39,7 +39,7 @@ resource "cloudflare_list" "example" {
 # Redirect list
 resource "cloudflare_list" "example" {
   account_id  = "f037e56e89293a057740de681ac9abbe"
-  name        = "example list"
+  name        = "example_list"
   description = "example redirects for a list"
   kind        = "redirect"
 
@@ -76,12 +76,12 @@ resource "cloudflare_list" "example" {
 
 - `account_id` (String) The account identifier to target for the resource.
 - `kind` (String) The type of items the list will contain.
-- `name` (String) The name of the list.
+- `name` (String) The name of the list. **Modifying this attribute will force creation of a new resource.**
 
 ### Optional
 
 - `description` (String) An optional description of the list.
-- `item` (Block List) (see [below for nested schema](#nestedblock--item))
+- `item` (Block Set) (see [below for nested schema](#nestedblock--item))
 
 ### Read-Only
 
@@ -125,6 +125,7 @@ Optional:
 ## Import
 
 Import is supported using the following syntax:
+
 ```shell
 $ terraform import cloudflare_list.example <account_id>/<list_id>
 ```

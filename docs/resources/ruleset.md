@@ -222,7 +222,7 @@ resource "cloudflare_ruleset" "http_origin_example" {
     action = "route"
     action_parameters {
       host_header = "some.host"
-      origin = {
+      origin {
         host = "some.host"
         port = 80
       }
@@ -427,7 +427,7 @@ resource "cloudflare_ruleset" "http_config_rules_example" {
 ### Required
 
 - `kind` (String) Type of Ruleset to create. Available values: `custom`, `managed`, `root`, `schema`, `zone`.
-- `name` (String) Name of the ruleset.
+- `name` (String) Name of the ruleset. **Modifying this attribute will force creation of a new resource.**
 - `phase` (String) Point in the request/response lifecycle where the ruleset will be created. Available values: `ddos_l4`, `ddos_l7`, `http_custom_errors`, `http_log_custom_fields`, `http_request_cache_settings`, `http_request_firewall_custom`, `http_request_firewall_managed`, `http_request_late_transform`, `http_request_late_transform_managed`, `http_request_main`, `http_request_origin`, `http_request_dynamic_redirect`, `http_request_redirect`, `http_request_sanitize`, `http_request_transform`, `http_response_firewall_managed`, `http_response_headers_transform`, `http_response_headers_transform_managed`, `magic_transit`, `http_ratelimit`, `http_request_sbfm`, `http_config_settings`.
 
 ### Optional
@@ -456,6 +456,7 @@ Optional:
 - `description` (String) Brief summary of the ruleset rule and its intended use.
 - `enabled` (Boolean) Whether the rule is active.
 - `exposed_credential_check` (Block List, Max: 1) List of parameters that configure exposed credential checks. (see [below for nested schema](#nestedblock--rules--exposed_credential_check))
+- `last_updated` (String) The most recent update to this rule.
 - `logging` (Block List, Max: 1) List parameters to configure how the rule generates logs. (see [below for nested schema](#nestedblock--rules--logging))
 - `ratelimit` (Block List, Max: 1) List of parameters that configure HTTP rate limiting behaviour. (see [below for nested schema](#nestedblock--rules--ratelimit))
 
@@ -614,11 +615,11 @@ Optional:
 
 Required:
 
-- `default` (Number) Default edge TTL.
 - `mode` (String) Mode of the edge TTL.
 
 Optional:
 
+- `default` (Number) Default edge TTL.
 - `status_code_ttl` (Block List) Edge TTL for the status codes. (see [below for nested schema](#nestedblock--rules--action_parameters--edge_ttl--status_code_ttl))
 
 <a id="nestedblock--rules--action_parameters--edge_ttl--status_code_ttl"></a>
@@ -821,7 +822,17 @@ Optional:
 - `period` (Number) The period of time to consider (in seconds) when evaluating the request rate.
 - `requests_per_period` (Number) The number of requests over the period of time that will trigger the Rate Limiting rule.
 - `requests_to_origin` (Boolean) Whether to include requests to origin within the Rate Limiting count.
+- `score_per_period` (Number) The maximum aggregate score over the period of time that will trigger Rate Limiting rule.
+- `score_response_header_name` (String) Name of HTTP header in the response, set by the origin server, with the score for the current request.
 
 ## Import
 
-Import is not supported for this resource.
+Import is supported using the following syntax:
+
+```shell
+# Import an account scoped Ruleset configuration.
+$ terraform import cloudflare_ruleset.example account/<account_id>/<ruleset_id>
+
+# Import a zone scoped Ruleset configuration.
+$ terraform import cloudflare_ruleset.example zone/<zone_id>/<ruleset_id>
+```

@@ -49,14 +49,15 @@ resource "cloudflare_access_service_token" "my_app" {
 
 ### Read-Only
 
-- `client_id` (String) UUID client ID associated with the Service Token.
-- `client_secret` (String, Sensitive) A secret for interacting with Access protocols.
+- `client_id` (String) UUID client ID associated with the Service Token. **Modifying this attribute will force creation of a new resource.**
+- `client_secret` (String, Sensitive) A secret for interacting with Access protocols. **Modifying this attribute will force creation of a new resource.**
 - `expires_at` (String) Date when the token expires.
 - `id` (String) The ID of this resource.
 
 ## Import
 
 Import is supported using the following syntax:
+
 ```shell
 # If you are importing an Access Service Token you will not have the
 # client_secret available in the state for use. The client_secret is only

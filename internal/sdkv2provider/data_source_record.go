@@ -20,7 +20,7 @@ func dataSourceCloudflareRecord() *schema.Resource {
 		ReadContext: dataSourceCloudflareRecordRead,
 		Schema: map[string]*schema.Schema{
 			consts.ZoneIDSchemaKey: {
-				Description: "The zone identifier to target for the resource.",
+				Description: consts.ZoneIDSchemaDescription,
 				Type:        schema.TypeString,
 				Required:    true,
 			},
@@ -33,7 +33,7 @@ func dataSourceCloudflareRecord() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "A",
-				ValidateFunc: validation.StringInSlice([]string{"A", "AAAA", "CAA", "CNAME", "TXT", "SRV", "LOC", "MX", "NS", "SPF", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "TLSA", "URI", "PTR", "HTTPS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"A", "AAAA", "CAA", "CNAME", "TXT", "SRV", "LOC", "MX", "NS", "SPF", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "TLSA", "URI", "PTR", "HTTPS", "SVCB"}, false),
 				Description:  "DNS record type to filter record results on.",
 			},
 			"priority": {

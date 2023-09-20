@@ -11,7 +11,7 @@ import (
 func resourceCloudflareLoadBalancerMonitorSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description: "The account identifier to target for the resource.",
+			Description: consts.AccountIDSchemaDescription,
 			Type:        schema.TypeString,
 			Required:    true,
 		},
@@ -84,6 +84,20 @@ func resourceCloudflareLoadBalancerMonitorSchema() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "Do not validate the certificate when monitor use HTTPS.  Only valid if `type` is \"http\" or \"https\"",
+		},
+
+		"consecutive_down": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     0,
+			Description: "To be marked unhealthy the monitored origin must fail this healthcheck N consecutive times.",
+		},
+
+		"consecutive_up": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     0,
+			Description: "To be marked healthy the monitored origin must pass this healthcheck N consecutive times.",
 		},
 
 		"expected_body": {

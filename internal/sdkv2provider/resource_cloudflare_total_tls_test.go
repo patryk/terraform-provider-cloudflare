@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func testTotalTLS(rnd, zoneID string) string {
@@ -35,6 +35,11 @@ func TestAccCloudflareTotalTLS(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "enabled", "true"),
 					resource.TestCheckResourceAttr(name, "certificate_authority", "google"),
 				),
+			},
+			{
+				ImportState:       true,
+				ImportStateVerify: true,
+				ResourceName:      name,
 			},
 		},
 	})

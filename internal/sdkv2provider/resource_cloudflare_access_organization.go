@@ -49,12 +49,7 @@ func resourceCloudflareAccessOrganizationRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 
-	var organization cloudflare.AccessOrganization
-	if identifier.Type == AccountType {
-		organization, _, err = client.AccessOrganization(ctx, identifier.Value)
-	} else {
-		organization, _, err = client.ZoneLevelAccessOrganization(ctx, identifier.Value)
-	}
+	organization, _, err := client.GetAccessOrganization(ctx, identifier, cloudflare.GetAccessOrganizationParams{})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error fetching access organization: %w", err))
 	}
@@ -62,11 +57,20 @@ func resourceCloudflareAccessOrganizationRead(ctx context.Context, d *schema.Res
 	d.Set("name", organization.Name)
 	d.Set("auth_domain", organization.AuthDomain)
 	d.Set("is_ui_read_only", organization.IsUIReadOnly)
+	d.Set("ui_read_only_toggle_reason", organization.UIReadOnlyToggleReason)
 	d.Set("user_seat_expiration_inactive_time", organization.UserSeatExpirationInactiveTime)
+	d.Set("auto_redirect_to_identity", organization.AutoRedirectToIdentity)
 
 	loginDesign := convertLoginDesignStructToSchema(ctx, d, &organization.LoginDesign)
 	if loginDesignErr := d.Set("login_design", loginDesign); loginDesignErr != nil {
 		return diag.FromErr(fmt.Errorf("error setting Access Organization Login Design configuration: %w", loginDesignErr))
+	}
+
+	if &organization.CustomPages != nil {
+		customPages := convertCustomPageStructToSchema(ctx, d, &organization.CustomPages)
+		if customPagesErr := d.Set("custom_pages", customPages); customPagesErr != nil {
+			return diag.FromErr(fmt.Errorf("error setting Access Organization Custom Pages configuration: %w", customPagesErr))
+		}
 	}
 
 	return nil
@@ -75,14 +79,20 @@ func resourceCloudflareAccessOrganizationRead(ctx context.Context, d *schema.Res
 func resourceCloudflareAccessOrganizationUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudflare.API)
 
-	updatedAccessOrganization := cloudflare.AccessOrganization{
+	updatedAccessOrganization := cloudflare.UpdateAccessOrganizationParams{
 		Name:                           d.Get("name").(string),
 		AuthDomain:                     d.Get("auth_domain").(string),
 		IsUIReadOnly:                   cloudflare.BoolPtr(d.Get("is_ui_read_only").(bool)),
 		UserSeatExpirationInactiveTime: d.Get("user_seat_expiration_inactive_time").(string),
+		AutoRedirectToIdentity:         cloudflare.BoolPtr(d.Get("auto_redirect_to_identity").(bool)),
 	}
 	loginDesign := convertLoginDesignSchemaToStruct(d)
 	updatedAccessOrganization.LoginDesign = *loginDesign
+
+	if _, ok := d.GetOk("custom_pages"); ok {
+		customPagesStruct := convertCustomPageSchemaToStruct(d)
+		updatedAccessOrganization.CustomPages = *customPagesStruct
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating Cloudflare Access Organization from struct: %+v", updatedAccessOrganization))
 
@@ -91,13 +101,9 @@ func resourceCloudflareAccessOrganizationUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	if identifier.Type == AccountType {
-		_, err = client.UpdateAccessOrganization(ctx, identifier.Value, updatedAccessOrganization)
-	} else {
-		_, err = client.UpdateZoneLevelAccessOrganization(ctx, identifier.Value, updatedAccessOrganization)
-	}
+	_, err = client.UpdateAccessOrganization(ctx, identifier, updatedAccessOrganization)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error updating Access Organization for %s %q: %w", identifier.Type, identifier.Value, err))
+		return diag.FromErr(fmt.Errorf("error updating Access Organization for %s %q: %w", identifier.Level, identifier.Identifier, err))
 	}
 
 	return resourceCloudflareAccessOrganizationRead(ctx, d, meta)

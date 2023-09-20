@@ -39,7 +39,7 @@ resource "cloudflare_device_posture_rule" "eaxmple" {
 ### Required
 
 - `account_id` (String) The account identifier to target for the resource.
-- `type` (String) The device posture rule type. Available values: `serial_number`, `file`, `application`, `gateway`, `warp`, `domain_joined`, `os_version`, `disk_encryption`, `firewall`, `workspace_one`, `unique_client_id`, `crowdstrike_s2s`.
+- `type` (String) The device posture rule type. Available values: `serial_number`, `file`, `application`, `gateway`, `warp`, `domain_joined`, `os_version`, `disk_encryption`, `firewall`, `client_certificate`, `workspace_one`, `unique_client_id`, `crowdstrike_s2s`, `sentinelone`, `kolide`, `tanium_s2s`, `intune`, `sentinelone_s2s`.
 
 ### Optional
 
@@ -59,12 +59,22 @@ resource "cloudflare_device_posture_rule" "eaxmple" {
 
 Optional:
 
+- `active_threats` (Number) The number of active threats from SentinelOne.
+- `certificate_id` (String) The UUID of a Cloudflare managed certificate.
+- `check_disks` (Set of String) Specific volume(s) to check for encryption.
+- `cn` (String) The common name for a certificate.
 - `compliance_status` (String) The workspace one device compliance status. Available values: `compliant`, `noncompliant`.
 - `connection_id` (String) The workspace one connection id.
+- `count_operator` (String) The count comparison operator for kolide. Available values: `>`, `>=`, `<`, `<=`, `==`.
 - `domain` (String) The domain that the client must join.
+- `eid_last_seen` (String) The datetime a device last seen in RFC 3339 format from Tanium.
 - `enabled` (Boolean) True if the firewall must be enabled.
 - `exists` (Boolean) Checks if the file should exist.
 - `id` (String) The Teams List id.
+- `infected` (Boolean) True if SentinelOne device is infected.
+- `is_active` (Boolean) True if SentinelOne device is active.
+- `issue_count` (String) The number of issues for kolide.
+- `network_status` (String) The network status from SentinelOne. Available values: `connected`, `disconnected`, `disconnecting`, `connecting`.
 - `operator` (String) The version comparison operator. Available values: `>`, `>=`, `<`, `<=`, `==`.
 - `os` (String) OS signal score from Crowdstrike. Value must be between 1 and 100.
 - `os_distro_name` (String) The operating system excluding version information.
@@ -72,10 +82,12 @@ Optional:
 - `overall` (String) Overall ZTA score from Crowdstrike. Value must be between 1 and 100.
 - `path` (String) The path to the file.
 - `require_all` (Boolean) True if all drives must be encrypted.
+- `risk_level` (String) The risk level from Tanium. Available values: `low`, `medium`, `high`, `critical`.
 - `running` (Boolean) Checks if the application should be running.
 - `sensor_config` (String) Sensor signal score from Crowdstrike. Value must be between 1 and 100.
 - `sha256` (String) The sha256 hash of the file.
 - `thumbprint` (String) The thumbprint of the file certificate.
+- `total_score` (Number) The total score from Tanium.
 - `version` (String) The operating system semantic version.
 - `version_operator` (String) The version comparison operator for crowdstrike. Available values: `>`, `>=`, `<`, `<=`, `==`.
 

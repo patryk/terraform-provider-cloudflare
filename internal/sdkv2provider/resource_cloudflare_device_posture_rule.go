@@ -180,6 +180,12 @@ func setDevicePostureRuleInput(rule *cloudflare.DevicePostureRule, d *schema.Res
 		if require_all, ok := d.GetOk("input.0.require_all"); ok {
 			input.RequireAll = require_all.(bool)
 		}
+		if check_disks, ok := d.GetOk("input.0.check_disks"); ok {
+			values := check_disks.(*schema.Set).List()
+			for _, value := range values {
+				input.CheckDisks = append(input.CheckDisks, value.(string))
+			}
+		}
 		if enabled, ok := d.GetOk("input.0.enabled"); ok {
 			input.Enabled = enabled.(bool)
 		}
@@ -215,6 +221,39 @@ func setDevicePostureRuleInput(rule *cloudflare.DevicePostureRule, d *schema.Res
 		}
 		if versionOperator, ok := d.GetOk("input.0.version_operator"); ok {
 			input.VersionOperator = versionOperator.(string)
+		}
+		if countOperator, ok := d.GetOk("input.0.count_operator"); ok {
+			input.CountOperator = countOperator.(string)
+		}
+		if issueCount, ok := d.GetOk("input.0.issue_count"); ok {
+			input.IssueCount = issueCount.(string)
+		}
+		if certificateId, ok := d.GetOk("input.0.certificate_id"); ok {
+			input.CertificateID = certificateId.(string)
+		}
+		if commonName, ok := d.GetOk("input.0.cn"); ok {
+			input.CommonName = commonName.(string)
+		}
+		if activeThreats, ok := d.GetOk("input.0.active_threats"); ok {
+			input.ActiveThreats = activeThreats.(int)
+		}
+		if networkStatus, ok := d.GetOk("input.0.network_status"); ok {
+			input.NetworkStatus = networkStatus.(string)
+		}
+		if infected, ok := d.GetOk("input.0.infected"); ok {
+			input.Infected = infected.(bool)
+		}
+		if isActive, ok := d.GetOk("input.0.is_active"); ok {
+			input.IsActive = isActive.(bool)
+		}
+		if eidLastSeen, ok := d.GetOk("input.0.eid_last_seen"); ok {
+			input.EidLastSeen = eidLastSeen.(string)
+		}
+		if riskLevel, ok := d.GetOk("input.0.risk_level"); ok {
+			input.RiskLevel = riskLevel.(string)
+		}
+		if totalScore, ok := d.GetOk("input.0.total_score"); ok {
+			input.TotalScore = totalScore.(int)
 		}
 		rule.Input = input
 	}
@@ -260,6 +299,7 @@ func convertInputToSchema(input cloudflare.DevicePostureRuleInput) []map[string]
 		"sha256":             input.Sha256,
 		"running":            input.Running,
 		"require_all":        input.RequireAll,
+		"check_disks":        input.CheckDisks,
 		"enabled":            input.Enabled,
 		"version":            input.Version,
 		"os_distro_name":     input.OsDistroName,
@@ -272,6 +312,17 @@ func convertInputToSchema(input cloudflare.DevicePostureRuleInput) []map[string]
 		"overall":            input.Overall,
 		"sensor_config":      input.SensorConfig,
 		"version_operator":   input.VersionOperator,
+		"count_operator":     input.CountOperator,
+		"issue_count":        input.IssueCount,
+		"certificate_id":     input.CertificateID,
+		"cn":                 input.CommonName,
+		"active_threats":     input.ActiveThreats,
+		"network_status":     input.NetworkStatus,
+		"infected":           input.Infected,
+		"is_active":          input.IsActive,
+		"eid_last_seen":      input.EidLastSeen,
+		"risk_level":         input.RiskLevel,
+		"total_score":        input.TotalScore,
 	}
 
 	return []map[string]interface{}{m}

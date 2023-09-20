@@ -23,7 +23,7 @@ zone needs to use the `zone_id` argument.
 
 ```terraform
 # Allowing access to `test@example.com` email address only
-resource "cloudflare_access_group" "test_group" {
+resource "cloudflare_access_group" "example" {
   account_id = "f037e56e89293a057740de681ac9abbe"
   name       = "staging group"
 
@@ -34,7 +34,7 @@ resource "cloudflare_access_group" "test_group" {
 
 # Allowing `test@example.com` to access but only when coming from a
 # specific IP.
-resource "cloudflare_access_group" "test_group" {
+resource "cloudflare_access_group" "example" {
   account_id = "f037e56e89293a057740de681ac9abbe"
   name       = "staging group"
 
@@ -42,8 +42,21 @@ resource "cloudflare_access_group" "test_group" {
     email = ["test@example.com"]
   }
 
-  require = {
+  require {
     ip = [var.office_ip]
+  }
+}
+
+# Allow members of an Azure Group. The ID is the group UUID (id) in Azure.
+resource "cloudflare_access_group" "example" {
+  account_id = "f037e56e89293a057740de681ac9abbe"
+  name       = "test_group"
+
+  include {
+    azure {
+      identity_provider_id = "ca298b82-93b5-41bf-bc2d-10493f09b761"
+      id                   = ["86773093-5feb-48dd-814b-7ccd3676ff50"]
+    }
   }
 }
 ```
@@ -73,6 +86,7 @@ resource "cloudflare_access_group" "test_group" {
 Optional:
 
 - `any_valid_service_token` (Boolean)
+- `auth_context` (Block List) (see [below for nested schema](#nestedblock--include--auth_context))
 - `auth_method` (String)
 - `azure` (Block List) (see [below for nested schema](#nestedblock--include--azure))
 - `certificate` (Boolean)
@@ -86,23 +100,30 @@ Optional:
 - `github` (Block List) (see [below for nested schema](#nestedblock--include--github))
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--include--gsuite))
-- `ip` (List of String)
-- `ip_list` (List of String)
+- `ip` (List of String) An IPv4 or IPv6 CIDR block.
+- `ip_list` (List of String) The ID of an existing IP list to reference.
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--include--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--include--saml))
 - `service_token` (List of String)
+
+<a id="nestedblock--include--auth_context"></a>
+### Nested Schema for `include.auth_context`
+
+Required:
+
+- `ac_id` (String) The ACID of the Authentication Context.
+- `id` (String) The ID of the Authentication Context.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
+
 
 <a id="nestedblock--include--azure"></a>
 ### Nested Schema for `include.azure`
 
 Optional:
 
-- `identity_provider_id` (String)
-
-Read-Only:
-
-- `id` (List of String) The ID of this resource.
+- `id` (List of String) The ID of the Azure group or user.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
 
 
 <a id="nestedblock--include--external_evaluation"></a>
@@ -159,6 +180,7 @@ Optional:
 Optional:
 
 - `any_valid_service_token` (Boolean)
+- `auth_context` (Block List) (see [below for nested schema](#nestedblock--exclude--auth_context))
 - `auth_method` (String)
 - `azure` (Block List) (see [below for nested schema](#nestedblock--exclude--azure))
 - `certificate` (Boolean)
@@ -172,23 +194,30 @@ Optional:
 - `github` (Block List) (see [below for nested schema](#nestedblock--exclude--github))
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--exclude--gsuite))
-- `ip` (List of String)
-- `ip_list` (List of String)
+- `ip` (List of String) An IPv4 or IPv6 CIDR block.
+- `ip_list` (List of String) The ID of an existing IP list to reference.
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--exclude--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--exclude--saml))
 - `service_token` (List of String)
+
+<a id="nestedblock--exclude--auth_context"></a>
+### Nested Schema for `exclude.auth_context`
+
+Required:
+
+- `ac_id` (String) The ACID of the Authentication Context.
+- `id` (String) The ID of the Authentication Context.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
+
 
 <a id="nestedblock--exclude--azure"></a>
 ### Nested Schema for `exclude.azure`
 
 Optional:
 
-- `identity_provider_id` (String)
-
-Read-Only:
-
-- `id` (List of String) The ID of this resource.
+- `id` (List of String) The ID of the Azure group or user.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
 
 
 <a id="nestedblock--exclude--external_evaluation"></a>
@@ -245,6 +274,7 @@ Optional:
 Optional:
 
 - `any_valid_service_token` (Boolean)
+- `auth_context` (Block List) (see [below for nested schema](#nestedblock--require--auth_context))
 - `auth_method` (String)
 - `azure` (Block List) (see [below for nested schema](#nestedblock--require--azure))
 - `certificate` (Boolean)
@@ -258,23 +288,30 @@ Optional:
 - `github` (Block List) (see [below for nested schema](#nestedblock--require--github))
 - `group` (List of String)
 - `gsuite` (Block List) (see [below for nested schema](#nestedblock--require--gsuite))
-- `ip` (List of String)
-- `ip_list` (List of String)
+- `ip` (List of String) An IPv4 or IPv6 CIDR block.
+- `ip_list` (List of String) The ID of an existing IP list to reference.
 - `login_method` (List of String)
 - `okta` (Block List) (see [below for nested schema](#nestedblock--require--okta))
 - `saml` (Block List) (see [below for nested schema](#nestedblock--require--saml))
 - `service_token` (List of String)
+
+<a id="nestedblock--require--auth_context"></a>
+### Nested Schema for `require.auth_context`
+
+Required:
+
+- `ac_id` (String) The ACID of the Authentication Context.
+- `id` (String) The ID of the Authentication Context.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
+
 
 <a id="nestedblock--require--azure"></a>
 ### Nested Schema for `require.azure`
 
 Optional:
 
-- `identity_provider_id` (String)
-
-Read-Only:
-
-- `id` (List of String) The ID of this resource.
+- `id` (List of String) The ID of the Azure group or user.
+- `identity_provider_id` (String) The ID of the Azure Identity provider.
 
 
 <a id="nestedblock--require--external_evaluation"></a>

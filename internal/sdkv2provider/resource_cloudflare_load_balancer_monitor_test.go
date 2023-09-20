@@ -12,8 +12,8 @@ import (
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -105,6 +105,8 @@ func TestAccCloudflareLoadBalancerMonitor_FullySpecified(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "path", "/custom"),
 					resource.TestCheckResourceAttr(name, "header.#", "1"),
 					resource.TestCheckResourceAttr(name, "retries", "5"),
+					resource.TestCheckResourceAttr(name, "consecutive_up", "2"),
+					resource.TestCheckResourceAttr(name, "consecutive_down", "2"),
 					resource.TestCheckResourceAttr(name, "port", "8080"),
 					resource.TestCheckResourceAttr(name, "expected_body", "dead"),
 					resource.TestCheckResourceAttr(name, "probe_zone", zoneName),
@@ -424,6 +426,8 @@ resource "cloudflare_load_balancer_monitor" "%[3]s" {
   path = "/custom"
   interval = 60
   retries = 5
+  consecutive_up = 2
+  consecutive_down = 2
   port = 8080
   description = "this is a very weird load balancer"
   probe_zone = "%[1]s"

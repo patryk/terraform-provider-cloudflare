@@ -8,8 +8,8 @@ import (
 
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccCloudflareWorkersKV_Basic(t *testing.T) {
@@ -162,10 +162,6 @@ func testAccCheckCloudflareWorkersKVExists(key string, kv *cloudflare.WorkersKVP
 			}
 
 			accountID := rs.Primary.Attributes[consts.AccountIDSchemaKey]
-			if accountID == "" {
-				accountID = client.AccountID
-			}
-
 			namespaceID := rs.Primary.Attributes["namespace_id"]
 			value, err := client.GetWorkersKV(context.Background(), cloudflare.AccountIdentifier(accountID), cloudflare.GetWorkersKVParams{NamespaceID: namespaceID, Key: key})
 			if err != nil {

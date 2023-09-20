@@ -9,9 +9,10 @@ import (
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
+	"github.com/cloudflare/terraform-provider-cloudflare/internal/utils"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -73,6 +74,42 @@ func TestAccCloudflareCustomHostname_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, consts.ZoneIDSchemaKey, zoneID),
 					resource.TestCheckResourceAttr(resourceName, "hostname", fmt.Sprintf("%s.%s", rnd, domain)),
 					resource.TestCheckResourceAttr(resourceName, "ssl.0.method", "txt"),
+					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.value"),
+					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.type"),
+					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.name"),
+					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification_http.http_url"),
+					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification_http.http_body"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareCustomHostname_WithCertificate(t *testing.T) {
+	t.Parallel()
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	domain := os.Getenv("CLOUDFLARE_DOMAIN")
+	rnd := generateRandomResourceName()
+	resourceName := "cloudflare_custom_hostname." + rnd
+
+	cert, key, err := utils.GenerateEphemeralCertAndKey([]string{rnd + "." + domain})
+	if err != nil {
+		t.Error(err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareCustomHostnameWithCertificate(zoneID, rnd, domain, cert, key),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, consts.ZoneIDSchemaKey, zoneID),
+					resource.TestCheckResourceAttr(resourceName, "hostname", fmt.Sprintf("%s.%s", rnd, domain)),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.method", "http"),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.type", "dv"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssl.0.custom_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssl.0.custom_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.value"),
 					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.type"),
 					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification.name"),
@@ -252,6 +289,17 @@ func TestAccCloudflareCustomHostname_WithCustomSSLSettings(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "ownership_verification_http.http_body"),
 				),
 			},
+			{
+				Config: testAccCheckCloudflareCustomHostnameWithCustomSSLSettingsUpdated(zoneID, rnd, domain),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, consts.ZoneIDSchemaKey, zoneID),
+					resource.TestCheckResourceAttr(resourceName, "hostname", fmt.Sprintf("%s.%s", rnd, domain)),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.http2", "off"),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.min_tls_version", "1.1"),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.ciphers.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.early_hints", "off"),
+				),
+			},
 		},
 	})
 }
@@ -275,42 +323,6 @@ resource "cloudflare_custom_hostname" "%[2]s" {
   }
 }
 `, zoneID, rnd, domain)
-}
-
-func TestAccCloudflareCustomHostname_Update(t *testing.T) {
-	t.Parallel()
-	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
-	domain := os.Getenv("CLOUDFLARE_DOMAIN")
-	rnd := generateRandomResourceName()
-	resourceName := "cloudflare_custom_hostname." + rnd
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: providerFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckCloudflareCustomHostnameWithCustomSSLSettings(zoneID, rnd, domain),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, consts.ZoneIDSchemaKey, zoneID),
-					resource.TestCheckResourceAttr(resourceName, "hostname", fmt.Sprintf("%s.%s", rnd, domain)),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.http2", "off"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.min_tls_version", "1.2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.ciphers.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.early_hints", "off"),
-				),
-			},
-			{
-				Config: testAccCheckCloudflareCustomHostnameWithCustomSSLSettingsUpdated(zoneID, rnd, domain),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, consts.ZoneIDSchemaKey, zoneID),
-					resource.TestCheckResourceAttr(resourceName, "hostname", fmt.Sprintf("%s.%s", rnd, domain)),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.http2", "off"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.min_tls_version", "1.1"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.ciphers.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl.0.settings.0.early_hints", "off"),
-				),
-			},
-		},
-	})
 }
 
 func testAccCheckCloudflareCustomHostnameWithCustomSSLSettingsUpdated(zoneID, rnd, domain string) string {
@@ -526,4 +538,24 @@ func testAccCheckCloudflareCustomHostnameWithCustomMetadata(zoneID, rnd, domain 
 		}
 	}
 	`, zoneID, rnd, domain)
+}
+
+func testAccCheckCloudflareCustomHostnameWithCertificate(zoneID, rnd, domain, cert, key string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_custom_hostname" "%[2]s" {
+  zone_id = "%[1]s"
+  hostname = "%[2]s.%[3]s"
+  ssl {
+    method             = "http"
+    type               = "dv"
+	bundle_method      = "force"
+	custom_certificate = <<EOT
+%[4]s
+	EOT
+    custom_key = <<EOT
+%[5]s
+	EOT
+  }
+}
+`, zoneID, rnd, domain, cert, key)
 }

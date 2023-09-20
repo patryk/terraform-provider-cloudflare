@@ -1,20 +1,23 @@
 package sdkv2provider
 
 import (
+	"fmt"
+
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceCloudflareAccessServiceTokenSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description:   "The account identifier to target for the resource.",
+			Description:   consts.AccountIDSchemaDescription,
 			Type:          schema.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{consts.ZoneIDSchemaKey},
 		},
 		consts.ZoneIDSchemaKey: {
-			Description:   "The zone identifier to target for the resource.",
+			Description:   consts.ZoneIDSchemaDescription,
 			Type:          schema.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{consts.AccountIDSchemaKey},
@@ -47,6 +50,13 @@ func resourceCloudflareAccessServiceTokenSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Default:     0,
 			Description: "Refresh the token if terraform is run within the specified amount of days before expiration",
+		},
+		"duration": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringInSlice([]string{"8760h", "17520h", "43800h", "87600h", "forever"}, false),
+			Description:  fmt.Sprintf("Length of time the service token is valid for. %s", renderAvailableDocumentationValuesStringSlice([]string{"8760h", "17520h", "43800h", "87600h", "forever"})),
 		},
 	}
 }

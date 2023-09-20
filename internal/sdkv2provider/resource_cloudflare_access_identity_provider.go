@@ -42,12 +42,7 @@ func resourceCloudflareAccessIdentityProviderRead(ctx context.Context, d *schema
 		return diag.FromErr(err)
 	}
 
-	var accessIdentityProvider cloudflare.AccessIdentityProvider
-	if identifier.Type == AccountType {
-		accessIdentityProvider, err = client.AccessIdentityProviderDetails(ctx, identifier.Value, d.Id())
-	} else {
-		accessIdentityProvider, err = client.ZoneLevelAccessIdentityProviderDetails(ctx, identifier.Value, d.Id())
-	}
+	accessIdentityProvider, err := client.GetAccessIdentityProvider(ctx, identifier, d.Id())
 	if err != nil {
 		var notFoundError *cloudflare.NotFoundError
 		if errors.As(err, &notFoundError) {
@@ -62,9 +57,17 @@ func resourceCloudflareAccessIdentityProviderRead(ctx context.Context, d *schema
 	d.Set("name", accessIdentityProvider.Name)
 	d.Set("type", accessIdentityProvider.Type)
 
-	config := convertStructToSchema(d, accessIdentityProvider.Config)
+	config := convertAccessIDPConfigStructToSchema(accessIdentityProvider.Config)
 	if configErr := d.Set("config", config); configErr != nil {
 		return diag.FromErr(fmt.Errorf("error setting Access Identity Provider configuration: %w", configErr))
+	}
+
+	// We need to get the current secret and set that in the state as it is only
+	// returned initially when the resource was created. The value read from the
+	// server will always be redacted.
+	scimConfig := convertAccessIDPScimConfigStructToSchema(d.Get("scim_config.0.secret").(string), accessIdentityProvider.ScimConfig)
+	if scimConfigErr := d.Set("scim_config", scimConfig); scimConfigErr != nil {
+		return diag.FromErr(fmt.Errorf("error setting Access Identity Provider scim configuration: %w", scimConfigErr))
 	}
 
 	return nil
@@ -74,11 +77,13 @@ func resourceCloudflareAccessIdentityProviderCreate(ctx context.Context, d *sche
 	client := meta.(*cloudflare.API)
 
 	IDPConfig, _ := convertSchemaToStruct(d)
+	ScimConfig := convertScimConfigSchemaToStruct(d)
 
-	identityProvider := cloudflare.AccessIdentityProvider{
-		Name:   d.Get("name").(string),
-		Type:   d.Get("type").(string),
-		Config: IDPConfig,
+	identityProvider := cloudflare.CreateAccessIdentityProviderParams{
+		Name:       d.Get("name").(string),
+		Type:       d.Get("type").(string),
+		Config:     IDPConfig,
+		ScimConfig: ScimConfig,
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Creating Cloudflare Access Identity Provider from struct: %+v", identityProvider))
@@ -88,17 +93,17 @@ func resourceCloudflareAccessIdentityProviderCreate(ctx context.Context, d *sche
 		return diag.FromErr(err)
 	}
 
-	var accessIdentityProvider cloudflare.AccessIdentityProvider
-	if identifier.Type == AccountType {
-		accessIdentityProvider, err = client.CreateAccessIdentityProvider(ctx, identifier.Value, identityProvider)
-	} else {
-		accessIdentityProvider, err = client.CreateZoneLevelAccessIdentityProvider(ctx, identifier.Value, identityProvider)
-	}
+	accessIdentityProvider, err := client.CreateAccessIdentityProvider(ctx, identifier, identityProvider)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Access Identity Provider for ID %q: %w", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("failed to create Access Identity Provider: %w", err))
 	}
 
 	d.SetId(accessIdentityProvider.ID)
+
+	scimConfig := convertAccessIDPScimConfigStructToSchema(accessIdentityProvider.ScimConfig.Secret, accessIdentityProvider.ScimConfig)
+	if scimConfigErr := d.Set("scim_config", scimConfig); scimConfigErr != nil {
+		return diag.FromErr(fmt.Errorf("error setting Access Identity Provider scim configuration: %w", scimConfigErr))
+	}
 
 	return resourceCloudflareAccessIdentityProviderRead(ctx, d, meta)
 }
@@ -111,11 +116,15 @@ func resourceCloudflareAccessIdentityProviderUpdate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf("failed to convert schema into struct: %w", conversionErr))
 	}
 
+	ScimConfig := convertScimConfigSchemaToStruct(d)
+
 	tflog.Debug(ctx, fmt.Sprintf("updatedConfig: %+v", IDPConfig))
-	updatedAccessIdentityProvider := cloudflare.AccessIdentityProvider{
-		Name:   d.Get("name").(string),
-		Type:   d.Get("type").(string),
-		Config: IDPConfig,
+	updatedAccessIdentityProvider := cloudflare.UpdateAccessIdentityProviderParams{
+		ID:         d.Id(),
+		Name:       d.Get("name").(string),
+		Type:       d.Get("type").(string),
+		Config:     IDPConfig,
+		ScimConfig: ScimConfig,
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating Cloudflare Access Identity Provider from struct: %+v", updatedAccessIdentityProvider))
@@ -125,18 +134,23 @@ func resourceCloudflareAccessIdentityProviderUpdate(ctx context.Context, d *sche
 		return diag.FromErr(err)
 	}
 
-	var accessIdentityProvider cloudflare.AccessIdentityProvider
-	if identifier.Type == AccountType {
-		accessIdentityProvider, err = client.UpdateAccessIdentityProvider(ctx, identifier.Value, d.Id(), updatedAccessIdentityProvider)
-	} else {
-		accessIdentityProvider, err = client.UpdateZoneLevelAccessIdentityProvider(ctx, identifier.Value, d.Id(), updatedAccessIdentityProvider)
-	}
+	accessIdentityProvider, err := client.UpdateAccessIdentityProvider(ctx, identifier, updatedAccessIdentityProvider)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Access Identity Provider for ID %q: %w", d.Id(), err))
 	}
 
 	if accessIdentityProvider.ID == "" {
 		return diag.FromErr(fmt.Errorf("failed to find Access Identity Provider ID in update response; resource was empty"))
+	}
+
+	scimSecret := d.Get("scim_config.0.secret").(string)
+	if accessIdentityProvider.ScimConfig.Secret != "" && !strings.Contains(accessIdentityProvider.ScimConfig.Secret, "*") {
+		scimSecret = accessIdentityProvider.ScimConfig.Secret
+	}
+
+	scimConfig := convertAccessIDPScimConfigStructToSchema(scimSecret, accessIdentityProvider.ScimConfig)
+	if scimConfigErr := d.Set("scim_config", scimConfig); scimConfigErr != nil {
+		return diag.FromErr(fmt.Errorf("error setting Access Identity Provider scim configuration: %w", scimConfigErr))
 	}
 
 	return resourceCloudflareAccessIdentityProviderRead(ctx, d, meta)
@@ -152,11 +166,7 @@ func resourceCloudflareAccessIdentityProviderDelete(ctx context.Context, d *sche
 		return diag.FromErr(err)
 	}
 
-	if identifier.Type == AccountType {
-		_, err = client.DeleteAccessIdentityProvider(ctx, identifier.Value, d.Id())
-	} else {
-		_, err = client.DeleteZoneLevelAccessIdentityProvider(ctx, identifier.Value, d.Id())
-	}
+	_, err = client.DeleteAccessIdentityProvider(ctx, identifier, d.Id())
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Access Identity Provider for ID %q: %w", d.Id(), err))
 	}
@@ -197,6 +207,22 @@ func convertSchemaToStruct(d *schema.ResourceData) (cloudflare.AccessIdentityPro
 			IDPConfig.Attributes = attrData
 		}
 
+		if _, ok := d.GetOk("config.0.claims"); ok {
+			claimData := make([]string, d.Get("config.0.claims.#").(int))
+			for id := range claimData {
+				claimData[id] = d.Get(fmt.Sprintf("config.0.claims.%d", id)).(string)
+			}
+			IDPConfig.Claims = claimData
+		}
+
+		if _, ok := d.GetOk("config.0.scopes"); ok {
+			scopeData := make([]string, d.Get("config.0.scopes.#").(int))
+			for id := range scopeData {
+				scopeData[id] = d.Get(fmt.Sprintf("config.0.scopes.%d", id)).(string)
+			}
+			IDPConfig.Scopes = scopeData
+		}
+
 		IDPConfig.APIToken = d.Get("config.0.api_token").(string)
 		IDPConfig.AppsDomain = d.Get("config.0.apps_domain").(string)
 		IDPConfig.AuthURL = d.Get("config.0.auth_url").(string)
@@ -207,53 +233,85 @@ func convertSchemaToStruct(d *schema.ResourceData) (cloudflare.AccessIdentityPro
 		IDPConfig.ClientSecret = d.Get("config.0.client_secret").(string)
 		IDPConfig.DirectoryID = d.Get("config.0.directory_id").(string)
 		IDPConfig.EmailAttributeName = d.Get("config.0.email_attribute_name").(string)
+		IDPConfig.EmailClaimName = d.Get("config.0.email_claim_name").(string)
 		IDPConfig.IdpPublicCert = d.Get("config.0.idp_public_cert").(string)
 		IDPConfig.IssuerURL = d.Get("config.0.issuer_url").(string)
 		IDPConfig.OktaAccount = d.Get("config.0.okta_account").(string)
+		IDPConfig.OktaAuthorizationServerID = d.Get("config.0.authorization_server_id").(string)
 		IDPConfig.OneloginAccount = d.Get("config.0.onelogin_account").(string)
+		IDPConfig.PingEnvID = d.Get("config.0.ping_env_id").(string)
 		IDPConfig.RedirectURL = d.Get("config.0.redirect_url").(string)
 		IDPConfig.SignRequest = d.Get("config.0.sign_request").(bool)
 		IDPConfig.SsoTargetURL = d.Get("config.0.sso_target_url").(string)
 		IDPConfig.SupportGroups = d.Get("config.0.support_groups").(bool)
 		IDPConfig.TokenURL = d.Get("config.0.token_url").(string)
 		IDPConfig.PKCEEnabled = cloudflare.BoolPtr(d.Get("config.0.pkce_enabled").(bool))
+		IDPConfig.ConditionalAccessEnabled = d.Get("config.0.conditional_access_enabled").(bool)
 	}
 
 	return IDPConfig, nil
 }
 
-func convertStructToSchema(d *schema.ResourceData, options cloudflare.AccessIdentityProviderConfiguration) []interface{} {
-	if _, ok := d.GetOk("config"); !ok {
-		return []interface{}{}
+func convertScimConfigSchemaToStruct(d *schema.ResourceData) cloudflare.AccessIdentityProviderScimConfiguration {
+	ScimConfig := cloudflare.AccessIdentityProviderScimConfiguration{}
+
+	if _, ok := d.GetOk("scim_config"); ok {
+		ScimConfig.Enabled = d.Get("scim_config.0.enabled").(bool)
+		ScimConfig.Secret = d.Get("scim_config.0.secret").(string)
+		ScimConfig.GroupMemberDeprovision = d.Get("scim_config.0.group_member_deprovision").(bool)
+		ScimConfig.UserDeprovision = d.Get("scim_config.0.user_deprovision").(bool)
+		ScimConfig.SeatDeprovision = d.Get("scim_config.0.seat_deprovision").(bool)
 	}
 
+	return ScimConfig
+}
+
+func convertAccessIDPConfigStructToSchema(options cloudflare.AccessIdentityProviderConfiguration) []interface{} {
 	attributes := make([]string, 0)
 	for _, value := range options.Attributes {
 		attributes = append(attributes, value)
 	}
 
 	m := map[string]interface{}{
-		"api_token":            options.APIToken,
-		"apps_domain":          options.AppsDomain,
-		"attributes":           attributes,
-		"auth_url":             options.AuthURL,
-		"centrify_account":     options.CentrifyAccount,
-		"centrify_app_id":      options.CentrifyAppID,
-		"certs_url":            options.CertsURL,
-		"client_id":            options.ClientID,
-		"client_secret":        options.ClientSecret,
-		"directory_id":         options.DirectoryID,
-		"email_attribute_name": options.EmailAttributeName,
-		"idp_public_cert":      options.IdpPublicCert,
-		"issuer_url":           options.IssuerURL,
-		"okta_account":         options.OktaAccount,
-		"onelogin_account":     options.OneloginAccount,
-		"redirect_url":         options.RedirectURL,
-		"sign_request":         options.SignRequest,
-		"sso_target_url":       options.SsoTargetURL,
-		"support_groups":       options.SupportGroups,
-		"token_url":            options.TokenURL,
-		"pkce_enabled":         options.PKCEEnabled,
+		"api_token":                  options.APIToken,
+		"apps_domain":                options.AppsDomain,
+		"attributes":                 attributes,
+		"auth_url":                   options.AuthURL,
+		"authorization_server_id":    options.OktaAuthorizationServerID,
+		"centrify_account":           options.CentrifyAccount,
+		"centrify_app_id":            options.CentrifyAppID,
+		"certs_url":                  options.CertsURL,
+		"client_id":                  options.ClientID,
+		"client_secret":              options.ClientSecret,
+		"claims":                     options.Claims,
+		"scopes":                     options.Scopes,
+		"directory_id":               options.DirectoryID,
+		"email_attribute_name":       options.EmailAttributeName,
+		"email_claim_name":           options.EmailClaimName,
+		"idp_public_cert":            options.IdpPublicCert,
+		"issuer_url":                 options.IssuerURL,
+		"okta_account":               options.OktaAccount,
+		"onelogin_account":           options.OneloginAccount,
+		"ping_env_id":                options.PingEnvID,
+		"redirect_url":               options.RedirectURL,
+		"sign_request":               options.SignRequest,
+		"sso_target_url":             options.SsoTargetURL,
+		"support_groups":             options.SupportGroups,
+		"token_url":                  options.TokenURL,
+		"pkce_enabled":               options.PKCEEnabled,
+		"conditional_access_enabled": options.ConditionalAccessEnabled,
+	}
+
+	return []interface{}{m}
+}
+
+func convertAccessIDPScimConfigStructToSchema(secret string, options cloudflare.AccessIdentityProviderScimConfiguration) []interface{} {
+	m := map[string]interface{}{
+		"enabled":                  options.Enabled,
+		"secret":                   secret,
+		"user_deprovision":         options.UserDeprovision,
+		"seat_deprovision":         options.SeatDeprovision,
+		"group_member_deprovision": options.GroupMemberDeprovision,
 	}
 
 	return []interface{}{m}

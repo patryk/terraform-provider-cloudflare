@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCloudflareTeamsAccountConfigurationBasic(t *testing.T) {
+func TestAccCloudflareTeamsAccounts_ConfigurationBasic(t *testing.T) {
 	// Temporarily unset CLOUDFLARE_API_TOKEN if it is set as the Access
 	// service does not yet support the API tokens and it results in
 	// misleading state error messages.
@@ -31,6 +31,7 @@ func TestAccCloudflareTeamsAccountConfigurationBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
 					resource.TestCheckResourceAttr(name, "tls_decrypt_enabled", "true"),
+					resource.TestCheckResourceAttr(name, "protocol_detection_enabled", "true"),
 					resource.TestCheckResourceAttr(name, "activity_log_enabled", "true"),
 					resource.TestCheckResourceAttr(name, "fips.0.tls", "true"),
 					resource.TestCheckResourceAttr(name, "block_page.0.name", rnd),
@@ -50,6 +51,8 @@ func TestAccCloudflareTeamsAccountConfigurationBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "logging.0.settings_by_rule_type.0.l4.0.log_blocks", "true"),
 					resource.TestCheckResourceAttr(name, "proxy.0.tcp", "true"),
 					resource.TestCheckResourceAttr(name, "proxy.0.udp", "false"),
+					resource.TestCheckResourceAttr(name, "proxy.0.root_ca", "true"),
+					resource.TestCheckResourceAttr(name, "payload_log.0.public_key", "EmpOvSXw8BfbrGCi0fhGiD/3yXk2SiV1Nzg2lru3oj0="),
 				),
 			},
 		},
@@ -61,6 +64,7 @@ func testAccCloudflareTeamsAccountBasic(rnd, accountID string) string {
 resource "cloudflare_teams_account" "%[1]s" {
   account_id = "%[2]s"
   tls_decrypt_enabled = true
+  protocol_detection_enabled = true
   activity_log_enabled = true
   block_page {
     name = "%[1]s"
@@ -83,6 +87,7 @@ resource "cloudflare_teams_account" "%[1]s" {
   proxy {
     tcp = true
     udp = false
+	root_ca = true
   }
   logging {
     redact_pii = true
@@ -100,6 +105,9 @@ resource "cloudflare_teams_account" "%[1]s" {
         log_blocks = true
       }
     }
+  }
+  payload_log {
+	public_key = "EmpOvSXw8BfbrGCi0fhGiD/3yXk2SiV1Nzg2lru3oj0="
   }
 }
 `, rnd, accountID)

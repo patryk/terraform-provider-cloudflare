@@ -62,13 +62,16 @@ resource "cloudflare_access_application" "staging_app" {
 - `auto_redirect_to_identity` (Boolean) Option to skip identity provider selection if only one is configured in `allowed_idps`. Defaults to `false`.
 - `cors_headers` (Block List) CORS configuration for the Access Application. See below for reference structure. (see [below for nested schema](#nestedblock--cors_headers))
 - `custom_deny_message` (String) Option that returns a custom error message when a user is denied access to the application.
-- `custom_deny_url` (String) Option that redirects to a custom URL when a user is denied access to the application.
-- `domain` (String) The complete URL of the asset you wish to put Cloudflare Access in front of. Can include subdomains or paths. Or both.
+- `custom_deny_url` (String) Option that redirects to a custom URL when a user is denied access to the application via identity based rules.
+- `custom_non_identity_deny_url` (String) Option that redirects to a custom URL when a user is denied access to the application via non identity rules.
+- `custom_pages` (Set of String) The custom pages selected for the application.
+- `domain` (String) The primary hostname and path that Access will secure. If the app is visible in the App Launcher dashboard, this is the domain that will be displayed.
 - `enable_binding_cookie` (Boolean) Option to provide increased security against compromised authorization tokens and CSRF attacks by requiring an additional "binding" cookie on requests. Defaults to `false`.
 - `http_only_cookie_attribute` (Boolean) Option to add the `HttpOnly` cookie flag to access tokens.
 - `logo_url` (String) Image URL for the logo shown in the app launcher dashboard.
 - `saas_app` (Block List, Max: 1) SaaS configuration for the Access Application. (see [below for nested schema](#nestedblock--saas_app))
 - `same_site_cookie_attribute` (String) Defines the same-site cookie setting for access tokens. Available values: `none`, `lax`, `strict`.
+- `self_hosted_domains` (Set of String) List of domains that access will secure. Only present for self_hosted, vnc, and ssh applications. Always includes the value set as `domain`.
 - `service_auth_401_redirect` (Boolean) Option to return a 401 status code in service authentication rules on failed requests. Defaults to `false`.
 - `session_duration` (String) How often a user will be forced to re-authorise. Must be in the format `48h` or `2h45m`. Defaults to `24h`.
 - `skip_interstitial` (Boolean) Option to skip the authorization interstitial when using the CLI. Defaults to `false`.
@@ -105,7 +108,29 @@ Required:
 
 Optional:
 
+- `custom_attribute` (Block List) Custom attribute mapped from IDPs. (see [below for nested schema](#nestedblock--saas_app--custom_attribute))
 - `name_id_format` (String) The format of the name identifier sent to the SaaS application. Defaults to `email`.
+
+<a id="nestedblock--saas_app--custom_attribute"></a>
+### Nested Schema for `saas_app.custom_attribute`
+
+Required:
+
+- `source` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--saas_app--custom_attribute--source))
+
+Optional:
+
+- `friendly_name` (String) A friendly name for the attribute as provided to the SaaS app.
+- `name` (String) The name of the attribute as provided to the SaaS app.
+- `name_format` (String) A globally unique name for an identity or service provider.
+- `required` (Boolean) True if the attribute must be always present.
+
+<a id="nestedblock--saas_app--custom_attribute--source"></a>
+### Nested Schema for `saas_app.custom_attribute.source`
+
+Required:
+
+- `name` (String) The name of the attribute as provided by the IDP.
 
 ## Import
 

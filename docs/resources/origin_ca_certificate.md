@@ -16,13 +16,11 @@ Provides a Cloudflare Origin CA certificate used to protect traffic to your orig
 ## Example Usage
 
 ```terraform
-# Create a CSR and generate a CA certificate
 resource "tls_private_key" "example" {
   algorithm = "RSA"
 }
 
 resource "tls_cert_request" "example" {
-  key_algorithm   = tls_private_key.example.algorithm
   private_key_pem = tls_private_key.example.private_key_pem
 
   subject {
@@ -44,12 +42,12 @@ resource "cloudflare_origin_ca_certificate" "example" {
 
 ### Required
 
+- `csr` (String) The Certificate Signing Request. Must be newline-encoded. **Modifying this attribute will force creation of a new resource.**
 - `hostnames` (Set of String) A list of hostnames or wildcard names bound to the certificate. **Modifying this attribute will force creation of a new resource.**
 - `request_type` (String) The signature type desired on the certificate. Available values: `origin-rsa`, `origin-ecc`, `keyless-certificate`. **Modifying this attribute will force creation of a new resource.**
 
 ### Optional
 
-- `csr` (String) The Certificate Signing Request. Must be newline-encoded. **Modifying this attribute will force creation of a new resource.**
 - `min_days_for_renewal` (Number) Number of days prior to the expiry to trigger a renewal of the certificate if a Terraform operation is run.
 - `requested_validity` (Number) The number of days for which the certificate should be valid. Available values: `7`, `30`, `90`, `365`, `730`, `1095`, `5475`. **Modifying this attribute will force creation of a new resource.**
 

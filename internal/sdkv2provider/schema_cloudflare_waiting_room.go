@@ -25,6 +25,8 @@ var defaultTemplateLanguages = []string{
 	"tr-TR",
 	"zh-CN",
 	"zh-TW",
+	"ru-RU",
+	"fa-IR",
 }
 var waitingRoomQueueingMethod = []string{
 	"fifo",
@@ -36,7 +38,7 @@ var waitingRoomQueueingMethod = []string{
 func resourceCloudflareWaitingRoomSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.ZoneIDSchemaKey: {
-			Description: "The zone identifier to target for the resource.",
+			Description: consts.ZoneIDSchemaDescription,
 			Type:        schema.TypeString,
 			Required:    true,
 			ForceNew:    true,
@@ -137,6 +139,43 @@ func resourceCloudflareWaitingRoomSchema() map[string]*schema.Schema {
 			Description: "If true, requests to the waiting room with the header `Accept: application/json` will receive a JSON response object.",
 			Type:        schema.TypeBool,
 			Optional:    true,
+		},
+
+		"cookie_suffix": {
+			Description: "A cookie suffix to be appended to the Cloudflare waiting room cookie name.",
+			Type:        schema.TypeString,
+			Optional:    true,
+		},
+
+		"additional_routes": {
+			Description: "A list of additional hostname and paths combination to be applied on the waiting room.",
+			Type:        schema.TypeList,
+			Optional:    true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"host": {
+						Description: "The additional host name for which the waiting room to be applied on (no wildcards).",
+						Required:    true,
+						Type:        schema.TypeString,
+						StateFunc: func(i interface{}) string {
+							return strings.ToLower(i.(string))
+						},
+					},
+					"path": {
+						Description: "The path within the additional host to enable the waiting room on.",
+						Optional:    true,
+						Default:     "/",
+						Type:        schema.TypeString,
+					},
+				},
+			},
+		},
+
+		"queueing_status_code": {
+			Description: "HTTP status code returned to a user while in the queue.",
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     200,
 		},
 	}
 }

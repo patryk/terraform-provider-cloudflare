@@ -48,13 +48,13 @@ resource "cloudflare_ruleset" "zone_level_managed_waf_with_category_based_overri
         categories {
           category = "wordpress"
           action   = "block"
-          status   = "enabled"
+          enabled  = true
         }
 
         categories {
           category = "joomla"
           action   = "block"
-          status   = "enabled"
+          enabled  = true
         }
       }
     }
@@ -324,7 +324,7 @@ resource "cloudflare_ruleset" "redirect_from_value_example" {
   zone_id     = "0da42c8d2132a9ddaf714f9e7c920711"
   name        = "redirects"
   description = "Redirect ruleset"
-  kind        = "root"
+  kind        = "zone"
   phase       = "http_request_dynamic_redirect"
 
   rules {
@@ -380,6 +380,30 @@ resource "cloudflare_ruleset" "http_config_rules_example" {
     }
     expression  = "(http.request.uri.path matches \"^/api/\")"
     description = "set config rules for matching request"
+    enabled     = true
+  }
+}
+
+# Set compress algorithm for response.
+resource "cloudflare_ruleset" "response_compress_brotli_html" {
+  zone_id     = "0da42c8d2132a9ddaf714f9e7c920711"
+  name        = "Brotli response compression for HTML"
+  description = "Response compression ruleset"
+  kind        = "zone"
+  phase       = "http_response_compression"
+
+  rules {
+    action = "compress_response"
+    action_parameters {
+      algorithms {
+        name = "brotli"
+      }
+      algorithms {
+        name = "auto"
+      }
+    }
+    expression  = "http.response.content_type.media_type == \"text/html\""
+    description = "Prefer brotli compression for HTML"
     enabled     = true
   }
 }

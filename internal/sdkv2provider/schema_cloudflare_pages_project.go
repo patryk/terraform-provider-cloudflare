@@ -21,7 +21,7 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 			},
 			"root_dir": {
 				Type:        schema.TypeString,
-				Description: "Directory to run the command.",
+				Description: "Your project's root directory, where Cloudflare runs the build command. If your site is not in a subdirectory, leave this path value empty.",
 				Optional:    true,
 			},
 			"web_analytics_tag": {
@@ -55,11 +55,13 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 							Description: "Project owner username.",
 							Type:        schema.TypeString,
 							Optional:    true,
+							ForceNew:    true,
 						},
 						"repo_name": {
 							Description: "Project repository name.",
 							Type:        schema.TypeString,
 							Optional:    true,
+							ForceNew:    true,
 						},
 						"production_branch": {
 							Description: "Project production branch name.",
@@ -119,26 +121,38 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 				Type:        schema.TypeMap,
 				Description: "Environment variables for Pages Functions.",
 				Optional:    true,
+				Default:     map[string]interface{}{},
+			},
+			"secrets": {
+				Type:        schema.TypeMap,
+				Description: "Encrypted environment variables for Pages Functions.",
+				Optional:    true,
+				Sensitive:   true,
+				Default:     map[string]interface{}{},
 			},
 			"kv_namespaces": {
 				Type:        schema.TypeMap,
 				Description: "KV namespaces used for Pages Functions.",
 				Optional:    true,
+				Default:     map[string]interface{}{},
 			},
 			"durable_object_namespaces": {
 				Type:        schema.TypeMap,
 				Description: "Durable Object namespaces used for Pages Functions.",
 				Optional:    true,
+				Default:     map[string]interface{}{},
 			},
 			"d1_databases": {
 				Type:        schema.TypeMap,
 				Description: "D1 Databases used for Pages Functions.",
 				Optional:    true,
+				Default:     map[string]interface{}{},
 			},
 			"r2_buckets": {
 				Type:        schema.TypeMap,
 				Description: "R2 Buckets used for Pages Functions.",
 				Optional:    true,
+				Default:     map[string]interface{}{},
 			},
 			"compatibility_date": {
 				Type:        schema.TypeString,
@@ -180,22 +194,36 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 				ValidateFunc: validation.StringInSlice([]string{"unbound", "bundled"}, false),
 				Default:      "bundled",
 			},
+			"placement": {
+				Type:        schema.TypeList,
+				MaxItems:    1,
+				Optional:    true,
+				Description: "Configuration for placement in the Cloudflare Pages project.",
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mode": {
+							Description: "Placement Mode for the Pages Function.",
+							Type:        schema.TypeString,
+							Optional:    true,
+							Computed:    true,
+						},
+					},
+				},
+			},
 		},
 	}
 
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description: "The account identifier to target for the resource.",
+			Description: consts.AccountIDSchemaDescription,
 			Type:        schema.TypeString,
 			Required:    true,
 		},
-		// Name is the unique identifier for this resource, we use this in the API calls.
-		// If this changes, `plan` will fail as it can't figure out the changes.
 		"name": {
 			Description: "Name of the project.",
 			Type:        schema.TypeString,
 			Required:    true,
-			ForceNew:    true,
 		},
 		"subdomain": {
 			Description: "The Cloudflare subdomain associated with the project.",
@@ -221,14 +249,14 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 			Required:    true,
 		},
 		"build_config": {
-			Description: "Configuration for the project build process.",
+			Description: "Configuration for the project build process. Read more about the build configuration in the [developer documentation](https://developers.cloudflare.com/pages/platform/build-configuration)",
 			Type:        schema.TypeList,
 			Elem:        &buildConfig,
 			MaxItems:    1,
 			Optional:    true,
 		},
 		"source": {
-			Description: "Configuration for the project source.",
+			Description: "Configuration for the project source. Read more about the source configuration in the [developer documentation](https://developers.cloudflare.com/pages/platform/branch-build-controls/)",
 			Optional:    true,
 			Type:        schema.TypeList,
 			Elem:        &source,
@@ -238,20 +266,23 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 			Description: "Configuration for deployments in a project.",
 			Type:        schema.TypeList,
 			MaxItems:    1,
+			Computed:    true,
 			Optional:    true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"preview": {
 						Description: "Configuration for preview deploys.",
 						Type:        schema.TypeList,
-						Required:    true,
+						Computed:    true,
+						Optional:    true,
 						Elem:        &deploymentConfig,
 						MaxItems:    1,
 					},
 					"production": {
 						Description: "Configuration for production deploys.",
 						Type:        schema.TypeList,
-						Required:    true,
+						Computed:    true,
+						Optional:    true,
 						Elem:        &deploymentConfig,
 						MaxItems:    1,
 					},

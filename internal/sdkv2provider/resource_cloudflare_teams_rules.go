@@ -73,9 +73,11 @@ func resourceCloudflareTeamsRuleRead(ctx context.Context, d *schema.ResourceData
 	if err := d.Set("version", int64(rule.Version)); err != nil {
 		return diag.FromErr(fmt.Errorf("error parsing rule version"))
 	}
+
 	if err := d.Set("rule_settings", flattenTeamsRuleSettings(&rule.RuleSettings)); err != nil {
 		return diag.FromErr(fmt.Errorf("error parsing rule settings"))
 	}
+
 	return nil
 }
 
@@ -196,7 +198,26 @@ func resourceCloudflareTeamsRuleImport(ctx context.Context, d *schema.ResourceDa
 }
 
 func flattenTeamsRuleSettings(settings *cloudflare.TeamsRuleSettings) []interface{} {
-	return []interface{}{map[string]interface{}{
+	if len(settings.OverrideIPs) == 0 &&
+		settings.BlockReason == "" &&
+		settings.OverrideHost == "" &&
+		settings.BISOAdminControls == nil &&
+		settings.L4Override == nil &&
+		len(settings.AddHeaders) == 0 &&
+		settings.CheckSession == nil &&
+		settings.BlockPageEnabled == false &&
+		settings.InsecureDisableDNSSECValidation == false &&
+		settings.EgressSettings == nil &&
+		settings.UntrustedCertSettings == nil &&
+		settings.PayloadLog == nil &&
+		settings.IPCategories == false &&
+		settings.AllowChildBypass == nil &&
+		settings.BypassParentRule == nil &&
+		settings.AuditSSH == nil {
+		return nil
+	}
+
+	result := map[string]interface{}{
 		"block_page_enabled":                 settings.BlockPageEnabled,
 		"block_page_reason":                  settings.BlockReason,
 		"override_ips":                       settings.OverrideIPs,
@@ -207,7 +228,27 @@ func flattenTeamsRuleSettings(settings *cloudflare.TeamsRuleSettings) []interfac
 		"add_headers":                        flattenTeamsAddHeaders(settings.AddHeaders),
 		"insecure_disable_dnssec_validation": settings.InsecureDisableDNSSECValidation,
 		"egress":                             flattenTeamsEgressSettings(settings.EgressSettings),
-	}}
+		"untrusted_cert":                     flattenTeamsUntrustedCertSettings(settings.UntrustedCertSettings),
+		"payload_log":                        flattenTeamsDlpPayloadLogSettings(settings.PayloadLog),
+	}
+
+	if settings.IPCategories {
+		result["ip_categories"] = true
+	}
+
+	if settings.AllowChildBypass != nil {
+		result["allow_child_bypass"] = *settings.AllowChildBypass
+	}
+
+	if settings.BypassParentRule != nil {
+		result["bypass_parent_rule"] = *settings.BypassParentRule
+	}
+
+	if settings.AuditSSH != nil {
+		result["audit_ssh"] = flattenTeamsAuditSSHSettings(settings.AuditSSH)
+	}
+
+	return []interface{}{result}
 }
 
 func inflateTeamsRuleSettings(settings interface{}) *cloudflare.TeamsRuleSettings {
@@ -233,6 +274,8 @@ func inflateTeamsRuleSettings(settings interface{}) *cloudflare.TeamsRuleSetting
 	addHeaders := inflateTeamsAddHeaders(settingsMap["add_headers"].(map[string]interface{}))
 	insecureDisableDNSSECValidation := settingsMap["insecure_disable_dnssec_validation"].(bool)
 	egressSettings := inflateTeamsEgressSettings(settingsMap["egress"].([]interface{}))
+	payloadLog := inflateTeamsDlpPayloadLogSettings(settingsMap["payload_log"].([]interface{}))
+	untrustedCertSettings := inflateTeamsUntrustedCertSettings(settingsMap["untrusted_cert"].([]interface{}))
 
 	return &cloudflare.TeamsRuleSettings{
 		BlockPageEnabled:                enabled,
@@ -245,6 +288,8 @@ func inflateTeamsRuleSettings(settings interface{}) *cloudflare.TeamsRuleSetting
 		AddHeaders:                      addHeaders,
 		InsecureDisableDNSSECValidation: insecureDisableDNSSECValidation,
 		EgressSettings:                  egressSettings,
+		PayloadLog:                      payloadLog,
+		UntrustedCertSettings:           untrustedCertSettings,
 	}
 }
 
@@ -367,6 +412,15 @@ func inflateTeamsL4Override(settings interface{}) *cloudflare.TeamsL4OverrideSet
 	}
 }
 
+func flattenTeamsAuditSSHSettings(settings *cloudflare.AuditSSHRuleSettings) []interface{} {
+	if settings == nil {
+		return nil
+	}
+	return []interface{}{map[string]interface{}{
+		"command_logging": settings.CommandLogging,
+	}}
+}
+
 func flattenTeamsEgressSettings(settings *cloudflare.EgressSettings) []interface{} {
 	if settings == nil {
 		return nil
@@ -391,6 +445,58 @@ func inflateTeamsEgressSettings(settings interface{}) *cloudflare.EgressSettings
 		Ipv4:         ipv4,
 		Ipv6Range:    ipv6,
 		Ipv4Fallback: ipv4Fallback,
+	}
+}
+
+func flattenTeamsDlpPayloadLogSettings(settings *cloudflare.TeamsDlpPayloadLogSettings) []interface{} {
+	if settings == nil {
+		return nil
+	}
+	return []interface{}{map[string]interface{}{
+		"enabled": settings.Enabled,
+	}}
+}
+
+func flattenTeamsUntrustedCertSettings(settings *cloudflare.UntrustedCertSettings) []interface{} {
+	if settings == nil {
+		return nil
+	}
+	return []interface{}{map[string]interface{}{
+		"action": settings.Action,
+	}}
+}
+
+func inflateTeamsDlpPayloadLogSettings(settings interface{}) *cloudflare.TeamsDlpPayloadLogSettings {
+	settingsList := settings.([]interface{})
+	if len(settingsList) != 1 {
+		return nil
+	}
+	settingsMap := settingsList[0].(map[string]interface{})
+	enabled := settingsMap["enabled"].(bool)
+	return &cloudflare.TeamsDlpPayloadLogSettings{
+		Enabled: enabled,
+	}
+}
+
+func inflateTeamsUntrustedCertSettings(settings interface{}) *cloudflare.UntrustedCertSettings {
+	settingsList := settings.([]interface{})
+	if len(settingsList) != 1 {
+		return nil
+	}
+	settingsMap := settingsList[0].(map[string]interface{})
+	action := settingsMap["action"].(string)
+	var actionValue cloudflare.TeamsGatewayUntrustedCertAction
+	switch action {
+	case "pass_through":
+		actionValue = cloudflare.UntrustedCertPassthrough
+	case "block":
+		actionValue = cloudflare.UntrustedCertBlock
+	case "error":
+		actionValue = cloudflare.UntrustedCertError
+	}
+
+	return &cloudflare.UntrustedCertSettings{
+		Action: actionValue,
 	}
 }
 

@@ -18,6 +18,7 @@ resource "cloudflare_access_organization" "example" {
   auth_domain                        = "example.cloudflareaccess.com"
   is_ui_read_only                    = false
   user_seat_expiration_inactive_time = "720h"
+  auto_redirect_to_identity          = false
 
   login_design {
     background_color = "#ffffff"
@@ -38,15 +39,27 @@ resource "cloudflare_access_organization" "example" {
 ### Optional
 
 - `account_id` (String) The account identifier to target for the resource. Conflicts with `zone_id`.
+- `auto_redirect_to_identity` (Boolean) When set to true, users skip the identity provider selection step during login.
+- `custom_pages` (Block List) Custom pages for your Zero Trust organization. (see [below for nested schema](#nestedblock--custom_pages))
 - `is_ui_read_only` (Boolean) When set to true, this will disable all editing of Access resources via the Zero Trust Dashboard.
 - `login_design` (Block List) (see [below for nested schema](#nestedblock--login_design))
 - `name` (String) The name of your Zero Trust organization.
+- `ui_read_only_toggle_reason` (String) A description of the reason why the UI read only field is being toggled.
 - `user_seat_expiration_inactive_time` (String) The amount of time a user seat is inactive before it expires. When the user seat exceeds the set time of inactivity, the user is removed as an active seat and no longer counts against your Teams seat count. Must be in the format `300ms` or `2h45m`.
 - `zone_id` (String) The zone identifier to target for the resource. Conflicts with `account_id`.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedblock--custom_pages"></a>
+### Nested Schema for `custom_pages`
+
+Optional:
+
+- `forbidden` (String) The id of the forbidden page.
+- `identity_denied` (String) The id of the identity denied page.
+
 
 <a id="nestedblock--login_design"></a>
 ### Nested Schema for `login_design`

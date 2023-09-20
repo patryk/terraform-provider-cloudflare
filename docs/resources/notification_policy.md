@@ -103,22 +103,27 @@ Read-Only:
 
 Optional:
 
+- `alert_trigger_preferences` (Set of String) Alert trigger preferences. Example: `slo`.
 - `enabled` (Set of String) State of the pool to alert on.
+- `environment` (Set of String) Environment of pages. Available values: `ENVIRONMENT_PREVIEW`, `ENVIRONMENT_PRODUCTION`.
+- `event` (Set of String) Pages event to alert. Available values: `EVENT_DEPLOYMENT_STARTED`, `EVENT_DEPLOYMENT_FAILED`, `EVENT_DEPLOYMENT_SUCCESS`.
 - `event_source` (Set of String) Source configuration to alert on for pool or origin.
 - `event_type` (Set of String) Stream event type to alert on.
 - `health_check_id` (Set of String) Identifier health check. Required when using `filters.0.status`.
 - `input_id` (Set of String) Stream input id to alert on.
 - `limit` (Set of String) A numerical limit. Example: `100`.
+- `megabits_per_second` (Set of String) Megabits per second threshold for dos alert.
 - `new_health` (Set of String) Health status to alert on for pool or origin.
 - `packets_per_second` (Set of String) Packets per second threshold for dos alert.
 - `pool_id` (Set of String) Load balancer pool identifier.
 - `product` (Set of String) Product name. Available values: `worker_requests`, `worker_durable_objects_requests`, `worker_durable_objects_duration`, `worker_durable_objects_data_transfer`, `worker_durable_objects_stored_data`, `worker_durable_objects_storage_deletes`, `worker_durable_objects_storage_writes`, `worker_durable_objects_storage_reads`.
+- `project_id` (Set of String) Identifier of pages project.
 - `protocol` (Set of String) Protocol to alert on for dos.
 - `requests_per_second` (Set of String) Requests per second threshold for dos alert.
 - `services` (Set of String)
 - `slo` (Set of String) A numerical limit. Example: `99.9`.
 - `status` (Set of String) Status to alert on.
-- `target_host` (Set of String) Target host to alert on for dos.
+- `target_hostname` (Set of String) Target host to alert on for dos.
 - `target_zone_name` (Set of String) Target domain to alert on.
 - `zones` (Set of String) A list of zone identifiers.
 

@@ -11,7 +11,7 @@ import (
 func resourceCloudflareNotificationPolicySchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description: "The account identifier to target for the resource.",
+			Description: consts.AccountIDSchemaDescription,
 			Type:        schema.TypeString,
 			Required:    true,
 		},
@@ -59,6 +59,7 @@ func resourceCloudflareNotificationPolicySchema() map[string]*schema.Schema {
 				"http_alert_origin_error",
 				"load_balancing_health_alert",
 				"load_balancing_pool_enablement_alert",
+				"pages_event_alert",
 				"real_origin_monitoring",
 				"scriptmonitor_alert_new_code_change_detections",
 				"scriptmonitor_alert_new_hosts",
@@ -251,6 +252,14 @@ func notificationPolicyFilterSchema() *schema.Schema {
 					Optional:    true,
 					Description: "A numerical limit. Example: `99.9`.",
 				},
+				"alert_trigger_preferences": {
+					Type: schema.TypeSet,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Optional:    true,
+					Description: "Alert trigger preferences. Example: `slo`.",
+				},
 				"requests_per_second": {
 					Type: schema.TypeSet,
 					Elem: &schema.Schema{
@@ -267,7 +276,7 @@ func notificationPolicyFilterSchema() *schema.Schema {
 					Optional:    true,
 					Description: "Target domain to alert on.",
 				},
-				"target_host": {
+				"target_hostname": {
 					Type: schema.TypeSet,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -290,6 +299,37 @@ func notificationPolicyFilterSchema() *schema.Schema {
 					},
 					Optional:    true,
 					Description: "Protocol to alert on for dos.",
+				},
+				"project_id": {
+					Type: schema.TypeSet,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Optional:    true,
+					Description: "Identifier of pages project.",
+				},
+				"environment": {
+					Type: schema.TypeSet,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Optional: true,
+					Description: fmt.Sprintf("Environment of pages. %s", renderAvailableDocumentationValuesStringSlice([]string{
+						"ENVIRONMENT_PREVIEW",
+						"ENVIRONMENT_PRODUCTION",
+					})),
+				},
+				"event": {
+					Type: schema.TypeSet,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Optional: true,
+					Description: fmt.Sprintf("Pages event to alert. %s", renderAvailableDocumentationValuesStringSlice([]string{
+						"EVENT_DEPLOYMENT_STARTED",
+						"EVENT_DEPLOYMENT_FAILED",
+						"EVENT_DEPLOYMENT_SUCCESS",
+					})),
 				},
 				"event_source": {
 					Type: schema.TypeSet,
@@ -322,6 +362,14 @@ func notificationPolicyFilterSchema() *schema.Schema {
 					},
 					Optional:    true,
 					Description: "Stream event type to alert on.",
+				},
+				"megabits_per_second": {
+					Type: schema.TypeSet,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Optional:    true,
+					Description: "Megabits per second threshold for dos alert.",
 				},
 			},
 		},

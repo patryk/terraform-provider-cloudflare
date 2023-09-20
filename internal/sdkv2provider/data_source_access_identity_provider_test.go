@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccCloudflareAccessIdentityProviderDataSource_PreventZoneIdAndAccountIdConflicts(t *testing.T) {
@@ -69,7 +69,7 @@ func TestAccCloudflareAccessIdentityProviderDataSourceNotFound(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckCloudflareAccessIdentityProviderDataSource_NotFound(accountID, rnd),
-				ExpectError: regexp.MustCompile(regexp.QuoteMeta("no Access Identity Providers found")),
+				ExpectError: regexp.MustCompile(`no Access Identity Providers found|no Access Identity Provider matching name`),
 			},
 		},
 	})

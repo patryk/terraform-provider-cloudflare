@@ -40,12 +40,7 @@ func resourceCloudflareAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	var accessGroup cloudflare.AccessGroup
-	if identifier.Type == AccountType {
-		accessGroup, err = client.AccessGroup(ctx, identifier.Value, d.Id())
-	} else {
-		accessGroup, err = client.ZoneLevelAccessGroup(ctx, identifier.Value, d.Id())
-	}
+	accessGroup, err := client.GetAccessGroup(ctx, identifier, d.Id())
 
 	if err != nil {
 		var notFoundError *cloudflare.NotFoundError
@@ -76,11 +71,30 @@ func resourceCloudflareAccessGroupRead(ctx context.Context, d *schema.ResourceDa
 
 func resourceCloudflareAccessGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudflare.API)
-	newAccessGroup := cloudflare.AccessGroup{
+	newAccessGroup := cloudflare.CreateAccessGroupParams{
 		Name: d.Get("name").(string),
 	}
 
-	newAccessGroup = appendConditionalAccessGroupFields(newAccessGroup, d)
+	exclude := d.Get("exclude").([]interface{})
+	for _, value := range exclude {
+		if value != nil {
+			newAccessGroup.Exclude = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
+
+	require := d.Get("require").([]interface{})
+	for _, value := range require {
+		if value != nil {
+			newAccessGroup.Require = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
+
+	include := d.Get("include").([]interface{})
+	for _, value := range include {
+		if value != nil {
+			newAccessGroup.Include = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Creating Cloudflare Access Group from struct: %+v", newAccessGroup))
 
@@ -89,12 +103,7 @@ func resourceCloudflareAccessGroupCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	var accessGroup cloudflare.AccessGroup
-	if identifier.Type == AccountType {
-		accessGroup, err = client.CreateAccessGroup(ctx, identifier.Value, newAccessGroup)
-	} else {
-		accessGroup, err = client.CreateZoneLevelAccessGroup(ctx, identifier.Value, newAccessGroup)
-	}
+	accessGroup, err := client.CreateAccessGroup(ctx, identifier, newAccessGroup)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating Access Group for ID %q: %w", accessGroup.ID, err))
 	}
@@ -106,12 +115,31 @@ func resourceCloudflareAccessGroupCreate(ctx context.Context, d *schema.Resource
 
 func resourceCloudflareAccessGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudflare.API)
-	updatedAccessGroup := cloudflare.AccessGroup{
+	updatedAccessGroup := cloudflare.UpdateAccessGroupParams{
 		Name: d.Get("name").(string),
 		ID:   d.Id(),
 	}
 
-	updatedAccessGroup = appendConditionalAccessGroupFields(updatedAccessGroup, d)
+	exclude := d.Get("exclude").([]interface{})
+	for _, value := range exclude {
+		if value != nil {
+			updatedAccessGroup.Exclude = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
+
+	require := d.Get("require").([]interface{})
+	for _, value := range require {
+		if value != nil {
+			updatedAccessGroup.Require = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
+
+	include := d.Get("include").([]interface{})
+	for _, value := range include {
+		if value != nil {
+			updatedAccessGroup.Include = BuildAccessGroupCondition(value.(map[string]interface{}))
+		}
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating Cloudflare Access Group from struct: %+v", updatedAccessGroup))
 
@@ -120,12 +148,7 @@ func resourceCloudflareAccessGroupUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	var accessGroup cloudflare.AccessGroup
-	if identifier.Type == AccountType {
-		accessGroup, err = client.UpdateAccessGroup(ctx, identifier.Value, updatedAccessGroup)
-	} else {
-		accessGroup, err = client.UpdateZoneLevelAccessGroup(ctx, identifier.Value, updatedAccessGroup)
-	}
+	accessGroup, err := client.UpdateAccessGroup(ctx, identifier, updatedAccessGroup)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Access Group for ID %q: %w", d.Id(), err))
 	}
@@ -147,11 +170,7 @@ func resourceCloudflareAccessGroupDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	if identifier.Type == AccountType {
-		err = client.DeleteAccessGroup(ctx, identifier.Value, d.Id())
-	} else {
-		err = client.DeleteZoneLevelAccessGroup(ctx, identifier.Value, d.Id())
-	}
+	err = client.DeleteAccessGroup(ctx, identifier, d.Id())
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Access Group for ID %q: %w", d.Id(), err))
 	}
@@ -178,35 +197,6 @@ func resourceCloudflareAccessGroupImport(ctx context.Context, d *schema.Resource
 	resourceCloudflareAccessGroupRead(ctx, d, meta)
 
 	return []*schema.ResourceData{d}, nil
-}
-
-// appendConditionalAccessGroupFields determines which of the
-// conditional group enforcement fields it should append to the
-// AccessGroup by iterating over the provided values and generating the
-// correct structs.
-func appendConditionalAccessGroupFields(group cloudflare.AccessGroup, d *schema.ResourceData) cloudflare.AccessGroup {
-	exclude := d.Get("exclude").([]interface{})
-	for _, value := range exclude {
-		if value != nil {
-			group.Exclude = BuildAccessGroupCondition(value.(map[string]interface{}))
-		}
-	}
-
-	require := d.Get("require").([]interface{})
-	for _, value := range require {
-		if value != nil {
-			group.Require = BuildAccessGroupCondition(value.(map[string]interface{}))
-		}
-	}
-
-	include := d.Get("include").([]interface{})
-	for _, value := range include {
-		if value != nil {
-			group.Include = BuildAccessGroupCondition(value.(map[string]interface{}))
-		}
-	}
-
-	return group
 }
 
 // BuildAccessGroupCondition iterates the provided `map` of values and
@@ -330,6 +320,19 @@ func BuildAccessGroupCondition(options map[string]interface{}) []interface{} {
 					KeysURL:     eeCfg["keys_url"].(string),
 				}})
 			}
+		} else if accessGroupType == "auth_context" {
+			for _, v := range values.([]interface{}) {
+				ctxCfg := v.(map[string]interface{})
+				group = append(group, cloudflare.AccessGroupAzureAuthContext{AuthContext: struct {
+					ID                 string `json:"id"`
+					IdentityProviderID string `json:"identity_provider_id"`
+					ACID               string `json:"ac_id"`
+				}{
+					ID:                 ctxCfg["id"].(string),
+					IdentityProviderID: ctxCfg["identity_provider_id"].(string),
+					ACID:               ctxCfg["ac_id"].(string),
+				}})
+			}
 		} else {
 			for _, value := range values.([]interface{}) {
 				switch accessGroupType {
@@ -406,12 +409,14 @@ func TransformAccessGroupForSchema(ctx context.Context, accessGroup []interface{
 	githubName := ""
 	githubTeams := []string{}
 	githubID := ""
-	azureID := ""
-	azureIDs := []string{}
+	azureGroups := []map[string]interface{}{}
 	samlGroups := []map[string]string{}
 	externalEvaluationURL := ""
 	externalEvaluationKeysURL := ""
 	devicePostureRuleIDs := []string{}
+	authCtxID := ""
+	authCtxIDPID := ""
+	authCtxACID := ""
 
 	for _, group := range accessGroup {
 		for groupKey, groupValue := range group.(map[string]interface{}) {
@@ -475,13 +480,30 @@ func TransformAccessGroupForSchema(ctx context.Context, accessGroup []interface{
 				}
 			case "azureAD":
 				azureCfg := groupValue.(map[string]interface{})
-				azureID = azureCfg["identity_provider_id"].(string)
-				azureIDs = append(azureIDs, azureCfg["id"].(string))
+				azureIdPID := azureCfg["identity_provider_id"].(string)
+				azureGroupID := azureCfg["id"].(string)
+
+				var azureGroup map[string]interface{}
+				for _, ag := range azureGroups {
+					if ag["identity_provider_id"] == azureIdPID {
+						azureGroup = ag
+						break
+					}
+				}
+
+				if len(azureGroup) == 0 {
+					azureGroups = append(azureGroups, map[string]interface{}{"identity_provider_id": azureIdPID, "id": []string{azureGroupID}})
+				} else {
+					azureGroup["id"] = append(azureGroup["id"].([]string), azureGroupID)
+				}
 			case "saml":
 				samlCfg := groupValue.(map[string]interface{})
 				samlAttrName := samlCfg["attribute_name"].(string)
 				samlAttrValue := samlCfg["attribute_value"].(string)
 				s := map[string]string{"attribute_name": samlAttrName, "attribute_value": samlAttrValue}
+				if idpID, ok := samlCfg["identity_provider_id"].(string); ok {
+					s["identity_provider_id"] = idpID
+				}
 				samlGroups = append(samlGroups, s)
 			case "external_evaluation":
 				eeCfg := groupValue.(map[string]interface{})
@@ -495,6 +517,11 @@ func TransformAccessGroupForSchema(ctx context.Context, accessGroup []interface{
 				for _, dprID := range groupValue.(map[string]interface{}) {
 					devicePostureRuleIDs = append(devicePostureRuleIDs, dprID.(string))
 				}
+			case "auth_context":
+				ctxCfg := groupValue.(map[string]interface{})
+				authCtxIDPID = ctxCfg["identity_provider_id"].(string)
+				authCtxID = ctxCfg["id"].(string)
+				authCtxACID = ctxCfg["ac_id"].(string)
 			default:
 				tflog.Debug(ctx, fmt.Sprintf("Access Group key %q not transformed", groupKey))
 			}
@@ -579,13 +606,8 @@ func TransformAccessGroupForSchema(ctx context.Context, accessGroup []interface{
 		}
 	}
 
-	if len(azureIDs) > 0 && azureID != "" {
-		groupMap["azure"] = []interface{}{
-			map[string]interface{}{
-				"identity_provider_id": azureID,
-				"id":                   azureIDs,
-			},
-		}
+	if len(azureGroups) > 0 {
+		groupMap["azure"] = azureGroups
 	}
 
 	if len(samlGroups) > 0 {
@@ -597,6 +619,16 @@ func TransformAccessGroupForSchema(ctx context.Context, accessGroup []interface{
 			map[string]interface{}{
 				"evaluate_url": externalEvaluationURL,
 				"keys_url":     externalEvaluationKeysURL,
+			},
+		}
+	}
+
+	if authCtxID != "" && authCtxACID != "" && authCtxIDPID != "" {
+		groupMap["auth_context"] = []interface{}{
+			map[string]interface{}{
+				"id":                   authCtxID,
+				"ac_id":                authCtxACID,
+				"identity_provider_id": authCtxIDPID,
 			},
 		}
 	}

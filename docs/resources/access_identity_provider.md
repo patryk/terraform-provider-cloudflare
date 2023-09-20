@@ -74,12 +74,13 @@ resource "cloudflare_access_identity_provider" "okta" {
 ### Required
 
 - `name` (String) Friendly name of the Access Identity Provider configuration.
-- `type` (String) The provider type to use. Available values: `centrify`, `facebook`, `google-apps`, `oidc`, `github`, `google`, `saml`, `linkedin`, `azureAD`, `okta`, `onetimepin`, `onelogin`, `yandex`.
+- `type` (String) The provider type to use. Available values: `azureAD`, `centrify`, `facebook`, `github`, `google`, `google-apps`, `linkedin`, `oidc`, `okta`, `onelogin`, `onetimepin`, `pingone`, `saml`, `yandex`.
 
 ### Optional
 
 - `account_id` (String) The account identifier to target for the resource. Conflicts with `zone_id`. **Modifying this attribute will force creation of a new resource.**
 - `config` (Block List) Provider configuration from the [developer documentation](https://developers.cloudflare.com/access/configuring-identity-providers/). (see [below for nested schema](#nestedblock--config))
+- `scim_config` (Block List) Configuration for SCIM settings for a given IDP. (see [below for nested schema](#nestedblock--scim_config))
 - `zone_id` (String) The zone identifier to target for the resource. Conflicts with `account_id`. **Modifying this attribute will force creation of a new resource.**
 
 ### Read-Only
@@ -95,23 +96,44 @@ Optional:
 - `apps_domain` (String)
 - `attributes` (List of String)
 - `auth_url` (String)
+- `authorization_server_id` (String)
 - `centrify_account` (String)
 - `centrify_app_id` (String)
 - `certs_url` (String)
+- `claims` (List of String)
 - `client_id` (String)
 - `client_secret` (String)
+- `conditional_access_enabled` (Boolean)
 - `directory_id` (String)
 - `email_attribute_name` (String)
+- `email_claim_name` (String)
 - `idp_public_cert` (String)
 - `issuer_url` (String)
 - `okta_account` (String)
 - `onelogin_account` (String)
+- `ping_env_id` (String)
 - `pkce_enabled` (Boolean)
-- `redirect_url` (String)
+- `scopes` (List of String)
 - `sign_request` (Boolean)
 - `sso_target_url` (String)
 - `support_groups` (Boolean)
 - `token_url` (String)
+
+Read-Only:
+
+- `redirect_url` (String)
+
+
+<a id="nestedblock--scim_config"></a>
+### Nested Schema for `scim_config`
+
+Optional:
+
+- `enabled` (Boolean)
+- `group_member_deprovision` (Boolean)
+- `seat_deprovision` (Boolean)
+- `secret` (String, Sensitive)
+- `user_deprovision` (Boolean)
 
 ## Import
 

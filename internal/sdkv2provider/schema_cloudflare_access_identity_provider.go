@@ -11,14 +11,14 @@ import (
 func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description:   "The account identifier to target for the resource.",
+			Description:   consts.AccountIDSchemaDescription,
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			ConflictsWith: []string{consts.ZoneIDSchemaKey},
 		},
 		consts.ZoneIDSchemaKey: {
-			Description:   "The zone identifier to target for the resource.",
+			Description:   consts.ZoneIDSchemaDescription,
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -32,12 +32,13 @@ func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema 
 		"type": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice([]string{"centrify", "facebook", "google-apps", "oidc", "github", "google", "saml", "linkedin", "azureAD", "okta", "onetimepin", "onelogin", "yandex"}, false),
-			Description:  fmt.Sprintf("The provider type to use. %s", renderAvailableDocumentationValuesStringSlice([]string{"centrify", "facebook", "google-apps", "oidc", "github", "google", "saml", "linkedin", "azureAD", "okta", "onetimepin", "onelogin", "yandex"})),
+			ValidateFunc: validation.StringInSlice([]string{"azureAD", "centrify", "facebook", "github", "google", "google-apps", "linkedin", "oidc", "okta", "onelogin", "onetimepin", "pingone", "saml", "yandex"}, false),
+			Description:  fmt.Sprintf("The provider type to use. %s", renderAvailableDocumentationValuesStringSlice([]string{"azureAD", "centrify", "facebook", "github", "google", "google-apps", "linkedin", "oidc", "okta", "onelogin", "onetimepin", "pingone", "saml", "yandex"})),
 		},
 		"config": {
 			Type:        schema.TypeList,
 			Optional:    true,
+			Computed:    true,
 			Description: "Provider configuration from the [developer documentation](https://developers.cloudflare.com/access/configuring-identity-providers/).",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -55,8 +56,13 @@ func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema 
 						Elem: &schema.Schema{
 							Type: schema.TypeString,
 						},
+						Computed: true,
 					},
 					"auth_url": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"authorization_server_id": {
 						Type:     schema.TypeString,
 						Optional: true,
 					},
@@ -85,6 +91,26 @@ func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema 
 						StateFunc: func(val interface{}) string {
 							return CONCEALED_STRING
 						},
+					},
+					"claims": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+						Computed: true,
+					},
+					"email_claim_name": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"scopes": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+						Computed: true,
 					},
 					"directory_id": {
 						Type:     schema.TypeString,
@@ -117,9 +143,12 @@ func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema 
 						Type:     schema.TypeString,
 						Optional: true,
 					},
-					"redirect_url": {
+					"ping_env_id": {
 						Type:     schema.TypeString,
 						Optional: true,
+					},
+					"redirect_url": {
+						Type:     schema.TypeString,
 						Computed: true,
 					},
 					"sign_request": {
@@ -139,6 +168,42 @@ func resourceCloudflareAccessIdentityProviderSchema() map[string]*schema.Schema 
 						Optional: true,
 					},
 					"pkce_enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"conditional_access_enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
+		"scim_config": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Computed:    true,
+			Description: "Configuration for SCIM settings for a given IDP",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"secret": {
+						Type:      schema.TypeString,
+						Optional:  true,
+						Computed:  true,
+						Sensitive: true,
+					},
+					"user_deprovision": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"seat_deprovision": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"group_member_deprovision": {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},

@@ -11,8 +11,8 @@ import (
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +33,7 @@ func testSweepCloudflareAccessApplications(r string) error {
 
 	// Zone level Access Applications.
 	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
-	zoneAccessApps, _, err := client.ZoneLevelAccessApplications(context.Background(), zoneID, cloudflare.PaginationOptions{})
+	zoneAccessApps, _, err := client.ListAccessApplications(context.Background(), cloudflare.ZoneIdentifier(zoneID), cloudflare.ListAccessApplicationsParams{})
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Failed to fetch zone level Access Applications: %s", err))
 	}
@@ -44,14 +44,14 @@ func testSweepCloudflareAccessApplications(r string) error {
 	}
 
 	for _, accessApp := range zoneAccessApps {
-		if err := client.DeleteZoneLevelAccessApplication(context.Background(), zoneID, accessApp.ID); err != nil {
+		if err := client.DeleteAccessApplication(context.Background(), cloudflare.ZoneIdentifier(zoneID), accessApp.ID); err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Failed to delete zone level Access Application %s", accessApp.ID))
 		}
 	}
 
 	// Account level Access Applications.
 	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
-	accountAccessApps, _, err := client.AccessApplications(context.Background(), accountID, cloudflare.PaginationOptions{})
+	accountAccessApps, _, err := client.ListAccessApplications(context.Background(), cloudflare.AccountIdentifier(accountID), cloudflare.ListAccessApplicationsParams{})
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Failed to fetch account level Access Applications: %s", err))
 	}
@@ -62,7 +62,7 @@ func testSweepCloudflareAccessApplications(r string) error {
 	}
 
 	for _, accessApp := range accountAccessApps {
-		if err := client.DeleteAccessApplication(context.Background(), accountID, accessApp.ID); err != nil {
+		if err := client.DeleteAccessApplication(context.Background(), cloudflare.AccountIdentifier(accountID), accessApp.ID); err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Failed to delete account level Access Application %s", accessApp.ID))
 		}
 	}
@@ -87,7 +87,7 @@ func TestAccCloudflareAccessApplication_BasicZone(t *testing.T) {
 		CheckDestroy:      testAccCheckCloudflareAccessApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudflareAccessApplicationConfigBasic(rnd, domain, AccessIdentifier{Type: ZoneType, Value: zoneID}),
+				Config: testAccCloudflareAccessApplicationConfigBasic(rnd, domain, cloudflare.ZoneIdentifier(zoneID)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, consts.ZoneIDSchemaKey, zoneID),
 					resource.TestCheckResourceAttr(name, "name", rnd),
@@ -116,7 +116,7 @@ func TestAccCloudflareAccessApplication_BasicAccount(t *testing.T) {
 		CheckDestroy:      testAccCheckCloudflareAccessApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudflareAccessApplicationConfigBasic(rnd, domain, AccessIdentifier{Type: AccountType, Value: accountID}),
+				Config: testAccCloudflareAccessApplicationConfigBasic(rnd, domain, cloudflare.AccountIdentifier(accountID)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
 					resource.TestCheckResourceAttr(name, "name", rnd),
@@ -185,6 +185,15 @@ func TestAccCloudflareAccessApplication_WithSaas(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "saas_app.0.sp_entity_id", "saas-app.example"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.consumer_service_url", "https://saas-app.example/sso/saml/consume"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.name_id_format", "email"),
+
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.#", "2"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.name", "email"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.name_format", "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.source.0.name", "user_email"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.name", "rank"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.source.0.name", "rank"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.friendly_name", "Rank"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.required", "true"),
 				),
 			},
 		},
@@ -265,6 +274,7 @@ func TestAccCloudflareAccessApplication_WithCustomDenyFields(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "session_duration", "24h"),
 					resource.TestCheckResourceAttr(name, "custom_deny_message", "denied!"),
 					resource.TestCheckResourceAttr(name, "custom_deny_url", "https://www.cloudflare.com"),
+					resource.TestCheckResourceAttr(name, "custom_non_identity_deny_url", "https://www.blocked.com"),
 				),
 			},
 		},
@@ -476,7 +486,37 @@ func TestAccCloudflareAccessApplication_WithAppLauncherVisible(t *testing.T) {
 	})
 }
 
-func testAccCloudflareAccessApplicationConfigBasic(rnd string, domain string, identifier AccessIdentifier) string {
+func TestAccCloudflareAccessApplication_WithSelfHostedDomains(t *testing.T) {
+	rnd := generateRandomResourceName()
+	name := fmt.Sprintf("cloudflare_access_application.%s", rnd)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAccount(t)
+		},
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareAccessApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudflareAccessApplicationWithSelfHostedDomains(rnd, domain, cloudflare.AccountIdentifier(accountID)),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
+					resource.TestCheckResourceAttr(name, "name", rnd),
+					resource.TestCheckResourceAttrSet(name, "domain"),
+					resource.TestCheckResourceAttr(name, "self_hosted_domains.#", "2"),
+					resource.TestCheckResourceAttr(name, "type", "self_hosted"),
+					resource.TestCheckResourceAttr(name, "session_duration", "24h"),
+					resource.TestCheckResourceAttr(name, "cors_headers.#", "0"),
+					resource.TestCheckResourceAttr(name, "sass_app.#", "0"),
+					resource.TestCheckResourceAttr(name, "auto_redirect_to_identity", "false"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCloudflareAccessApplicationConfigBasic(rnd string, domain string, identifier *cloudflare.ResourceContainer) string {
 	return fmt.Sprintf(`
 resource "cloudflare_access_application" "%[1]s" {
   %[3]s_id                  = "%[4]s"
@@ -486,7 +526,7 @@ resource "cloudflare_access_application" "%[1]s" {
   session_duration          = "24h"
   auto_redirect_to_identity = false
 }
-`, rnd, domain, identifier.Type, identifier.Value)
+`, rnd, domain, identifier.Type, identifier.Identifier)
 }
 
 func testAccCloudflareAccessApplicationConfigWithCORS(rnd, zoneID, domain string) string {
@@ -519,6 +559,21 @@ resource "cloudflare_access_application" "%[1]s" {
     consumer_service_url = "https://saas-app.example/sso/saml/consume"
     sp_entity_id  = "saas-app.example"
     name_id_format =  "email"
+	custom_attribute {
+		name = "email"
+		name_format = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
+		source {
+			name = "user_email"
+		}
+	}
+	custom_attribute {
+		name = "rank"
+		required = true
+		friendly_name = "Rank"
+		source {
+			name = "rank"
+		}
+	}
   }
   auto_redirect_to_identity = false
 }
@@ -570,6 +625,7 @@ resource "cloudflare_access_application" "%[1]s" {
   session_duration          = "24h"
   custom_deny_message       = "denied!"
   custom_deny_url           = "https://www.cloudflare.com"
+	custom_non_identity_deny_url = "https://www.blocked.com"
 }
 `, rnd, zoneID, domain)
 }
@@ -703,6 +759,22 @@ resource "cloudflare_access_application" "%[1]s" {
 `, rnd, zoneID, domain)
 }
 
+func testAccCloudflareAccessApplicationWithSelfHostedDomains(rnd string, domain string, identifier *cloudflare.ResourceContainer) string {
+	return fmt.Sprintf(`
+resource "cloudflare_access_application" "%[1]s" {
+  %[3]s_id                  = "%[4]s"
+  name                      = "%[1]s"
+  type                      = "self_hosted"
+  session_duration          = "24h"
+  auto_redirect_to_identity = false
+  self_hosted_domains       = [
+    "d1.%[1]s.%[2]s",
+    "d2.%[1]s.%[2]s"
+  ]
+}
+`, rnd, domain, identifier.Type, identifier.Identifier)
+}
+
 func testAccCheckCloudflareAccessApplicationDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*cloudflare.API)
 
@@ -713,14 +785,14 @@ func testAccCheckCloudflareAccessApplicationDestroy(s *terraform.State) error {
 
 		var notFoundError *cloudflare.NotFoundError
 		if rs.Primary.Attributes[consts.ZoneIDSchemaKey] != "" {
-			_, err := client.ZoneLevelAccessApplication(context.Background(), rs.Primary.Attributes[consts.ZoneIDSchemaKey], rs.Primary.ID)
+			_, err := client.GetAccessApplication(context.Background(), cloudflare.ZoneIdentifier(rs.Primary.Attributes[consts.ZoneIDSchemaKey]), rs.Primary.ID)
 			if !errors.As(err, &notFoundError) {
 				return fmt.Errorf("AccessApplication still exists")
 			}
 		}
 
 		if rs.Primary.Attributes[consts.AccountIDSchemaKey] != "" {
-			_, err := client.AccessApplication(context.Background(), rs.Primary.Attributes[consts.AccountIDSchemaKey], rs.Primary.ID)
+			_, err := client.GetAccessApplication(context.Background(), cloudflare.AccountIdentifier(rs.Primary.Attributes[consts.AccountIDSchemaKey]), rs.Primary.ID)
 			if !errors.As(err, &notFoundError) {
 				return fmt.Errorf("AccessApplication still exists")
 			}

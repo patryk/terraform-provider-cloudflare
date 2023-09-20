@@ -11,13 +11,6 @@ The Cloudflare provider is used to interact with resources supported by
 Cloudflare. The provider needs to be configured with the proper credentials
 before it can be used.
 
-
-!> The 4.x version of the provider is an early release candidate. It may contain
-bugs and backwards incompatible state modifications. **You should not use it in
-production you are clear on the ramifications and have a clear backup plan in
-the event of breakages.**<br><br>For production usage, the 3.x release is
-recommended using the `~> 3` provider version selector.
-
 ## Getting Started
 
 Try the [getting started tutorial](https://developers.cloudflare.com/terraform/tutorial/)
@@ -35,7 +28,7 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 3.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -63,7 +56,7 @@ resource "cloudflare_page_rule" "www" {
 - `api_base_path` (String) Configure the base path used by the API client. Alternatively, can be configured using the `CLOUDFLARE_API_BASE_PATH` environment variable.
 - `api_client_logging` (Boolean) Whether to print logs from the API client (using the default log library logger). Alternatively, can be configured using the `CLOUDFLARE_API_CLIENT_LOGGING` environment variable.
 - `api_hostname` (String) Configure the hostname used by the API client. Alternatively, can be configured using the `CLOUDFLARE_API_HOSTNAME` environment variable.
-- `api_key` (String) The API key for operations. Alternatively, can be configured using the `CLOUDFLARE_API_KEY` environment variable. API keys are [now considered legacy by Cloudflare](https://developers.cloudflare.com/api/keys/#limitations), API tokens should be used instead. Must provide only one of `api_key`, `api_token`, `api_user_service_key`.
+- `api_key` (String) The API key for operations. Alternatively, can be configured using the `CLOUDFLARE_API_KEY` environment variable. API keys are [now considered legacy by Cloudflare](https://developers.cloudflare.com/fundamentals/api/get-started/keys/#limitations), API tokens should be used instead. Must provide only one of `api_key`, `api_token`, `api_user_service_key`.
 - `api_token` (String) The API Token for operations. Alternatively, can be configured using the `CLOUDFLARE_API_TOKEN` environment variable. Must provide only one of `api_key`, `api_token`, `api_user_service_key`.
 - `api_user_service_key` (String) A special Cloudflare API key good for a restricted set of endpoints. Alternatively, can be configured using the `CLOUDFLARE_API_USER_SERVICE_KEY` environment variable. Must provide only one of `api_key`, `api_token`, `api_user_service_key`.
 - `email` (String) A registered Cloudflare email address. Alternatively, can be configured using the `CLOUDFLARE_EMAIL` environment variable. Required when using `api_key`. Conflicts with `api_token`.

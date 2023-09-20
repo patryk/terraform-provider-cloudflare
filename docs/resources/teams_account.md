@@ -15,8 +15,9 @@ resource defines configuration for secure web gateway.
 
 ```terraform
 resource "cloudflare_teams_account" "example" {
-  account_id          = "f037e56e89293a057740de681ac9abbe"
-  tls_decrypt_enabled = true
+  account_id                 = "f037e56e89293a057740de681ac9abbe"
+  tls_decrypt_enabled        = true
+  protocol_detection_enabled = true
 
   block_page {
     footer_text      = "hello"
@@ -36,8 +37,9 @@ resource "cloudflare_teams_account" "example" {
   }
 
   proxy {
-    tcp = true
-    udp = true
+    tcp     = true
+    udp     = true
+    root_ca = true
   }
 
   url_browser_isolation_enabled = true
@@ -75,6 +77,8 @@ resource "cloudflare_teams_account" "example" {
 - `block_page` (Block List, Max: 1) Configuration for a custom block page. (see [below for nested schema](#nestedblock--block_page))
 - `fips` (Block List, Max: 1) Configure compliance with Federal Information Processing Standards. (see [below for nested schema](#nestedblock--fips))
 - `logging` (Block List, Max: 1) (see [below for nested schema](#nestedblock--logging))
+- `payload_log` (Block List, Max: 1) Configuration for DLP Payload Logging. (see [below for nested schema](#nestedblock--payload_log))
+- `protocol_detection_enabled` (Boolean) Indicator that protocol detection is enabled.
 - `proxy` (Block List, Max: 1) Configuration block for specifying which protocols are proxied. (see [below for nested schema](#nestedblock--proxy))
 - `tls_decrypt_enabled` (Boolean) Indicator that decryption of TLS traffic is enabled.
 - `url_browser_isolation_enabled` (Boolean) Safely browse websites in Browser Isolation through a URL.
@@ -162,11 +166,20 @@ Required:
 
 
 
+<a id="nestedblock--payload_log"></a>
+### Nested Schema for `payload_log`
+
+Required:
+
+- `public_key` (String) Public key used to encrypt matched payloads.
+
+
 <a id="nestedblock--proxy"></a>
 ### Nested Schema for `proxy`
 
 Required:
 
+- `root_ca` (Boolean) Whether root ca is enabled account wide for ZT clients.
 - `tcp` (Boolean) Whether gateway proxy is enabled on gateway devices for TCP traffic.
 - `udp` (Boolean) Whether gateway proxy is enabled on gateway devices for UDP traffic.
 

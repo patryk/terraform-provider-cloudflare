@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func testEmailRoutingAddressConfig(resourceID, accountID, email string) string {
@@ -22,15 +22,16 @@ func TestAccTestEmailRoutingAddress(t *testing.T) {
 	rnd := generateRandomResourceName()
 	name := "cloudflare_email_routing_address." + rnd
 	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	email := os.Getenv("CLOUDFLARE_EMAIL")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testEmailRoutingAddressConfig(rnd, accountID, "user@example.com"),
+				Config: testEmailRoutingAddressConfig(rnd, accountID, email),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "email", "user@example.com"),
+					resource.TestCheckResourceAttr(name, "email", email),
 					resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
 				),
 			},

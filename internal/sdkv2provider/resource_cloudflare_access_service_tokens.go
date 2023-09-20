@@ -38,15 +38,10 @@ func resourceCloudflareAccessServiceTokenRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 
-	// The Cloudflare API doesn't support fetching a single service token
+	// The Cloudflare API doesn't support fetching a single service token,
 	// so instead we loop over all the service tokens and only continue
 	// when we have a match.
-	var serviceTokens []cloudflare.AccessServiceToken
-	if identifier.Type == AccountType {
-		serviceTokens, _, err = client.AccessServiceTokens(ctx, identifier.Value)
-	} else {
-		serviceTokens, _, err = client.ZoneLevelAccessServiceTokens(ctx, identifier.Value)
-	}
+	serviceTokens, _, err := client.ListAccessServiceTokens(ctx, identifier, cloudflare.ListAccessServiceTokensParams{})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error fetching access service tokens: %w", err))
 	}
@@ -84,6 +79,7 @@ func resourceCloudflareAccessServiceTokenRead(ctx context.Context, d *schema.Res
 			d.Set("name", token.Name)
 			d.Set("client_id", token.ClientID)
 			d.Set("expires_at", token.ExpiresAt.Format(time.RFC3339))
+			d.Set("duration", token.Duration)
 		}
 	}
 
@@ -92,19 +88,19 @@ func resourceCloudflareAccessServiceTokenRead(ctx context.Context, d *schema.Res
 
 func resourceCloudflareAccessServiceTokenCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudflare.API)
-	tokenName := d.Get("name").(string)
 
 	identifier, err := initIdentifier(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var serviceToken cloudflare.AccessServiceTokenCreateResponse
-	if identifier.Type == AccountType {
-		serviceToken, err = client.CreateAccessServiceToken(ctx, identifier.Value, tokenName)
-	} else {
-		serviceToken, err = client.CreateZoneLevelAccessServiceToken(ctx, identifier.Value, tokenName)
+	params := cloudflare.CreateAccessServiceTokenParams{Name: d.Get("name").(string)}
+	if value, ok := d.GetOk("duration"); ok {
+		params.Duration = value.(string)
 	}
+
+	serviceToken, err := client.CreateAccessServiceToken(ctx, identifier, params)
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating access service token: %w", err))
 	}
@@ -114,6 +110,7 @@ func resourceCloudflareAccessServiceTokenCreate(ctx context.Context, d *schema.R
 	d.Set("client_id", serviceToken.ClientID)
 	d.Set("client_secret", serviceToken.ClientSecret)
 	d.Set("expires_at", serviceToken.ExpiresAt.Format(time.RFC3339))
+	d.Set("duration", serviceToken.Duration)
 
 	resourceCloudflareAccessServiceTokenRead(ctx, d, meta)
 
@@ -122,19 +119,23 @@ func resourceCloudflareAccessServiceTokenCreate(ctx context.Context, d *schema.R
 
 func resourceCloudflareAccessServiceTokenUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*cloudflare.API)
-	tokenName := d.Get("name").(string)
 
 	identifier, err := initIdentifier(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	var serviceToken cloudflare.AccessServiceTokenUpdateResponse
-	if identifier.Type == AccountType {
-		serviceToken, err = client.UpdateAccessServiceToken(ctx, identifier.Value, d.Id(), tokenName)
-	} else {
-		serviceToken, err = client.UpdateZoneLevelAccessServiceToken(ctx, identifier.Value, d.Id(), tokenName)
+	params := cloudflare.UpdateAccessServiceTokenParams{
+		UUID: d.Id(),
+		Name: d.Get("name").(string),
 	}
+
+	if d.HasChange("duration") {
+		params.Duration = d.Get("duration").(string)
+	}
+
+	serviceToken, err := client.UpdateAccessServiceToken(ctx, identifier, params)
+
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating access service token: %w", err))
 	}
@@ -152,11 +153,7 @@ func resourceCloudflareAccessServiceTokenDelete(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	if identifier.Type == AccountType {
-		_, err = client.DeleteAccessServiceToken(ctx, identifier.Value, d.Id())
-	} else {
-		_, err = client.DeleteZoneLevelAccessServiceToken(ctx, identifier.Value, d.Id())
-	}
+	_, err = client.DeleteAccessServiceToken(ctx, identifier, d.Id())
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting access service token: %w", err))
 	}

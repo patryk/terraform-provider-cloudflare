@@ -8,7 +8,7 @@ import (
 func resourceCloudflareTeamsAccountSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
-			Description: "The account identifier to target for the resource.",
+			Description: consts.AccountIDSchemaDescription,
 			Type:        schema.TypeString,
 			Required:    true,
 		},
@@ -44,6 +44,11 @@ func resourceCloudflareTeamsAccountSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Indicator that decryption of TLS traffic is enabled.",
 		},
+		"protocol_detection_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Indicator that protocol detection is enabled.",
+		},
 		"activity_log_enabled": {
 			Type:        schema.TypeBool,
 			Optional:    true,
@@ -70,6 +75,15 @@ func resourceCloudflareTeamsAccountSchema() map[string]*schema.Schema {
 				Schema: proxySchema,
 			},
 			Description: "Configuration block for specifying which protocols are proxied.",
+		},
+		"payload_log": {
+			Type:     schema.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: payloadLogSchema,
+			},
+			Description: "Configuration for DLP Payload Logging.",
 		},
 	}
 }
@@ -154,6 +168,11 @@ var proxySchema = map[string]*schema.Schema{
 		Required:    true,
 		Description: "Whether gateway proxy is enabled on gateway devices for UDP traffic.",
 	},
+	"root_ca": {
+		Type:        schema.TypeBool,
+		Required:    true,
+		Description: "Whether root ca is enabled account wide for ZT clients.",
+	},
 }
 
 var loggingSchema = map[string]*schema.Schema{
@@ -210,5 +229,13 @@ var loggingEnabledSchema = map[string]*schema.Schema{
 	"log_blocks": {
 		Type:     schema.TypeBool,
 		Required: true,
+	},
+}
+
+var payloadLogSchema = map[string]*schema.Schema{
+	"public_key": {
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "Public key used to encrypt matched payloads.",
 	},
 }

@@ -15,8 +15,8 @@ import (
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -129,6 +129,15 @@ func TestAccCloudflareLoadBalancer_SessionAffinity(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccCloudflareLoadBalancer_SessionAffinityIPCookie(t *testing.T) {
+	t.Parallel()
+	var loadBalancer cloudflare.LoadBalancer
+	zone := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_load_balancer." + rnd
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -146,6 +155,46 @@ func TestAccCloudflareLoadBalancer_SessionAffinity(t *testing.T) {
 					resource.TestCheckNoResourceAttr(name, "session_affinity_ttl"),
 					// session_affinity_attributes should not be present as it isn't set
 					resource.TestCheckResourceAttr(name, "session_affinity_attributes.#", "0"),
+					// dont check that other specified values are set, this will be evident by lack
+					// of plan diff some values will get empty values
+					resource.TestCheckResourceAttr(name, "pop_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "country_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "region_pools.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareLoadBalancer_SessionAffinityHeader(t *testing.T) {
+	t.Parallel()
+	var loadBalancer cloudflare.LoadBalancer
+	zone := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_load_balancer." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigSessionAffinityHeader(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// explicitly verify that our session_affinity has been set
+					resource.TestCheckResourceAttr(name, "session_affinity", "header"),
+					resource.TestCheckResourceAttr(name, "session_affinity_ttl", "1800"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.#", "1"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.samesite", "Auto"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.secure", "Auto"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.drain_duration", "60"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.zero_downtime_failover", "temporary"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.headers.#", "1"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.headers.0", "x-custom"),
+					resource.TestCheckResourceAttr(name, "session_affinity_attributes.0.require_all_headers", "true"),
 					// dont check that other specified values are set, this will be evident by lack
 					// of plan diff some values will get empty values
 					resource.TestCheckResourceAttr(name, "pop_pools.#", "0"),
@@ -252,6 +301,70 @@ func TestAccCloudflareLoadBalancer_RandomSteering(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "region_pools.#", "0"),
 				),
 			},
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigRandomSteeringUpdate(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// explicitly verify that random_steering has been set
+					resource.TestCheckResourceAttr(name, "random_steering.#", "1"),                     // random_steering appears once
+					resource.TestCheckResourceAttr(name, "random_steering.0.pool_weights.%", "1"),      // one pool configured
+					resource.TestCheckTypeSetElemAttr(name, "random_steering.0.pool_weights.*", "0.4"), // pool weight of 0.4
+					resource.TestCheckResourceAttr(name, "random_steering.0.default_weight", "0.8"),    // default weight of 0.8
+					// dont check that other specified values are set, this will be evident by lack
+					// of plan diff some values will get empty values
+					resource.TestCheckResourceAttr(name, "pop_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "country_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "region_pools.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareLoadBalancer_GeoBalancedUpdate(t *testing.T) {
+	t.Parallel()
+	var loadBalancer cloudflare.LoadBalancer
+	zone := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_load_balancer." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigGeoBalancedPoPCountry(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// checking our overrides of default values worked
+					resource.TestCheckResourceAttr(name, "description", "tf-acctest load balancer using pop/country geo-balancing"),
+					resource.TestCheckResourceAttr(name, "proxied", "true"),
+					resource.TestCheckResourceAttr(name, "ttl", "0"),
+					resource.TestCheckResourceAttr(name, "steering_policy", "geo"),
+					resource.TestCheckResourceAttr(name, "pop_pools.#", "1"),
+					resource.TestCheckResourceAttr(name, "country_pools.#", "1"),
+					resource.TestCheckResourceAttr(name, "region_pools.#", "0"),
+				),
+			},
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigGeoBalancedPoPCountryToRegionUpdate(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// checking our updates to geo steering with only a region defined worked
+					resource.TestCheckResourceAttr(name, "description", "tf-acctest load balancer using pop/country geo-balancing updated to region geo-balancing"),
+					resource.TestCheckResourceAttr(name, "proxied", "true"),
+					resource.TestCheckResourceAttr(name, "ttl", "0"),
+					resource.TestCheckResourceAttr(name, "steering_policy", "geo"),
+					resource.TestCheckResourceAttr(name, "pop_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "country_pools.#", "0"),
+					resource.TestCheckResourceAttr(name, "region_pools.#", "1"),
+				),
+			},
 		},
 	})
 }
@@ -311,6 +424,39 @@ func TestAccCloudflareLoadBalancer_ProximityBalanced(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "proxied", "true"),
 					resource.TestCheckResourceAttr(name, "ttl", "0"),
 					resource.TestCheckResourceAttr(name, "steering_policy", "proximity"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareLoadBalancer_LeastOutstandingRequestsBalanced(t *testing.T) {
+	t.Parallel()
+	var loadBalancer cloudflare.LoadBalancer
+	zone := os.Getenv("CLOUDFLARE_DOMAIN")
+	zoneID := os.Getenv("CLOUDFLARE_ZONE_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_load_balancer." + rnd
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckCloudflareLoadBalancerConfigLeastOutstandingRequestsBalanced(zoneID, zone, rnd),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudflareLoadBalancerExists(name, &loadBalancer),
+					testAccCheckCloudflareLoadBalancerIDIsValid(name, zoneID),
+					// checking our overrides of default values worked
+					resource.TestCheckResourceAttr(name, "description", "tf-acctest load balancer using least outstanding requests steering"),
+					resource.TestCheckResourceAttr(name, "proxied", "true"),
+					resource.TestCheckResourceAttr(name, "ttl", "0"),
+					resource.TestCheckResourceAttr(name, "steering_policy", "least_outstanding_requests"),
+					resource.TestCheckResourceAttr(name, "rules.0.name", "test rule 1"),
+					resource.TestCheckResourceAttr(name, "rules.0.condition", "dns.qry.type == 28"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.#", "1"),
+					resource.TestCheckResourceAttr(name, "rules.0.overrides.0.steering_policy", "least_outstanding_requests"),
 				),
 			},
 		},
@@ -605,6 +751,26 @@ resource "cloudflare_load_balancer" "%[3]s" {
 }`, zoneID, zone, id)
 }
 
+func testAccCheckCloudflareLoadBalancerConfigSessionAffinityHeader(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-session-affinity-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  session_affinity = "header"
+  session_affinity_ttl = 1800
+  session_affinity_attributes {
+    samesite = "Auto"
+    secure = "Auto"
+    drain_duration = 60
+    zero_downtime_failover = "temporary"
+	headers = ["x-custom"]
+	require_all_headers = true
+  }
+}`, zoneID, zone, id)
+}
+
 func testAccCheckCloudflareLoadBalancerConfigAdaptiveRouting(zoneID, zone, id string) string {
 	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
 resource "cloudflare_load_balancer" "%[3]s" {
@@ -648,6 +814,22 @@ resource "cloudflare_load_balancer" "%[3]s" {
 }`, zoneID, zone, id)
 }
 
+func testAccCheckCloudflareLoadBalancerConfigRandomSteeringUpdate(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-random-steering-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  random_steering {
+    pool_weights = {
+      "${cloudflare_load_balancer_pool.%[3]s.id}" = 0.4
+    }
+    default_weight = 0.8
+  }
+}`, zoneID, zone, id)
+}
+
 func testAccCheckCloudflareLoadBalancerConfigGeoBalanced(zoneID, zone, id string) string {
 	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
 resource "cloudflare_load_balancer" "%[3]s" {
@@ -673,6 +855,44 @@ resource "cloudflare_load_balancer" "%[3]s" {
 }`, zoneID, zone, id)
 }
 
+func testAccCheckCloudflareLoadBalancerConfigGeoBalancedPoPCountry(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  description = "tf-acctest load balancer using pop/country geo-balancing"
+  proxied = true
+  steering_policy = "geo"
+  pop_pools {
+    pop = "LAX"
+    pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  }
+  country_pools {
+    country = "US"
+    pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  }
+}`, zoneID, zone, id)
+}
+
+func testAccCheckCloudflareLoadBalancerConfigGeoBalancedPoPCountryToRegionUpdate(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  description = "tf-acctest load balancer using pop/country geo-balancing updated to region geo-balancing"
+  proxied = true
+  steering_policy = "geo"
+  region_pools {
+    region = "WNAM"
+    pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  }
+}`, zoneID, zone, id)
+}
+
 func testAccCheckCloudflareLoadBalancerConfigProximityBalanced(zoneID, zone, id string) string {
 	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
 resource "cloudflare_load_balancer" "%[3]s" {
@@ -683,6 +903,26 @@ resource "cloudflare_load_balancer" "%[3]s" {
   description = "tf-acctest load balancer using proximity-balancing"
   proxied = true // can't set ttl with proxied
   steering_policy = "proximity"
+}`, zoneID, zone, id)
+}
+
+func testAccCheckCloudflareLoadBalancerConfigLeastOutstandingRequestsBalanced(zoneID, zone, id string) string {
+	return testAccCheckCloudflareLoadBalancerPoolConfigBasic(id, accountID) + fmt.Sprintf(`
+resource "cloudflare_load_balancer" "%[3]s" {
+  zone_id = "%[1]s"
+  name = "tf-testacc-lb-%[3]s.%[2]s"
+  fallback_pool_id = "${cloudflare_load_balancer_pool.%[3]s.id}"
+  default_pool_ids = ["${cloudflare_load_balancer_pool.%[3]s.id}"]
+  description = "tf-acctest load balancer using least outstanding requests steering"
+  proxied = true
+  steering_policy = "least_outstanding_requests"
+  rules {
+    name = "test rule 1"
+    condition = "dns.qry.type == 28"
+    overrides {
+      steering_policy = "least_outstanding_requests"
+    }
+  }
 }`, zoneID, zone, id)
 }
 

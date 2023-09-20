@@ -8,8 +8,8 @@ import (
 
 	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccCloudflareWaitingRoom_Create(t *testing.T) {
@@ -41,6 +41,13 @@ func TestAccCloudflareWaitingRoom_Create(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "total_active_users", "405"),
 					resource.TestCheckResourceAttr(name, "session_duration", "10"),
 					resource.TestCheckResourceAttr(name, "json_response_enabled", "true"),
+					resource.TestCheckResourceAttr(name, "cookie_suffix", "queue1"),
+					resource.TestCheckResourceAttr(name, "additional_routes.#", "2"),
+					resource.TestCheckResourceAttr(name, "additional_routes.0.host", "shop1."+domain),
+					resource.TestCheckResourceAttr(name, "additional_routes.0.path", "/foobar"),
+					resource.TestCheckResourceAttr(name, "additional_routes.1.host", "shop2."+domain),
+					resource.TestCheckResourceAttr(name, "additional_routes.1.path", "/"),
+					resource.TestCheckResourceAttr(name, "queueing_status_code", "200"),
 				),
 			},
 		},
@@ -66,10 +73,26 @@ func testAccCheckCloudflareWaitingRoomDestroy(s *terraform.State) error {
 
 func testAccCloudflareWaitingRoom(resourceName, waitingRoomName, zoneID, domain, path string) string {
 	return fmt.Sprintf(`
+	resource "cloudflare_record" "%[1]s-shop-1" {
+		zone_id = "%[3]s"
+		name = "shop1"
+		value = "192.168.0.10"
+		type = "A"
+		ttl = 3600
+	}
+
+	resource "cloudflare_record" "%[1]s-shop-2" {
+		zone_id = "%[3]s"
+		name = "shop2"
+		value = "192.168.0.11"
+		type = "A"
+		ttl = 3600
+	}
+
 resource "cloudflare_waiting_room" "%[1]s" {
   name                      = "%[2]s"
   zone_id                   = "%[3]s"
-  host                      = "www.%[4]s"
+  host                      = "%[4]s"
   new_users_per_minute      = 400
   total_active_users        = 405
   path                      = "%[5]s"
@@ -82,6 +105,19 @@ resource "cloudflare_waiting_room" "%[1]s" {
   suspended                 = true
   queue_all                 = false
   json_response_enabled     = true
+  cookie_suffix             = "queue1"
+  additional_routes {
+    host = "shop1.%[4]s"
+    path = "%[5]s"
+  }
+
+  additional_routes {
+    host = "shop2.%[4]s"
+  }
+
+  queueing_status_code      = 200 
+
+  depends_on = [cloudflare_record.%[1]s-shop-1, cloudflare_record.%[1]s-shop-2]
 }
 `, resourceName, waitingRoomName, zoneID, domain, path)
 }

@@ -37,25 +37,34 @@ func resourceCloudflareAccessApplicationCreate(ctx context.Context, d *schema.Re
 
 	appType := d.Get("type").(string)
 
-	newAccessApplication := cloudflare.AccessApplication{
-		Name:                    d.Get("name").(string),
-		Domain:                  d.Get("domain").(string),
-		Type:                    cloudflare.AccessApplicationType(appType),
-		SessionDuration:         d.Get("session_duration").(string),
-		AutoRedirectToIdentity:  cloudflare.BoolPtr(d.Get("auto_redirect_to_identity").(bool)),
-		EnableBindingCookie:     cloudflare.BoolPtr(d.Get("enable_binding_cookie").(bool)),
-		CustomDenyMessage:       d.Get("custom_deny_message").(string),
-		CustomDenyURL:           d.Get("custom_deny_url").(string),
-		HttpOnlyCookieAttribute: cloudflare.BoolPtr(d.Get("http_only_cookie_attribute").(bool)),
-		SameSiteCookieAttribute: d.Get("same_site_cookie_attribute").(string),
-		LogoURL:                 d.Get("logo_url").(string),
-		SkipInterstitial:        cloudflare.BoolPtr(d.Get("skip_interstitial").(bool)),
-		AppLauncherVisible:      cloudflare.BoolPtr(d.Get("app_launcher_visible").(bool)),
-		ServiceAuth401Redirect:  cloudflare.BoolPtr(d.Get("service_auth_401_redirect").(bool)),
+	newAccessApplication := cloudflare.CreateAccessApplicationParams{
+		Name:                     d.Get("name").(string),
+		Domain:                   d.Get("domain").(string),
+		Type:                     cloudflare.AccessApplicationType(appType),
+		SessionDuration:          d.Get("session_duration").(string),
+		AutoRedirectToIdentity:   cloudflare.BoolPtr(d.Get("auto_redirect_to_identity").(bool)),
+		EnableBindingCookie:      cloudflare.BoolPtr(d.Get("enable_binding_cookie").(bool)),
+		CustomDenyMessage:        d.Get("custom_deny_message").(string),
+		CustomDenyURL:            d.Get("custom_deny_url").(string),
+		CustomNonIdentityDenyURL: d.Get("custom_non_identity_deny_url").(string),
+		HttpOnlyCookieAttribute:  cloudflare.BoolPtr(d.Get("http_only_cookie_attribute").(bool)),
+		SameSiteCookieAttribute:  d.Get("same_site_cookie_attribute").(string),
+		LogoURL:                  d.Get("logo_url").(string),
+		SkipInterstitial:         cloudflare.BoolPtr(d.Get("skip_interstitial").(bool)),
+		AppLauncherVisible:       cloudflare.BoolPtr(d.Get("app_launcher_visible").(bool)),
+		ServiceAuth401Redirect:   cloudflare.BoolPtr(d.Get("service_auth_401_redirect").(bool)),
 	}
 
 	if value, ok := d.GetOk("allowed_idps"); ok {
 		newAccessApplication.AllowedIdps = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+
+	if value, ok := d.GetOk("custom_pages"); ok {
+		newAccessApplication.CustomPages = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+
+	if value, ok := d.GetOk("self_hosted_domains"); ok {
+		newAccessApplication.SelfHostedDomains = expandInterfaceToStringList(value.(*schema.Set).List())
 	}
 
 	if _, ok := d.GetOk("cors_headers"); ok {
@@ -76,15 +85,10 @@ func resourceCloudflareAccessApplicationCreate(ctx context.Context, d *schema.Re
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	accessApplication, err := client.CreateAccessApplication(ctx, identifier, newAccessApplication)
 
-	var accessApplication cloudflare.AccessApplication
-	if identifier.Type == AccountType {
-		accessApplication, err = client.CreateAccessApplication(ctx, identifier.Value, newAccessApplication)
-	} else {
-		accessApplication, err = client.CreateZoneLevelAccessApplication(ctx, identifier.Value, newAccessApplication)
-	}
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating Access Application for %s %q: %w", identifier.Type, identifier.Value, err))
+		return diag.FromErr(fmt.Errorf("error creating Access Application for %s %q: %w", identifier.Level, identifier.Identifier, err))
 	}
 
 	d.SetId(accessApplication.ID)
@@ -100,12 +104,7 @@ func resourceCloudflareAccessApplicationRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	var accessApplication cloudflare.AccessApplication
-	if identifier.Type == AccountType {
-		accessApplication, err = client.AccessApplication(ctx, identifier.Value, d.Id())
-	} else {
-		accessApplication, err = client.ZoneLevelAccessApplication(ctx, identifier.Value, d.Id())
-	}
+	accessApplication, err := client.GetAccessApplication(ctx, identifier, d.Id())
 
 	if err != nil {
 		var notFoundError *cloudflare.NotFoundError
@@ -126,6 +125,7 @@ func resourceCloudflareAccessApplicationRead(ctx context.Context, d *schema.Reso
 	d.Set("enable_binding_cookie", accessApplication.EnableBindingCookie)
 	d.Set("custom_deny_message", accessApplication.CustomDenyMessage)
 	d.Set("custom_deny_url", accessApplication.CustomDenyURL)
+	d.Set("custom_non_identity_deny_url", accessApplication.CustomNonIdentityDenyURL)
 	d.Set("allowed_idps", accessApplication.AllowedIdps)
 	d.Set("http_only_cookie_attribute", cloudflare.Bool(accessApplication.HttpOnlyCookieAttribute))
 	d.Set("same_site_cookie_attribute", accessApplication.SameSiteCookieAttribute)
@@ -133,6 +133,7 @@ func resourceCloudflareAccessApplicationRead(ctx context.Context, d *schema.Reso
 	d.Set("logo_url", accessApplication.LogoURL)
 	d.Set("app_launcher_visible", accessApplication.AppLauncherVisible)
 	d.Set("service_auth_401_redirect", accessApplication.ServiceAuth401Redirect)
+	d.Set("custom_pages", accessApplication.CustomPages)
 
 	corsConfig := convertCORSStructToSchema(d, accessApplication.CorsHeaders)
 	if corsConfigErr := d.Set("cors_headers", corsConfig); corsConfigErr != nil {
@@ -144,6 +145,10 @@ func resourceCloudflareAccessApplicationRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(fmt.Errorf("error setting Access Application SaaS app configuration: %w", saasConfigErr))
 	}
 
+	if _, ok := d.GetOk("self_hosted_domains"); ok {
+		d.Set("self_hosted_domains", accessApplication.SelfHostedDomains)
+	}
+
 	return nil
 }
 
@@ -152,22 +157,23 @@ func resourceCloudflareAccessApplicationUpdate(ctx context.Context, d *schema.Re
 
 	appType := d.Get("type").(string)
 
-	updatedAccessApplication := cloudflare.AccessApplication{
-		ID:                      d.Id(),
-		Name:                    d.Get("name").(string),
-		Domain:                  d.Get("domain").(string),
-		Type:                    cloudflare.AccessApplicationType(appType),
-		SessionDuration:         d.Get("session_duration").(string),
-		AutoRedirectToIdentity:  cloudflare.BoolPtr(d.Get("auto_redirect_to_identity").(bool)),
-		EnableBindingCookie:     cloudflare.BoolPtr(d.Get("enable_binding_cookie").(bool)),
-		CustomDenyMessage:       d.Get("custom_deny_message").(string),
-		CustomDenyURL:           d.Get("custom_deny_url").(string),
-		HttpOnlyCookieAttribute: cloudflare.BoolPtr(d.Get("http_only_cookie_attribute").(bool)),
-		SameSiteCookieAttribute: d.Get("same_site_cookie_attribute").(string),
-		LogoURL:                 d.Get("logo_url").(string),
-		SkipInterstitial:        cloudflare.BoolPtr(d.Get("skip_interstitial").(bool)),
-		AppLauncherVisible:      cloudflare.BoolPtr(d.Get("app_launcher_visible").(bool)),
-		ServiceAuth401Redirect:  cloudflare.BoolPtr(d.Get("service_auth_401_redirect").(bool)),
+	updatedAccessApplication := cloudflare.UpdateAccessApplicationParams{
+		ID:                       d.Id(),
+		Name:                     d.Get("name").(string),
+		Domain:                   d.Get("domain").(string),
+		Type:                     cloudflare.AccessApplicationType(appType),
+		SessionDuration:          d.Get("session_duration").(string),
+		AutoRedirectToIdentity:   cloudflare.BoolPtr(d.Get("auto_redirect_to_identity").(bool)),
+		EnableBindingCookie:      cloudflare.BoolPtr(d.Get("enable_binding_cookie").(bool)),
+		CustomDenyMessage:        d.Get("custom_deny_message").(string),
+		CustomDenyURL:            d.Get("custom_deny_url").(string),
+		CustomNonIdentityDenyURL: d.Get("custom_non_identity_deny_url").(string),
+		HttpOnlyCookieAttribute:  cloudflare.BoolPtr(d.Get("http_only_cookie_attribute").(bool)),
+		SameSiteCookieAttribute:  d.Get("same_site_cookie_attribute").(string),
+		LogoURL:                  d.Get("logo_url").(string),
+		SkipInterstitial:         cloudflare.BoolPtr(d.Get("skip_interstitial").(bool)),
+		AppLauncherVisible:       cloudflare.BoolPtr(d.Get("app_launcher_visible").(bool)),
+		ServiceAuth401Redirect:   cloudflare.BoolPtr(d.Get("service_auth_401_redirect").(bool)),
 	}
 
 	if appType != "saas" {
@@ -176,6 +182,14 @@ func resourceCloudflareAccessApplicationUpdate(ctx context.Context, d *schema.Re
 
 	if value, ok := d.GetOk("allowed_idps"); ok {
 		updatedAccessApplication.AllowedIdps = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+
+	if value, ok := d.GetOk("custom_pages"); ok {
+		updatedAccessApplication.CustomPages = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+
+	if value, ok := d.GetOk("self_hosted_domains"); ok {
+		updatedAccessApplication.SelfHostedDomains = expandInterfaceToStringList(value.(*schema.Set).List())
 	}
 
 	if _, ok := d.GetOk("cors_headers"); ok {
@@ -198,14 +212,9 @@ func resourceCloudflareAccessApplicationUpdate(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 
-	var accessApplication cloudflare.AccessApplication
-	if identifier.Type == AccountType {
-		accessApplication, err = client.UpdateAccessApplication(ctx, identifier.Value, updatedAccessApplication)
-	} else {
-		accessApplication, err = client.UpdateZoneLevelAccessApplication(ctx, identifier.Value, updatedAccessApplication)
-	}
+	accessApplication, err := client.UpdateAccessApplication(ctx, identifier, updatedAccessApplication)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error updating Access Application for %s %q: %w", identifier.Type, identifier.Value, err))
+		return diag.FromErr(fmt.Errorf("error updating Access Application for %s %q: %w", identifier.Level, identifier.Identifier, err))
 	}
 
 	if accessApplication.ID == "" {
@@ -226,13 +235,9 @@ func resourceCloudflareAccessApplicationDelete(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 
-	if identifier.Type == AccountType {
-		err = client.DeleteAccessApplication(ctx, identifier.Value, appID)
-	} else {
-		err = client.DeleteZoneLevelAccessApplication(ctx, identifier.Value, appID)
-	}
+	err = client.DeleteAccessApplication(ctx, identifier, appID)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deleting Access Application for %s %q: %w", identifier.Type, identifier.Value, err))
+		return diag.FromErr(fmt.Errorf("error deleting Access Application for %s %q: %w", identifier.Level, identifier.Identifier, err))
 	}
 
 	readErr := resourceCloudflareAccessApplicationRead(ctx, d, meta)

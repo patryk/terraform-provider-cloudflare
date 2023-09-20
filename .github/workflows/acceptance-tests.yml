@@ -1,7 +1,6 @@
 name: Acceptance Tests
 concurrency:
   group: acceptance-tests
-  cancel-in-progress: true
 
 on:
   workflow_dispatch:
@@ -40,12 +39,14 @@ jobs:
       CLOUDFLARE_WORKSPACE_ONE_AUTH_URL: ${{ secrets.CLOUDFLARE_WORKSPACE_ONE_AUTH_URL }}
       CLOUDFLARE_PAGES_OWNER: jacobbednarz
       CLOUDFLARE_PAGES_REPO: pages-example
+      CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+      CLOUDFLARE_R2_ACCESS_KEY_SECRET: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_SECRET }}
 
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version-file: 'go.mod'
       id: go
@@ -55,13 +56,13 @@ jobs:
         key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
     - name: Pre-Sweeper (SDKv2)
       run: go test ./internal/sdkv2provider -v -sweep="1"
-    # - name: Pre-Sweeper (Framework)
-    #   run: go test ./internal/framework -v -sweep="1"
+    - name: Pre-Sweeper (Framework)
+      run: go test ./internal/framework/service/... -v -sweep="1"
     - name: Run acceptance tests
       run: make testacc
     - name: Post-Sweeper (SDKv2)
       if: ${{ always() }}
       run: go test ./internal/sdkv2provider -v -sweep="1"
-    # - name: Post-Sweeper (Framework)
-    #   if: ${{ always() }}
-    #   run: go test ./internal/framework -v -sweep="1"
+    - name: Post-Sweeper (Framework)
+      if: ${{ always() }}
+      run: go test ./internal/framework/service/... -v -sweep="1"

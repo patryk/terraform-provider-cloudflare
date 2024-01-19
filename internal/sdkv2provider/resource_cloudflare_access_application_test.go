@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/cloudflare/cloudflare-go"
+	cloudflare "github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -185,6 +185,10 @@ func TestAccCloudflareAccessApplication_WithSaas(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "saas_app.0.sp_entity_id", "saas-app.example"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.consumer_service_url", "https://saas-app.example/sso/saml/consume"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.name_id_format", "email"),
+					resource.TestCheckResourceAttr(name, "saas_app.0.default_relay_state", "https://saas-app.example"),
+					resource.TestCheckResourceAttrSet(name, "saas_app.0.idp_entity_id"),
+					resource.TestCheckResourceAttrSet(name, "saas_app.0.public_key"),
+					resource.TestCheckResourceAttrSet(name, "saas_app.0.sso_endpoint"),
 
 					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.#", "2"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.name", "email"),
@@ -195,6 +199,55 @@ func TestAccCloudflareAccessApplication_WithSaas(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.friendly_name", "Rank"),
 					resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.required", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareAccessApplication_WithSaas_Import(t *testing.T) {
+	t.Parallel()
+	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	rnd := generateRandomResourceName()
+	name := "cloudflare_access_application." + rnd
+
+	checkFn := resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
+		resource.TestCheckResourceAttr(name, "name", rnd),
+		resource.TestCheckResourceAttr(name, "type", "saas"),
+		resource.TestCheckResourceAttr(name, "session_duration", "24h"),
+		resource.TestCheckResourceAttr(name, "saas_app.#", "1"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.sp_entity_id", "saas-app.example"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.consumer_service_url", "https://saas-app.example/sso/saml/consume"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.name_id_format", "email"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.default_relay_state", "https://saas-app.example"),
+
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.#", "2"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.name", "email"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.name_format", "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.0.source.0.name", "user_email"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.name", "rank"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.source.0.name", "rank"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.friendly_name", "Rank"),
+		resource.TestCheckResourceAttr(name, "saas_app.0.custom_attribute.1.required", "true"),
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAccount(t)
+		},
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudflareAccessApplicationConfigWithSaas(rnd, accountID),
+				Check:  checkFn,
+			},
+			{
+				ImportState:         true,
+				ImportStateVerify:   true,
+				ResourceName:        name,
+				ImportStateIdPrefix: fmt.Sprintf("%s/", accountID),
+				Check:               checkFn,
 			},
 		},
 	})
@@ -516,6 +569,69 @@ func TestAccCloudflareAccessApplication_WithSelfHostedDomains(t *testing.T) {
 	})
 }
 
+func TestAccCloudflareAccessApplication_WithDefinedTags(t *testing.T) {
+	rnd := generateRandomResourceName()
+	name := fmt.Sprintf("cloudflare_access_application.%s", rnd)
+	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAccount(t)
+		},
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareAccessApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudflareAccessApplicationConfigWithADefinedTag(rnd, zoneID, domain, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, consts.ZoneIDSchemaKey, zoneID),
+					resource.TestCheckResourceAttr(name, "name", rnd),
+					resource.TestCheckResourceAttr(name, "domain", fmt.Sprintf("%s.%s", rnd, domain)),
+					resource.TestCheckResourceAttr(name, "type", "self_hosted"),
+					resource.TestCheckResourceAttr(name, "session_duration", "24h"),
+					resource.TestCheckResourceAttr(name, "tags.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCloudflareAccessApplication_WithAppLauncherCustomization(t *testing.T) {
+	rnd := generateRandomResourceName()
+	name := fmt.Sprintf("cloudflare_access_application.%s", rnd)
+	accountID := os.Getenv("CLOUDFLARE_ACCOUNT_ID")
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAccount(t)
+		},
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckCloudflareAccessApplicationDestroy,
+		Steps: []resource.TestStep{
+			{Config: testAccessApplicationWithAppLauncherCustomizationFields(rnd, accountID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, consts.AccountIDSchemaKey, accountID),
+					resource.TestCheckResourceAttr(name, "name", "App Launcher"),
+					resource.TestCheckResourceAttr(name, "type", "app_launcher"),
+					resource.TestCheckResourceAttr(name, "session_duration", "24h"),
+					resource.TestCheckResourceAttr(name, "header_bg_color", "#000000"),
+					resource.TestCheckResourceAttr(name, "bg_color", "#000000"),
+					resource.TestCheckResourceAttr(name, "app_launcher_logo_url", "https://www.cloudflare.com/img/logo-web-badges/cf-logo-on-white-bg.svg"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.#", "1"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.0.title", "title"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.0.message", "message"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.0.button_color", "#000000"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.0.button_text_color", "#000000"),
+					resource.TestCheckResourceAttr(name, "landing_page_design.0.image_url", "https://www.cloudflare.com/img/logo-web-badges/cf-logo-on-white-bg.svg"),
+					resource.TestCheckResourceAttr(name, "footer_links.#", "1"),
+					resource.TestCheckResourceAttr(name, "footer_links.0.name", "footer link"),
+					resource.TestCheckResourceAttr(name, "footer_links.0.url", "https://www.cloudflare.com"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCloudflareAccessApplicationConfigBasic(rnd string, domain string, identifier *cloudflare.ResourceContainer) string {
 	return fmt.Sprintf(`
 resource "cloudflare_access_application" "%[1]s" {
@@ -559,6 +675,7 @@ resource "cloudflare_access_application" "%[1]s" {
     consumer_service_url = "https://saas-app.example/sso/saml/consume"
     sp_entity_id  = "saas-app.example"
     name_id_format =  "email"
+	default_relay_state = "https://saas-app.example"
 	custom_attribute {
 		name = "email"
 		name_format = "urn:oasis:names:tc:SAML:2.0:attrname-format:basic"
@@ -757,6 +874,34 @@ resource "cloudflare_access_application" "%[1]s" {
   logo_url          		 = "https://www.cloudflare.com/img/logo-web-badges/cf-logo-on-white-bg.svg"
 }
 `, rnd, zoneID, domain)
+}
+
+func testAccessApplicationWithAppLauncherCustomizationFields(rnd, accountID string) string {
+	return fmt.Sprintf(`
+		resource "cloudflare_access_application" "%[1]s" {
+			account_id       = "%[2]s"
+			type             = "app_launcher"
+			session_duration = "24h"
+			app_launcher_visible = false
+			app_launcher_logo_url = "https://www.cloudflare.com/img/logo-web-badges/cf-logo-on-white-bg.svg"
+			bg_color = "#000000"
+			header_bg_color = "#000000"
+
+			footer_links {
+				name = "footer link"
+				url = "https://www.cloudflare.com"
+			}
+
+
+			landing_page_design {
+				title = "title"
+				message = "message"
+				button_color = "#000000"
+				image_url = "https://www.cloudflare.com/img/logo-web-badges/cf-logo-on-white-bg.svg"
+				button_text_color = "#000000"
+			}
+	}
+	`, rnd, accountID)
 }
 
 func testAccCloudflareAccessApplicationWithSelfHostedDomains(rnd string, domain string, identifier *cloudflare.ResourceContainer) string {
@@ -1031,4 +1176,21 @@ func testAccessApplicationMisconfiguredCORSAllowWildcardOriginWithCredentials(re
       }
   }
   `, resourceID, zone, zoneID)
+}
+
+func testAccCloudflareAccessApplicationConfigWithADefinedTag(rnd, zoneID, domain string, accountID string) string {
+	return fmt.Sprintf(`
+resource "cloudflare_access_tag" "%[1]s" {
+  account_id = "%[4]s"
+  name = "%[1]s"
+}
+resource "cloudflare_access_application" "%[1]s" {
+  zone_id                   = "%[2]s"
+  name                      = "%[1]s"
+  domain                    = "%[1]s.%[3]s"
+  type                      = "self_hosted"
+  session_duration          = "24h"
+ 	tags             = [cloudflare_access_tag.%[1]s.id]
+}
+`, rnd, zoneID, domain, accountID)
 }

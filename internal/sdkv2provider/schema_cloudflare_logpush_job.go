@@ -45,6 +45,7 @@ func resourceCloudflareLogpushJobSchema() map[string]*schema.Schema {
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"access_requests",
+				"casb_findings",
 				"firewall_events",
 				"http_requests",
 				"spectrum_events",
@@ -58,11 +59,13 @@ func resourceCloudflareLogpushJobSchema() map[string]*schema.Schema {
 				"workers_trace_events",
 				"device_posture_results",
 				"zero_trust_network_sessions",
+				"magic_ids_detections",
 			}, false),
 			Description: fmt.Sprintf(
 				"The kind of the dataset to use with the logpush job. %s",
 				renderAvailableDocumentationValuesStringSlice([]string{
 					"access_requests",
+					"casb_findings",
 					"firewall_events",
 					"http_requests",
 					"spectrum_events",
@@ -76,6 +79,7 @@ func resourceCloudflareLogpushJobSchema() map[string]*schema.Schema {
 					"workers_trace_events",
 					"device_posture_results",
 					"zero_trust_network_sessions",
+					"magic_ids_detections",
 				}),
 			),
 		},

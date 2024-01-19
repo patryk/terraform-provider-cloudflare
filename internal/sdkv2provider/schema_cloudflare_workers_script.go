@@ -1,8 +1,11 @@
 package sdkv2provider
 
 import (
+	"fmt"
+
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 var kvNamespaceBindingResource = &schema.Resource{
@@ -131,6 +134,32 @@ var queueBindingResource = &schema.Resource{
 	},
 }
 
+var d1BindingResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The global variable for the binding in your Worker code.",
+		},
+		"database_id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Database ID of D1 database to use.",
+		},
+	},
+}
+
+var placementResource = &schema.Resource{
+	Schema: map[string]*schema.Schema{
+		"mode": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice([]string{"smart"}, false),
+			Description:  fmt.Sprintf("The placement mode for the Worker. %s", renderAvailableDocumentationValuesStringSlice([]string{"smart"})),
+		},
+	},
+}
+
 func resourceCloudflareWorkerScriptSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
@@ -173,6 +202,11 @@ func resourceCloudflareWorkerScriptSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Enabling allows Worker events to be sent to a defined Logpush destination.",
 		},
+		"placement": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     placementResource,
+		},
 		"plain_text_binding": {
 			Type:     schema.TypeSet,
 			Optional: true,
@@ -212,6 +246,11 @@ func resourceCloudflareWorkerScriptSchema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     queueBindingResource,
+		},
+		"d1_database_binding": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     d1BindingResource,
 		},
 	}
 }

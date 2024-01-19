@@ -129,6 +129,25 @@ func parseWorkerBindings(d *schema.ResourceData, bindings ScriptBindings) {
 			Queue:   data["queue"].(string),
 		}
 	}
+
+	for _, rawData := range d.Get("d1_database_binding").(*schema.Set).List() {
+		data := rawData.(map[string]interface{})
+
+		bindings[data["name"].(string)] = cloudflare.WorkerD1DatabaseBinding{
+			DatabaseID: data["database_id"].(string),
+		}
+	}
+}
+
+func getPlacement(d *schema.ResourceData) cloudflare.Placement {
+	for _, rawData := range d.Get("placement").(*schema.Set).List() {
+		data := rawData.(map[string]interface{})
+		return cloudflare.Placement{
+			Mode: cloudflare.PlacementMode(data["mode"].(string)),
+		}
+	}
+
+	return cloudflare.Placement{}
 }
 
 func getCompatibilityFlags(d *schema.ResourceData) []string {
@@ -167,6 +186,8 @@ func resourceCloudflareWorkerScriptCreate(ctx context.Context, d *schema.Resourc
 
 	logpush := d.Get("logpush").(bool)
 
+	placement := getPlacement(d)
+
 	_, err = client.UploadWorker(ctx, cloudflare.AccountIdentifier(accountID), cloudflare.CreateWorkerParams{
 		ScriptName:         scriptData.Params.ScriptName,
 		Script:             scriptBody,
@@ -175,6 +196,7 @@ func resourceCloudflareWorkerScriptCreate(ctx context.Context, d *schema.Resourc
 		Module:             d.Get("module").(bool),
 		Bindings:           bindings,
 		Logpush:            &logpush,
+		Placement:          &placement,
 	})
 	if err != nil {
 		return diag.FromErr(errors.Wrap(err, "error creating worker script"))
@@ -225,6 +247,7 @@ func resourceCloudflareWorkerScriptRead(ctx context.Context, d *schema.ResourceD
 	r2BucketBindings := &schema.Set{F: schema.HashResource(r2BucketBindingResource)}
 	analyticsEngineBindings := &schema.Set{F: schema.HashResource(analyticsEngineBindingResource)}
 	queueBindings := &schema.Set{F: schema.HashResource(queueBindingResource)}
+	d1DatabaseBindings := &schema.Set{F: schema.HashResource(d1BindingResource)}
 
 	for name, binding := range bindings {
 		switch v := binding.(type) {
@@ -278,6 +301,11 @@ func resourceCloudflareWorkerScriptRead(ctx context.Context, d *schema.ResourceD
 				"binding": name,
 				"queue":   v.Queue,
 			})
+		case cloudflare.WorkerD1DatabaseBinding:
+			d1DatabaseBindings.Add(map[string]interface{}{
+				"name":        name,
+				"database_id": v.DatabaseID,
+			})
 		}
 	}
 
@@ -293,8 +321,10 @@ func resourceCloudflareWorkerScriptRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(fmt.Errorf("cannot set plain text bindings (%s): %w", d.Id(), err))
 	}
 
-	if err := d.Set("secret_text_binding", secretTextBindings); err != nil {
-		return diag.FromErr(fmt.Errorf("cannot set secret text bindings (%s): %w", d.Id(), err))
+	if d.HasChange("secret_text_binding") || len(d.Get("secret_text_binding").(*schema.Set).List()) > 0 {
+		if err := d.Set("secret_text_binding", secretTextBindings); err != nil {
+			return diag.FromErr(fmt.Errorf("cannot set secret text bindings (%s): %w", d.Id(), err))
+		}
 	}
 
 	if err := d.Set("webassembly_binding", webAssemblyBindings); err != nil {
@@ -315,6 +345,10 @@ func resourceCloudflareWorkerScriptRead(ctx context.Context, d *schema.ResourceD
 
 	if err := d.Set("queue_binding", queueBindings); err != nil {
 		return diag.FromErr(fmt.Errorf("cannot set queue bindings (%s): %w", d.Id(), err))
+	}
+
+	if err := d.Set("d1_database_binding", d1DatabaseBindings); err != nil {
+		return diag.FromErr(fmt.Errorf("cannot set d1 database bindings (%s): %w", d.Id(), err))
 	}
 
 	d.SetId(scriptData.ID)
@@ -344,6 +378,8 @@ func resourceCloudflareWorkerScriptUpdate(ctx context.Context, d *schema.Resourc
 
 	logpush := d.Get("logpush").(bool)
 
+	placement := getPlacement(d)
+
 	_, err = client.UploadWorker(ctx, cloudflare.AccountIdentifier(accountID), cloudflare.CreateWorkerParams{
 		ScriptName:         scriptData.Params.ScriptName,
 		Script:             scriptBody,
@@ -352,6 +388,7 @@ func resourceCloudflareWorkerScriptUpdate(ctx context.Context, d *schema.Resourc
 		Module:             d.Get("module").(bool),
 		Bindings:           bindings,
 		Logpush:            &logpush,
+		Placement:          &placement,
 	})
 	if err != nil {
 		return diag.FromErr(errors.Wrap(err, "error updating worker script"))

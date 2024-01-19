@@ -467,7 +467,7 @@ Optional:
 - `description` (String) Brief summary of the ruleset rule and its intended use.
 - `enabled` (Boolean) Whether the rule is active.
 - `exposed_credential_check` (Block List) List of parameters that configure exposed credential checks. (see [below for nested schema](#nestedblock--rules--exposed_credential_check))
-- `logging` (Block List) List parameters to configure how the rule generates logs. (see [below for nested schema](#nestedblock--rules--logging))
+- `logging` (Block List) List parameters to configure how the rule generates logs. Only valid for skip action. (see [below for nested schema](#nestedblock--rules--logging))
 - `ratelimit` (Block List) List of parameters that configure HTTP rate limiting behaviour. (see [below for nested schema](#nestedblock--rules--ratelimit))
 - `ref` (String) Rule reference.
 
@@ -482,6 +482,7 @@ Read-Only:
 
 Optional:
 
+- `additional_cacheable_ports` (Set of Number) Specifies uncommon ports to allow cacheable assets to be served from.
 - `algorithms` (Block List) Compression algorithms to use in order of preference. (see [below for nested schema](#nestedblock--rules--action_parameters--algorithms))
 - `automatic_https_rewrites` (Boolean) Turn on or off Cloudflare Automatic HTTPS rewrites.
 - `autominify` (Block List) Indicate which file extensions to minify automatically. (see [below for nested schema](#nestedblock--rules--action_parameters--autominify))
@@ -637,11 +638,11 @@ Optional:
 
 Required:
 
-- `mode` (String) Mode of the edge TTL.
+- `mode` (String) Mode of the edge TTL. Available values: `override_origin`, `respect_origin`, `bypass_by_default`
 
 Optional:
 
-- `default` (Number) Default edge TTL
+- `default` (Number) Default edge TTL.
 - `status_code_ttl` (Block List) Edge TTL for the status codes. (see [below for nested schema](#nestedblock--rules--action_parameters--edge_ttl--status_code_ttl))
 
 <a id="nestedblock--rules--action_parameters--edge_ttl--status_code_ttl"></a>

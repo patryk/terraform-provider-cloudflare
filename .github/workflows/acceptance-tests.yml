@@ -46,23 +46,23 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v4
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
       id: go
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
     - name: Pre-Sweeper (SDKv2)
-      run: go test ./internal/sdkv2provider -v -sweep="1"
+      run: go test ./internal/sdkv2provider -v -sweep="1" -timeout 60m
     - name: Pre-Sweeper (Framework)
-      run: go test ./internal/framework/service/... -v -sweep="1"
+      run: go test ./internal/framework/service/... -v -sweep="1" -timeout 60m
     - name: Run acceptance tests
       run: make testacc
     - name: Post-Sweeper (SDKv2)
       if: ${{ always() }}
-      run: go test ./internal/sdkv2provider -v -sweep="1"
+      run: go test ./internal/sdkv2provider -v -sweep="1" -timeout 60m
     - name: Post-Sweeper (Framework)
       if: ${{ always() }}
-      run: go test ./internal/framework/service/... -v -sweep="1"
+      run: go test ./internal/framework/service/... -v -sweep="1" -timeout 60m

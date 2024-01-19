@@ -74,9 +74,11 @@ resource "cloudflare_worker_script" "my_script" {
 - `analytics_engine_binding` (Block Set) (see [below for nested schema](#nestedblock--analytics_engine_binding))
 - `compatibility_date` (String) The date to use for the compatibility flag.
 - `compatibility_flags` (Set of String) Compatibility flags used for Worker Scripts.
+- `d1_database_binding` (Block Set) (see [below for nested schema](#nestedblock--d1_database_binding))
 - `kv_namespace_binding` (Block Set) (see [below for nested schema](#nestedblock--kv_namespace_binding))
 - `logpush` (Boolean) Enabling allows Worker events to be sent to a defined Logpush destination.
 - `module` (Boolean) Whether to upload Worker as a module.
+- `placement` (Block Set) (see [below for nested schema](#nestedblock--placement))
 - `plain_text_binding` (Block Set) (see [below for nested schema](#nestedblock--plain_text_binding))
 - `queue_binding` (Block Set) (see [below for nested schema](#nestedblock--queue_binding))
 - `r2_bucket_binding` (Block Set) (see [below for nested schema](#nestedblock--r2_bucket_binding))
@@ -97,6 +99,15 @@ Required:
 - `name` (String) The global variable for the binding in your Worker code.
 
 
+<a id="nestedblock--d1_database_binding"></a>
+### Nested Schema for `d1_database_binding`
+
+Required:
+
+- `database_id` (String) Database ID of D1 database to use.
+- `name` (String) The global variable for the binding in your Worker code.
+
+
 <a id="nestedblock--kv_namespace_binding"></a>
 ### Nested Schema for `kv_namespace_binding`
 
@@ -104,6 +115,14 @@ Required:
 
 - `name` (String) The global variable for the binding in your Worker code.
 - `namespace_id` (String) ID of the KV namespace you want to use.
+
+
+<a id="nestedblock--placement"></a>
+### Nested Schema for `placement`
+
+Required:
+
+- `mode` (String) The placement mode for the Worker. Available values: `smart`.
 
 
 <a id="nestedblock--plain_text_binding"></a>

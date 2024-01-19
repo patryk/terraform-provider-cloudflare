@@ -1,6 +1,8 @@
 package sdkv2provider
 
 import (
+	"fmt"
+
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -93,6 +95,7 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							Computed: true,
 						},
 						"preview_branch_excludes": {
 							Description: "Branches will be excluded from automatic deployment.",
@@ -101,9 +104,10 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+							Computed: true,
 						},
 						"preview_deployment_setting": {
-							Description:  "Preview Deployment Setting.",
+							Description:  fmt.Sprintf("Preview Deployment Setting. %s", renderAvailableDocumentationValuesStringSlice([]string{"custom", "all", "none"})),
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"custom", "all", "none"}, false),
@@ -189,9 +193,9 @@ func resourceCloudflarePagesProjectSchema() map[string]*schema.Schema {
 			},
 			"usage_model": {
 				Type:         schema.TypeString,
-				Description:  "Usage model used for Pages Functions.",
+				Description:  fmt.Sprintf("Usage model used for Pages Functions. %s", renderAvailableDocumentationValuesStringSlice([]string{"unbound", "bundled", "standard"})),
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"unbound", "bundled"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"unbound", "bundled", "standard"}, false),
 				Default:      "bundled",
 			},
 			"placement": {

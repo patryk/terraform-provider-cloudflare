@@ -2,9 +2,9 @@ package sdkv2provider
 
 import (
 	"fmt"
+	"github.com/cloudflare/cloudflare-go"
 	"time"
 
-	"github.com/cloudflare/cloudflare-go"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -34,8 +34,9 @@ func resourceCloudflareAccessApplicationSchema() map[string]*schema.Schema {
 		},
 		"name": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Computed:    true,
 			Description: "Friendly name of the Access Application.",
+			Optional:    true,
 		},
 		"domain": {
 			Type:        schema.TypeString,
@@ -208,6 +209,26 @@ func resourceCloudflareAccessApplicationSchema() map[string]*schema.Schema {
 							},
 						},
 					},
+					"idp_entity_id": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "The unique identifier for the SaaS application.",
+					},
+					"public_key": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "The public certificate that will be used to verify identities.",
+					},
+					"sso_endpoint": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "The endpoint where the SaaS application will send login requests.",
+					},
+					"default_relay_state": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The relay state used if not provided by the identity provider.",
+					},
 				},
 			},
 		},
@@ -287,6 +308,83 @@ func resourceCloudflareAccessApplicationSchema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 			Description: "The custom pages selected for the application.",
+		},
+		"tags": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+			Description: "The itags associated with the application.",
+		},
+		"app_launcher_logo_url": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The logo URL of the app launcher.",
+		},
+		"header_bg_color": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The background color of the header bar in the app launcher.",
+		},
+		"bg_color": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The background color of the app launcher.",
+		},
+		"footer_links": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The name of the footer link.",
+					},
+					"url": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The URL of the footer link.",
+					},
+				},
+			},
+			Description: "The footer links of the app launcher.",
+		},
+		"landing_page_design": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "The landing page design of the app launcher.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"title": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The title of the landing page.",
+					},
+					"message": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The message of the landing page.",
+					},
+					"button_text_color": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The button text color of the landing page.",
+					},
+					"button_color": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The button color of the landing page.",
+					},
+					"image_url": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The URL of the image to be displayed in the landing page.",
+					},
+				},
+			},
 		},
 	}
 }
@@ -391,6 +489,7 @@ func convertSaasSchemaToStruct(d *schema.ResourceData) *cloudflare.SaasApplicati
 		SaasConfig.SPEntityID = d.Get("saas_app.0.sp_entity_id").(string)
 		SaasConfig.ConsumerServiceUrl = d.Get("saas_app.0.consumer_service_url").(string)
 		SaasConfig.NameIDFormat = d.Get("saas_app.0.name_id_format").(string)
+		SaasConfig.DefaultRelayState = d.Get("saas_app.0.default_relay_state").(string)
 
 		customAttributes, _ := d.Get("saas_app.0.custom_attribute").([]interface{})
 		for _, customAttributes := range customAttributes {
@@ -399,6 +498,73 @@ func convertSaasSchemaToStruct(d *schema.ResourceData) *cloudflare.SaasApplicati
 		}
 	}
 	return &SaasConfig
+}
+
+func convertLandingPageDesignSchemaToStruct(d *schema.ResourceData) *cloudflare.AccessLandingPageDesign {
+	LandingPageDesign := cloudflare.AccessLandingPageDesign{}
+	if _, ok := d.GetOk("landing_page_design"); ok {
+		LandingPageDesign.ButtonColor = d.Get("landing_page_design.0.button_color").(string)
+		LandingPageDesign.ButtonTextColor = d.Get("landing_page_design.0.button_text_color").(string)
+		LandingPageDesign.Title = d.Get("landing_page_design.0.title").(string)
+		LandingPageDesign.Message = d.Get("landing_page_design.0.message").(string)
+		LandingPageDesign.ImageURL = d.Get("landing_page_design.0.image_url").(string)
+	}
+	return &LandingPageDesign
+}
+
+func convertFooterLinksSchemaToStruct(d *schema.ResourceData) []cloudflare.AccessFooterLink {
+	var footerLinks []cloudflare.AccessFooterLink
+	if _, ok := d.GetOk("footer_links"); ok {
+		footerLinksInterface := d.Get("footer_links").(*schema.Set).List()
+		for _, footerLinkInterface := range footerLinksInterface {
+			footerLink := footerLinkInterface.(map[string]interface{})
+			footerLinks = append(footerLinks, cloudflare.AccessFooterLink{
+				Name: footerLink["name"].(string),
+				URL:  footerLink["url"].(string),
+			})
+		}
+	}
+	return footerLinks
+}
+
+func convertLandingPageDesignStructToSchema(d *schema.ResourceData, design *cloudflare.AccessLandingPageDesign) []interface{} {
+	if _, ok := d.GetOk("landing_page_design"); !ok {
+		return []interface{}{}
+	}
+
+	if design == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"button_color":      design.ButtonColor,
+		"button_text_color": design.ButtonTextColor,
+		"title":             design.Title,
+		"message":           design.Message,
+		"image_url":         design.ImageURL,
+	}
+
+	return []interface{}{m}
+}
+
+func convertFooterLinksStructToSchema(d *schema.ResourceData, footerLinks []cloudflare.AccessFooterLink) []interface{} {
+	if _, ok := d.GetOk("footer_links"); !ok {
+		return []interface{}{}
+	}
+
+	if footerLinks == nil {
+		return []interface{}{}
+	}
+
+	var footerLinksInterface []interface{}
+	for _, footerLink := range footerLinks {
+		footerLinksInterface = append(footerLinksInterface, map[string]interface{}{
+			"name": footerLink.Name,
+			"url":  footerLink.URL,
+		})
+	}
+
+	return footerLinksInterface
 }
 
 func convertSAMLAttributeStructToSchema(attr cloudflare.SAMLAttributeConfig) map[string]interface{} {
@@ -422,14 +588,17 @@ func convertSAMLAttributeStructToSchema(attr cloudflare.SAMLAttributeConfig) map
 }
 
 func convertSaasStructToSchema(d *schema.ResourceData, app *cloudflare.SaasApplication) []interface{} {
-	if _, ok := d.GetOk("saas_app"); !ok {
+	if app == nil {
 		return []interface{}{}
 	}
-
 	m := map[string]interface{}{
 		"sp_entity_id":         app.SPEntityID,
 		"consumer_service_url": app.ConsumerServiceUrl,
 		"name_id_format":       app.NameIDFormat,
+		"idp_entity_id":        app.IDPEntityID,
+		"public_key":           app.PublicKey,
+		"sso_endpoint":         app.SSOEndpoint,
+		"default_relay_state":  app.DefaultRelayState,
 	}
 
 	var customAttributes []interface{}

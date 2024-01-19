@@ -3,6 +3,7 @@ package rulesets
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/cloudflare/cloudflare-go"
@@ -47,7 +48,7 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(
-						path.Expression(path.MatchRoot((consts.ZoneIDSchemaKey))),
+						path.Expression(path.MatchRoot(consts.ZoneIDSchemaKey)),
 					),
 				},
 			},
@@ -56,7 +57,7 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(
-						path.Expression(path.MatchRoot((consts.AccountIDSchemaKey))),
+						path.Expression(path.MatchRoot(consts.AccountIDSchemaKey)),
 					),
 				},
 			},
@@ -154,6 +155,11 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 							MarkdownDescription: "List of parameters that configure the behavior of the ruleset rule action.",
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
+									"additional_cacheable_ports": schema.SetAttribute{
+										ElementType:         types.Int64Type,
+										Optional:            true,
+										MarkdownDescription: "Specifies uncommon ports to allow cacheable assets to be served from.",
+									},
 									"automatic_https_rewrites": schema.BoolAttribute{
 										Optional:            true,
 										MarkdownDescription: "Turn on or off Cloudflare Automatic HTTPS rewrites.",
@@ -465,13 +471,13 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 											Attributes: map[string]schema.Attribute{
 												"mode": schema.StringAttribute{
 													Required:            true,
-													Validators:          []validator.String{stringvalidator.OneOf("override_origin", "respect_origin")},
-													MarkdownDescription: "Mode of the edge TTL.",
+													Validators:          []validator.String{stringvalidator.OneOf("override_origin", "respect_origin", "bypass_by_default")},
+													MarkdownDescription: fmt.Sprintf("Mode of the edge TTL. %s", utils.RenderAvailableDocumentationValuesStringSlice([]string{"override_origin", "respect_origin", "bypass_by_default"})),
 												},
 												"default": schema.Int64Attribute{
 													Optional:            true,
 													Validators:          []validator.Int64{int64validator.AtLeast(1)},
-													MarkdownDescription: "Default edge TTL",
+													MarkdownDescription: "Default edge TTL.",
 												},
 											},
 											Validators: []validator.Object{EdgeTTLValidator{}},
@@ -918,6 +924,8 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 									},
 									"requests_to_origin": schema.BoolAttribute{
 										Optional:            true,
+										Computed:            true,
+										Default:             booldefault.StaticBool(false),
 										MarkdownDescription: "Whether to include requests to origin within the Rate Limiting count.",
 									},
 								},
@@ -945,7 +953,7 @@ func (r *RulesetResource) Schema(ctx context.Context, req resource.SchemaRequest
 							},
 						},
 						"logging": schema.ListNestedBlock{
-							MarkdownDescription: "List parameters to configure how the rule generates logs.",
+							MarkdownDescription: "List parameters to configure how the rule generates logs. Only valid for skip action.",
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"enabled": schema.BoolAttribute{

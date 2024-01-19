@@ -79,6 +79,27 @@ func resourceCloudflareAccessApplicationCreate(ctx context.Context, d *schema.Re
 		newAccessApplication.SaasApplication = convertSaasSchemaToStruct(d)
 	}
 
+	if value, ok := d.GetOk("tags"); ok {
+		newAccessApplication.Tags = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+	if appType == "app_launcher" {
+		newAccessApplication.AccessAppLauncherCustomization = cloudflare.AccessAppLauncherCustomization{
+			LogoURL:               d.Get("app_launcher_logo_url").(string),
+			BackgroundColor:       d.Get("bg_color").(string),
+			HeaderBackgroundColor: d.Get("header_bg_color").(string),
+		}
+
+		if _, ok := d.GetOk("landing_page_design"); ok {
+			landingPageDesign := convertLandingPageDesignSchemaToStruct(d)
+			newAccessApplication.AccessAppLauncherCustomization.LandingPageDesign = *landingPageDesign
+		}
+
+		if _, ok := d.GetOk("footer_links"); ok {
+			footerLinks := convertFooterLinksSchemaToStruct(d)
+			newAccessApplication.AccessAppLauncherCustomization.FooterLinks = footerLinks
+		}
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Creating Cloudflare Access Application from struct: %+v", newAccessApplication))
 
 	identifier, err := initIdentifier(d)
@@ -134,6 +155,24 @@ func resourceCloudflareAccessApplicationRead(ctx context.Context, d *schema.Reso
 	d.Set("app_launcher_visible", accessApplication.AppLauncherVisible)
 	d.Set("service_auth_401_redirect", accessApplication.ServiceAuth401Redirect)
 	d.Set("custom_pages", accessApplication.CustomPages)
+	d.Set("tags", accessApplication.Tags)
+	d.Set("bg_color", accessApplication.AccessAppLauncherCustomization.BackgroundColor)
+	d.Set("header_bg_color", accessApplication.AccessAppLauncherCustomization.HeaderBackgroundColor)
+	d.Set("app_launcher_logo_url", accessApplication.AccessAppLauncherCustomization.LogoURL)
+
+	if _, ok := d.GetOk("footer_links"); ok {
+		footerLinks := convertFooterLinksStructToSchema(d, accessApplication.AccessAppLauncherCustomization.FooterLinks)
+		if footerLinksErr := d.Set("footer_links", footerLinks); footerLinksErr != nil {
+			return diag.FromErr(fmt.Errorf("error setting Access Application footer links: %w", footerLinksErr))
+		}
+	}
+
+	if _, ok := d.GetOk("landing_page_design"); ok {
+		landingPageDesign := convertLandingPageDesignStructToSchema(d, &accessApplication.AccessAppLauncherCustomization.LandingPageDesign)
+		if landingPageDesignErr := d.Set("landing_page_design", landingPageDesign); landingPageDesignErr != nil {
+			return diag.FromErr(fmt.Errorf("error setting Access Application landing page design: %w", landingPageDesignErr))
+		}
+	}
 
 	corsConfig := convertCORSStructToSchema(d, accessApplication.CorsHeaders)
 	if corsConfigErr := d.Set("cors_headers", corsConfig); corsConfigErr != nil {
@@ -203,6 +242,27 @@ func resourceCloudflareAccessApplicationUpdate(ctx context.Context, d *schema.Re
 	if _, ok := d.GetOk("saas_app"); ok {
 		saasConfig := convertSaasSchemaToStruct(d)
 		updatedAccessApplication.SaasApplication = saasConfig
+	}
+
+	if value, ok := d.GetOk("tags"); ok {
+		updatedAccessApplication.Tags = expandInterfaceToStringList(value.(*schema.Set).List())
+	}
+	if appType == "app_launcher" {
+		updatedAccessApplication.AccessAppLauncherCustomization = cloudflare.AccessAppLauncherCustomization{
+			LogoURL:               d.Get("app_launcher_logo_url").(string),
+			BackgroundColor:       d.Get("bg_color").(string),
+			HeaderBackgroundColor: d.Get("header_bg_color").(string),
+		}
+
+		if _, ok := d.GetOk("landing_page_design"); ok {
+			landingPageDesign := convertLandingPageDesignSchemaToStruct(d)
+			updatedAccessApplication.AccessAppLauncherCustomization.LandingPageDesign = *landingPageDesign
+		}
+
+		if _, ok := d.GetOk("footer_links"); ok {
+			footerLinks := convertFooterLinksSchemaToStruct(d)
+			updatedAccessApplication.AccessAppLauncherCustomization.FooterLinks = footerLinks
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating Cloudflare Access Application from struct: %+v", updatedAccessApplication))

@@ -22,6 +22,7 @@ const (
 	moduleContent     = `export default { fetch() { return new Response('Hello world'); }, };`
 	encodedWasm       = "AGFzbQEAAAAGgYCAgAAA" // wat source: `(module)`, so literally just an empty wasm module
 	compatibilityDate = "2023-03-19"
+	d1DatabaseID      = "ce8b95dc-b376-4ff8-9b9e-1801ed6d745d"
 )
 
 var (
@@ -94,13 +95,14 @@ func TestAccCloudflareWorkerScript_ModuleUpload(t *testing.T) {
 			{
 				Config: testAccCheckCloudflareWorkerScriptUploadModule(rnd, accountID, r2AccesKeyID, r2AccesKeySecret),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudflareWorkerScriptExists(name, &script, nil),
+					testAccCheckCloudflareWorkerScriptExists(name, &script, []string{"MY_DATABASE"}),
 					resource.TestCheckResourceAttr(name, "name", rnd),
 					resource.TestCheckResourceAttr(name, "content", moduleContent),
 					resource.TestCheckResourceAttr(name, "compatibility_date", compatibilityDate),
 					resource.TestCheckResourceAttr(name, "compatibility_flags.#", "2"),
 					resource.TestCheckResourceAttr(name, "compatibility_flags.0", compatibilityFlags[0]),
 					resource.TestCheckResourceAttr(name, "logpush", "true"),
+					resource.TestCheckResourceAttr(name, "placement.0.mode", "smart"),
 				),
 			},
 		},
@@ -111,6 +113,17 @@ func TestAccCloudflareWorkerScript_ModuleUpload(t *testing.T) {
 // mix V5 and V6 protocol resources without circular dependencies. In an ideal
 // world, this would all be handled by the inbuilt resource.
 func testAccCheckCloudflareWorkerScriptCreateBucket(t *testing.T, rnd string) {
+	accessKeyId := os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_ID")
+	accessKeySecret := os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_SECRET")
+
+	if accessKeyId == "" {
+		t.Fatal("CLOUDFLARE_R2_ACCESS_KEY_ID must be set for this acceptance test")
+	}
+
+	if accessKeyId == "" {
+		t.Fatal("CLOUDFLARE_R2_ACCESS_KEY_SECRET must be set for this acceptance test")
+	}
+
 	client := testAccProvider.Meta().(*cloudflare.API)
 	_, err := client.CreateR2Bucket(context.Background(), cloudflare.AccountIdentifier(accountID), cloudflare.CreateR2BucketParameters{Name: rnd})
 	if err != nil {
@@ -118,9 +131,6 @@ func testAccCheckCloudflareWorkerScriptCreateBucket(t *testing.T, rnd string) {
 	}
 
 	t.Cleanup(func() {
-		accessKeyId := os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_ID")
-		accessKeySecret := os.Getenv("CLOUDFLARE_R2_ACCESS_KEY_SECRET")
-
 		r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				URL: fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountID),
@@ -130,6 +140,7 @@ func testAccCheckCloudflareWorkerScriptCreateBucket(t *testing.T, rnd string) {
 		cfg, err := config.LoadDefaultConfig(context.TODO(),
 			config.WithEndpointResolverWithOptions(r2Resolver),
 			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKeyId, accessKeySecret, "")),
+			config.WithDefaultRegion("auto"),
 		)
 		if err != nil {
 			t.Error(err)
@@ -259,9 +270,17 @@ resource "cloudflare_worker_script" "%[1]s" {
   compatibility_date = "%[4]s"
   compatibility_flags = ["%[5]s"]
   logpush = true
+	placement {
+		mode = "smart"
+	}
 
-  depends_on = [cloudflare_logpush_job.%[1]s]
-}`, rnd, moduleContent, accountID, compatibilityDate, strings.Join(compatibilityFlags, `","`), r2AccessKeyID, r2AccessKeySecret)
+	d1_database_binding {
+		name = "MY_DATABASE"
+		database_id = "%[8]s"
+	}
+
+	depends_on = [cloudflare_logpush_job.%[1]s]
+}`, rnd, moduleContent, accountID, compatibilityDate, strings.Join(compatibilityFlags, `","`), r2AccessKeyID, r2AccessKeySecret, d1DatabaseID)
 }
 
 func testAccCheckCloudflareWorkerScriptExists(n string, script *cloudflare.WorkerScript, bindings []string) resource.TestCheckFunc {

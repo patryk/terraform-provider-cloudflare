@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/cloudflare/cloudflare-go v0.86.0
+	github.com/cloudflare/cloudflare-go v0.88.0
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/google/uuid v1.5.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -24,9 +24,9 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/zclconf/go-cty v1.14.1 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/net v0.20.0
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/net v0.21.0
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 )

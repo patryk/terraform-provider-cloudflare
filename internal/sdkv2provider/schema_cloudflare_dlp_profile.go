@@ -58,6 +58,39 @@ func resourceCloudflareDLPEntrySchema() map[string]*schema.Schema {
 	}
 }
 
+// Custom hash function used on DLP entries. Extracts the "name" property
+// to provide a stable hash for profile entries and prevent spurious differences
+// between the state/infra.
+func hashResourceCloudflareDLPEntry(i interface{}) int {
+	v := i.(map[string]interface{})
+	return schema.HashString(v["name"])
+}
+
+func resourceCloudflareDLPContextAwarenessSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"enabled": {
+			Type:        schema.TypeBool,
+			Required:    true,
+			Description: "Scan the context of predefined entries to only return matches surrounded by keywords.",
+		},
+		"skip": {
+			Type:        schema.TypeList,
+			Description: "Content types to exclude from context analysis and return all matches.",
+			Required:    true,
+			MaxItems:    1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"files": {
+						Type:        schema.TypeBool,
+						Required:    true,
+						Description: "Return all matches, regardless of context analysis result, if the data is a file.",
+					},
+				},
+			},
+		},
+	}
+}
+
 func resourceCloudflareDLPProfileSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		consts.AccountIDSchemaKey: {
@@ -91,12 +124,23 @@ func resourceCloudflareDLPProfileSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: resourceCloudflareDLPEntrySchema(),
 			},
+			Set: hashResourceCloudflareDLPEntry,
 		},
 		"allowed_match_count": {
 			Type:         schema.TypeInt,
 			Description:  "Related DLP policies will trigger when the match count exceeds the number set.",
 			Required:     true,
 			ValidateFunc: validation.IntBetween(0, 1000),
+		},
+		"context_awareness": {
+			Type:        schema.TypeList,
+			Description: "Scan the context of predefined entries to only return matches surrounded by keywords.",
+			Computed:    true,
+			Optional:    true,
+			MaxItems:    1,
+			Elem: &schema.Resource{
+				Schema: resourceCloudflareDLPContextAwarenessSchema(),
+			},
 		},
 	}
 }

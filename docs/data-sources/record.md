@@ -27,13 +27,13 @@ data "cloudflare_record" "example" {
 
 ### Optional
 
+- `content` (String) Content to filter record results on.
 - `priority` (Number) DNS priority to filter record results on.
 - `type` (String) DNS record type to filter record results on. Defaults to `A`.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `locked` (Boolean) Locked status of the found DNS record.
 - `proxiable` (Boolean) Proxiable status of the found DNS record.
 - `proxied` (Boolean) Proxied status of the found DNS record.
 - `ttl` (Number) TTL of the found DNS record.

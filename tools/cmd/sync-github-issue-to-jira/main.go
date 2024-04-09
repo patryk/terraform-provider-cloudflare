@@ -75,6 +75,7 @@ var (
 
 		"service/access",
 		"service/cache",
+		"service/dns",
 		"service/iam",
 		"service/load_balancing",
 		"service/logs",
@@ -150,11 +151,15 @@ var (
 		},
 		"service/addressing": {
 			teamName: "Address",
-			owner: "jabley",
+			owner:    "jabley",
 		},
 		"service/zero_trust_devices": {
 			teamName: "ZT Device Services",
-			owner: "suhrit",
+			owner:    "suhrit",
+		},
+		"service/dns": {
+			teamName: "DNS",
+			owner:    "elmerot",
 		},
 	}
 )

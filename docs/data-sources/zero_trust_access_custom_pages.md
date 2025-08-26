@@ -22,7 +22,7 @@ data "cloudflare_zero_trust_access_custom_pages" "example_zero_trust_access_cust
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 
 ### Optional
 
@@ -41,7 +41,8 @@ Read-Only:
 - `created_at` (String)
 - `name` (String) Custom page name.
 - `type` (String) Custom page type.
-- `uid` (String) UUID
+Available values: "identity_denied", "forbidden".
+- `uid` (String) UUID.
 - `updated_at` (String)
 
 

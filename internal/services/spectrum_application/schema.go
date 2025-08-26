@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -49,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Optional:    true,
 					},
 					"type": schema.StringAttribute{
-						Description: "The type of DNS record associated with the application.",
+						Description: "The type of DNS record associated with the application.\nAvailable values: \"CNAME\", \"ADDRESS\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("CNAME", "ADDRESS"),
@@ -58,11 +59,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"ip_firewall": schema.BoolAttribute{
+				Computed:    true,
 				Description: "Enables IP Access Rules for this application.\nNotes: Only available for TCP applications.",
+				Default:     booldefault.StaticBool(false),
 				Optional:    true,
 			},
 			"tls": schema.StringAttribute{
-				Description: "The type of TLS termination associated with the application.",
+				Computed:    true,
+				Description: "The type of TLS termination associated with the application.\nAvailable values: \"off\", \"flexible\", \"full\", \"strict\".",
+				Default:     stringdefault.StaticString("off"),
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -78,82 +83,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:    true,
 				ElementType: types.StringType,
 			},
-			"origin_port": schema.DynamicAttribute{
-				Description: "The destination port at the origin. Only specified in conjunction with origin_dns. May use an integer to specify a single origin port, for example `1000`, or a string to specify a range of origin ports, for example `\"1000-2000\"`.\nNotes: If specifying a port range, the number of ports in the range must match the number of ports specified in the \"protocol\" field.",
-				Optional:    true,
-				Validators: []validator.Dynamic{
-					customvalidator.AllowedSubtypes(basetypes.NumberType{}, basetypes.StringType{}),
-				},
-			},
-			"argo_smart_routing": schema.BoolAttribute{
-				Description: "Enables Argo Smart Routing for this application.\nNotes: Only available for TCP applications with traffic_type set to \"direct\".",
-				Computed:    true,
-				Optional:    true,
-				Default:     booldefault.StaticBool(false),
-			},
-			"proxy_protocol": schema.StringAttribute{
-				Description: "Enables Proxy Protocol to the origin. Refer to [Enable Proxy protocol](https://developers.cloudflare.com/spectrum/getting-started/proxy-protocol/) for implementation details on PROXY Protocol V1, PROXY Protocol V2, and Simple Proxy Protocol.",
-				Computed:    true,
-				Optional:    true,
-				Validators: []validator.String{
-					stringvalidator.OneOfCaseInsensitive(
-						"off",
-						"v1",
-						"v2",
-						"simple",
-					),
-				},
-				Default: stringdefault.StaticString("off"),
-			},
-			"traffic_type": schema.StringAttribute{
-				Description: "Determines how data travels from the edge to your origin. When set to \"direct\", Spectrum will send traffic directly to your origin, and the application's type is derived from the `protocol`. When set to \"http\" or \"https\", Spectrum will apply Cloudflare's HTTP/HTTPS features as it sends traffic to your origin, and the application type matches this property exactly.",
-				Computed:    true,
-				Optional:    true,
-				Validators: []validator.String{
-					stringvalidator.OneOfCaseInsensitive(
-						"direct",
-						"http",
-						"https",
-					),
-				},
-				Default: stringdefault.StaticString("direct"),
-			},
-			"edge_ips": schema.SingleNestedAttribute{
-				Description: "The anycast edge IP configuration for the hostname of this application.",
-				Computed:    true,
-				Optional:    true,
-				CustomType:  customfield.NewNestedObjectType[SpectrumApplicationEdgeIPsModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"connectivity": schema.StringAttribute{
-						Description: "The IP versions supported for inbound connections on Spectrum anycast IPs.",
-						Optional:    true,
-						Validators: []validator.String{
-							stringvalidator.OneOfCaseInsensitive(
-								"all",
-								"ipv4",
-								"ipv6",
-							),
-						},
-					},
-					"type": schema.StringAttribute{
-						Description: "The type of edge IP configuration specified. Dynamically allocated edge IPs use Spectrum anycast IPs in accordance with the connectivity you specify. Only valid with CNAME DNS names.",
-						Optional:    true,
-						Validators: []validator.String{
-							stringvalidator.OneOfCaseInsensitive("dynamic", "static"),
-						},
-					},
-					"ips": schema.ListAttribute{
-						Description: "The array of customer owned IPs we broadcast via anycast for this hostname and application.",
-						Optional:    true,
-						ElementType: types.StringType,
-					},
-				},
-			},
 			"origin_dns": schema.SingleNestedAttribute{
 				Description: "The name and type of DNS record for the Spectrum application.",
-				Computed:    true,
 				Optional:    true,
-				CustomType:  customfield.NewNestedObjectType[SpectrumApplicationOriginDNSModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						Description: "The name of the DNS record associated with the origin.",
@@ -167,7 +99,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 					"type": schema.StringAttribute{
-						Description: "The type of DNS record associated with the origin. \"\" is used to specify a combination of A/AAAA records.",
+						Description: "The type of DNS record associated with the origin. \"\" is used to specify a combination of A/AAAA records.\nAvailable values: \"\", \"A\", \"AAAA\", \"SRV\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -177,6 +109,86 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"SRV",
 							),
 						},
+					},
+				},
+			},
+			"origin_port": schema.DynamicAttribute{
+				Description: "The destination port at the origin. Only specified in conjunction with origin_dns. May use an integer to specify a single origin port, for example `1000`, or a string to specify a range of origin ports, for example `\"1000-2000\"`.\nNotes: If specifying a port range, the number of ports in the range must match the number of ports specified in the \"protocol\" field.",
+				Optional:    true,
+				Validators: []validator.Dynamic{
+					customvalidator.AllowedSubtypes(
+						basetypes.Int64Type{},
+						basetypes.NumberType{},
+						basetypes.StringType{},
+					),
+				},
+				CustomType:    customfield.NormalizedDynamicType{},
+				PlanModifiers: []planmodifier.Dynamic{customfield.NormalizeDynamicPlanModifier()},
+			},
+			"argo_smart_routing": schema.BoolAttribute{
+				Computed:      true,
+				Default:       booldefault.StaticBool(false),
+				Description:   "Enables Argo Smart Routing for this application.\nNotes: Only available for TCP applications with traffic_type set to \"direct\".",
+				Optional:      true,
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
+			},
+			"proxy_protocol": schema.StringAttribute{
+				Computed:    true,
+				Default:     stringdefault.StaticString("off"),
+				Description: "Enables Proxy Protocol to the origin. Refer to [Enable Proxy protocol](https://developers.cloudflare.com/spectrum/getting-started/proxy-protocol/) for implementation details on PROXY Protocol V1, PROXY Protocol V2, and Simple Proxy Protocol.\nAvailable values: \"off\", \"v1\", \"v2\", \"simple\".",
+				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"off",
+						"v1",
+						"v2",
+						"simple",
+					),
+				},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			},
+			"traffic_type": schema.StringAttribute{
+				Description: "Determines how data travels from the edge to your origin. When set to \"direct\", Spectrum will send traffic directly to your origin, and the application's type is derived from the `protocol`. When set to \"http\" or \"https\", Spectrum will apply Cloudflare's HTTP/HTTPS features as it sends traffic to your origin, and the application type matches this property exactly.\nAvailable values: \"direct\", \"http\", \"https\".",
+				Computed:    true,
+				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"direct",
+						"http",
+						"https",
+					),
+				},
+				Default:       stringdefault.StaticString("direct"),
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+			},
+			"edge_ips": schema.SingleNestedAttribute{
+				Description: "The anycast edge IP configuration for the hostname of this application.",
+				Computed:    true,
+				Optional:    true,
+				CustomType:  customfield.NewNestedObjectType[SpectrumApplicationEdgeIPsModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"connectivity": schema.StringAttribute{
+						Description: "The IP versions supported for inbound connections on Spectrum anycast IPs.\nAvailable values: \"all\", \"ipv4\", \"ipv6\".",
+						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.OneOfCaseInsensitive(
+								"all",
+								"ipv4",
+								"ipv6",
+							),
+						},
+					},
+					"type": schema.StringAttribute{
+						Description: "The type of edge IP configuration specified. Dynamically allocated edge IPs use Spectrum anycast IPs in accordance with the connectivity you specify. Only valid with CNAME DNS names.\nAvailable values: \"dynamic\", \"static\".",
+						Optional:    true,
+						Validators: []validator.String{
+							stringvalidator.OneOfCaseInsensitive("dynamic", "static"),
+						},
+					},
+					"ips": schema.ListAttribute{
+						Description: "The array of customer owned IPs we broadcast via anycast for this hostname and application.",
+						Optional:    true,
+						ElementType: types.StringType,
 					},
 				},
 			},

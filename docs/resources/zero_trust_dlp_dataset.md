@@ -15,6 +15,7 @@ description: |-
 resource "cloudflare_zero_trust_dlp_dataset" "example_zero_trust_dlp_dataset" {
   account_id = "account_id"
   name = "name"
+  case_sensitive = true
   description = "description"
   encoding_version = 0
   secret = true
@@ -31,8 +32,11 @@ resource "cloudflare_zero_trust_dlp_dataset" "example_zero_trust_dlp_dataset" {
 
 ### Optional
 
+- `case_sensitive` (Boolean) Only applies to custom word lists.
+Determines if the words should be matched in a case-sensitive manner
+Cannot be set to false if `secret` is true or undefined
 - `dataset_id` (String)
-- `description` (String) The description of the dataset
+- `description` (String) The description of the dataset.
 - `encoding_version` (Number) Dataset encoding version
 
 Non-secret custom word lists with no header are always version 1.
@@ -53,7 +57,7 @@ If false, the response has no secret and the dataset is uploaded in plaintext.
 - `id` (String) The ID of this resource.
 - `max_cells` (Number)
 - `num_cells` (Number)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `updated_at` (String) When the dataset was last updated.
 
 This includes name or description changes as well as uploads.
@@ -68,7 +72,7 @@ Read-Only:
 - `entry_id` (String)
 - `header_name` (String)
 - `num_cells` (Number)
-- `upload_status` (String)
+- `upload_status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 
 
 <a id="nestedatt--dataset"></a>
@@ -76,15 +80,16 @@ Read-Only:
 
 Read-Only:
 
+- `case_sensitive` (Boolean)
 - `columns` (Attributes List) (see [below for nested schema](#nestedatt--dataset--columns))
 - `created_at` (String)
-- `description` (String) The description of the dataset
+- `description` (String) The description of the dataset.
 - `encoding_version` (Number)
 - `id` (String)
 - `name` (String)
 - `num_cells` (Number)
 - `secret` (Boolean)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `updated_at` (String) When the dataset was last updated.
 
 This includes name or description changes as well as uploads.
@@ -98,7 +103,7 @@ Read-Only:
 - `entry_id` (String)
 - `header_name` (String)
 - `num_cells` (Number)
-- `upload_status` (String)
+- `upload_status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 
 
 <a id="nestedatt--dataset--uploads"></a>
@@ -107,7 +112,7 @@ Read-Only:
 Read-Only:
 
 - `num_cells` (Number)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `version` (Number)
 
 
@@ -118,7 +123,7 @@ Read-Only:
 Read-Only:
 
 - `num_cells` (Number)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `version` (Number)
 
 

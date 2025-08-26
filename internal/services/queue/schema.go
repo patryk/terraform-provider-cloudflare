@@ -20,7 +20,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"queue_id": schema.StringAttribute{
 				Computed:      true,
@@ -35,17 +36,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required: true,
 			},
 			"settings": schema.SingleNestedAttribute{
-				Computed:   true,
 				Optional:   true,
+				Computed:   true,
 				CustomType: customfield.NewNestedObjectType[QueueSettingsModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"delivery_delay": schema.Float64Attribute{
 						Description: "Number of seconds to delay delivery of all messages to consumers.",
 						Optional:    true,
+						Computed:    true,
+					},
+					"delivery_paused": schema.BoolAttribute{
+						Description: "Indicates if message delivery to consumers is currently paused.",
+						Optional:    true,
+						Computed:    true,
 					},
 					"message_retention_period": schema.Float64Attribute{
 						Description: "Number of seconds after which an unconsumed message will be delayed.",
 						Optional:    true,
+						Computed:    true,
 					},
 				},
 			},
@@ -116,7 +124,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"type": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "worker", "http_pull".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("worker", "http_pull"),
 							},
@@ -133,7 +142,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed: true,
 						},
 						"type": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "worker", "r2_bucket".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("worker", "r2_bucket"),
 							},

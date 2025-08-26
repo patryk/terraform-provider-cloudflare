@@ -5,8 +5,8 @@ package zero_trust_dlp_dataset
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -20,6 +20,7 @@ type ZeroTrustDLPDatasetResultDataSourceEnvelope struct {
 type ZeroTrustDLPDatasetDataSourceModel struct {
 	AccountID       types.String                                                            `tfsdk:"account_id" path:"account_id,required"`
 	DatasetID       types.String                                                            `tfsdk:"dataset_id" path:"dataset_id,required"`
+	CaseSensitive   types.Bool                                                              `tfsdk:"case_sensitive" json:"case_sensitive,computed"`
 	CreatedAt       timetypes.RFC3339                                                       `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`
 	Description     types.String                                                            `tfsdk:"description" json:"description,computed"`
 	EncodingVersion types.Int64                                                             `tfsdk:"encoding_version" json:"encoding_version,computed"`

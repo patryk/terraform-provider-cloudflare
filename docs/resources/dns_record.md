@@ -14,17 +14,17 @@ description: |-
 ```terraform
 resource "cloudflare_dns_record" "example_dns_record" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
+  name = "example.com"
+  ttl = 3600
+  type = "A"
   comment = "Domain verification record"
   content = "198.51.100.4"
-  name = "example.com"
   proxied = true
   settings = {
     ipv4_only = true
     ipv6_only = true
   }
   tags = ["owner:dns-team"]
-  ttl = 3600
-  type = "A"
 }
 ```
 
@@ -36,7 +36,8 @@ resource "cloudflare_dns_record" "example_dns_record" {
 - `name` (String) DNS record name (or @ for the zone apex) in Punycode.
 - `ttl` (Number) Time To Live (TTL) of the DNS record in seconds. Setting to 1 means 'automatic'. Value must be between 60 and 86400, with the minimum reduced to 30 for Enterprise zones.
 - `type` (String) Record type.
-- `zone_id` (String) Identifier
+Available values: "A", "AAAA", "CNAME", "MX", "NS", "OPENPGPKEY", "PTR", "TXT", "CAA", "CERT", "DNSKEY", "DS", "HTTPS", "LOC", "NAPTR", "SMIMEA", "SRV", "SSHFP", "SVCB", "TLSA", "URI".
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -52,7 +53,7 @@ resource "cloudflare_dns_record" "example_dns_record" {
 
 - `comment_modified_on` (String) When the record comment was last modified. Omitted if there is no comment.
 - `created_on` (String) When the record was created.
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `meta` (String) Extra Cloudflare-specific information about the record.
 - `modified_on` (String) When the record was last modified.
 - `proxiable` (Boolean) Whether the record can be proxied by Cloudflare or not.
@@ -68,15 +69,17 @@ Optional:
 - `certificate` (String) Certificate.
 - `digest` (String) Digest.
 - `digest_type` (Number) Digest Type.
-- `fingerprint` (String) fingerprint.
-- `flags` (Number) Flags for the CAA record.
+- `fingerprint` (String) Fingerprint.
+- `flags` (Dynamic) Flags for the CAA record.
 - `key_tag` (Number) Key Tag.
 - `lat_degrees` (Number) Degrees of latitude.
 - `lat_direction` (String) Latitude direction.
+Available values: "N", "S".
 - `lat_minutes` (Number) Minutes of latitude.
 - `lat_seconds` (Number) Seconds of latitude.
 - `long_degrees` (Number) Degrees of longitude.
 - `long_direction` (String) Longitude direction.
+Available values: "E", "W".
 - `long_minutes` (Number) Minutes of longitude.
 - `long_seconds` (Number) Seconds of longitude.
 - `matching_type` (Number) Matching Type.
@@ -85,7 +88,7 @@ Optional:
 - `precision_horz` (Number) Horizontal precision of location.
 - `precision_vert` (Number) Vertical precision of location.
 - `preference` (Number) Preference.
-- `priority` (Number) priority.
+- `priority` (Number) Priority.
 - `protocol` (Number) Protocol.
 - `public_key` (String) Public Key.
 - `regex` (String) Regex.
@@ -94,7 +97,7 @@ Optional:
 - `service` (String) Service.
 - `size` (Number) Size of location in meters.
 - `tag` (String) Name of the property controlled by this record (e.g.: issue, issuewild, iodef).
-- `target` (String) target.
+- `target` (String) Target.
 - `type` (Number) Type.
 - `usage` (Number) Usage.
 - `value` (String) Value of the record. This field's semantics depend on the chosen tag.

@@ -71,6 +71,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 										Description: "Set notification on",
 										Computed:    true,
 									},
+									"include_context": schema.BoolAttribute{
+										Description: "If true, context information will be passed as query parameters",
+										Computed:    true,
+									},
 									"msg": schema.StringAttribute{
 										Description: "Customize the message shown in the notification.",
 										Computed:    true,
@@ -89,7 +93,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsBlockPageDataSourceModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"background_color": schema.StringAttribute{
-								Description: "Block page background color in #rrggbb format.",
+								Description: "If mode is customized_block_page: block page background color in #rrggbb format.",
 								Computed:    true,
 							},
 							"enabled": schema.BoolAttribute{
@@ -97,31 +101,62 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"footer_text": schema.StringAttribute{
-								Description: "Block page footer text.",
+								Description: "If mode is customized_block_page: block page footer text.",
 								Computed:    true,
 							},
 							"header_text": schema.StringAttribute{
-								Description: "Block page header text.",
+								Description: "If mode is customized_block_page: block page header text.",
+								Computed:    true,
+							},
+							"include_context": schema.BoolAttribute{
+								Description: "If mode is redirect_uri: when enabled, context will be appended to target_uri as query parameters.",
 								Computed:    true,
 							},
 							"logo_path": schema.StringAttribute{
-								Description: "Full URL to the logo file.",
+								Description: "If mode is customized_block_page: full URL to the logo file.",
 								Computed:    true,
 							},
 							"mailto_address": schema.StringAttribute{
-								Description: "Admin email for users to contact.",
+								Description: "If mode is customized_block_page: admin email for users to contact.",
 								Computed:    true,
 							},
 							"mailto_subject": schema.StringAttribute{
-								Description: "Subject line for emails created from block page.",
+								Description: "If mode is customized_block_page: subject line for emails created from block page.",
 								Computed:    true,
 							},
+							"mode": schema.StringAttribute{
+								Description: "Controls whether the user is redirected to a Cloudflare-hosted block page or to a customer-provided URI.\nAvailable values: \"\", \"customized_block_page\", \"redirect_uri\".",
+								Computed:    true,
+								Validators: []validator.String{
+									stringvalidator.OneOfCaseInsensitive(
+										"",
+										"customized_block_page",
+										"redirect_uri",
+									),
+								},
+							},
 							"name": schema.StringAttribute{
-								Description: "Block page title.",
+								Description: "If mode is customized_block_page: block page title.",
+								Computed:    true,
+							},
+							"read_only": schema.BoolAttribute{
+								Description: "This setting was shared via the Orgs API and cannot be edited by the current account",
+								Computed:    true,
+							},
+							"source_account": schema.StringAttribute{
+								Description: "Account tag of account that shared this setting",
 								Computed:    true,
 							},
 							"suppress_footer": schema.BoolAttribute{
-								Description: "Suppress detailed info at the bottom of the block page.",
+								Description: "If mode is customized_block_page: suppress detailed info at the bottom of the block page.",
+								Computed:    true,
+							},
+							"target_uri": schema.StringAttribute{
+								Description: "If mode is redirect_uri: URI to which the user should be redirected.",
+								Computed:    true,
+							},
+							"version": schema.Int64Attribute{
+								Description: "Version number of the setting",
 								Computed:    true,
 							},
 						},
@@ -132,8 +167,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsBodyScanningDataSourceModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"inspection_mode": schema.StringAttribute{
-								Description: "Set the inspection mode to either `deep` or `shallow`.",
+								Description: "Set the inspection mode to either `deep` or `shallow`.\nAvailable values: \"deep\", \"shallow\".",
 								Computed:    true,
+								Validators: []validator.String{
+									stringvalidator.OneOfCaseInsensitive("deep", "shallow"),
+								},
 							},
 						},
 					},
@@ -164,9 +202,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 					"custom_certificate": schema.SingleNestedAttribute{
-						Description: "Custom certificate settings for BYO-PKI. (deprecated and replaced by `certificate`)",
-						Computed:    true,
-						CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsCustomCertificateDataSourceModel](ctx),
+						Description:        "Custom certificate settings for BYO-PKI. (deprecated and replaced by `certificate`)",
+						Computed:           true,
+						DeprecationMessage: "This attribute is deprecated.",
+						CustomType:         customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsCustomCertificateDataSourceModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
 								Description: "Enable use of custom certificate authority for signing Gateway traffic.",
@@ -195,6 +234,18 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Description: "Enable matching all variants of user emails (with + or . modifiers) used as criteria in Firewall policies.",
 								Computed:    true,
 							},
+							"read_only": schema.BoolAttribute{
+								Description: "This setting was shared via the Orgs API and cannot be edited by the current account",
+								Computed:    true,
+							},
+							"source_account": schema.StringAttribute{
+								Description: "Account tag of account that shared this setting",
+								Computed:    true,
+							},
+							"version": schema.Int64Attribute{
+								Description: "Version number of the setting",
+								Computed:    true,
+							},
 						},
 					},
 					"fips": schema.SingleNestedAttribute{
@@ -205,6 +256,31 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							"tls": schema.BoolAttribute{
 								Description: "Enable only cipher suites and TLS versions compliant with FIPS 140-2.",
 								Computed:    true,
+							},
+						},
+					},
+					"host_selector": schema.SingleNestedAttribute{
+						Description: "Setting to enable host selector in egress policies.",
+						Computed:    true,
+						CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsHostSelectorDataSourceModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"enabled": schema.BoolAttribute{
+								Description: "Enable filtering via hosts for egress policies.",
+								Computed:    true,
+							},
+						},
+					},
+					"inspection": schema.SingleNestedAttribute{
+						Description: "Setting to define inspection settings",
+						Computed:    true,
+						CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewaySettingsSettingsInspectionDataSourceModel](ctx),
+						Attributes: map[string]schema.Attribute{
+							"mode": schema.StringAttribute{
+								Description: "Defines the mode of inspection the proxy will use.\n- static: Gateway will use static inspection to inspect HTTP on TCP(80). If TLS decryption is on, Gateway will inspect HTTPS traffic on TCP(443) & UDP(443).\n- dynamic: Gateway will use protocol detection to dynamically inspect HTTP and HTTPS traffic on any port. TLS decryption must be on to inspect HTTPS traffic.\nAvailable values: \"static\", \"dynamic\".",
+								Computed:    true,
+								Validators: []validator.String{
+									stringvalidator.OneOfCaseInsensitive("static", "dynamic"),
+								},
 							},
 						},
 					},
@@ -229,7 +305,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"fallback_action": schema.StringAttribute{
-								Description: "Action to take when the file cannot be scanned.",
+								Description: "Action to take when the file cannot be scanned.\nAvailable values: \"allow\", \"block\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive("allow", "block"),

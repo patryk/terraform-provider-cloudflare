@@ -5,8 +5,8 @@ package magic_transit_site
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/magic_transit"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/magic_transit"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type MagicTransitSiteResultDataSourceEnvelope struct {
 }
 
 type MagicTransitSiteDataSourceModel struct {
-	ID                   types.String                                                      `tfsdk:"id" json:"-,computed"`
+	ID                   types.String                                                      `tfsdk:"id" path:"site_id,computed"`
 	SiteID               types.String                                                      `tfsdk:"site_id" path:"site_id,optional"`
 	AccountID            types.String                                                      `tfsdk:"account_id" path:"account_id,required"`
 	ConnectorID          types.String                                                      `tfsdk:"connector_id" json:"connector_id,computed"`

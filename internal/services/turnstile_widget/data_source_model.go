@@ -5,8 +5,8 @@ package turnstile_widget
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/turnstile"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/turnstile"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type TurnstileWidgetResultDataSourceEnvelope struct {
 }
 
 type TurnstileWidgetDataSourceModel struct {
-	ID             types.String                             `tfsdk:"id" json:"-,computed"`
+	ID             types.String                             `tfsdk:"id" path:"sitekey,computed"`
 	Sitekey        types.String                             `tfsdk:"sitekey" path:"sitekey,computed_optional"`
 	AccountID      types.String                             `tfsdk:"account_id" path:"account_id,required"`
 	BotFightMode   types.Bool                               `tfsdk:"bot_fight_mode" json:"bot_fight_mode,computed"`

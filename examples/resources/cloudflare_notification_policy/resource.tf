@@ -1,16 +1,16 @@
 resource "cloudflare_notification_policy" "example_notification_policy" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
-  alert_type = "access_custom_certificate_expiration_type"
+  alert_type = "universal_ssl_event_type"
   enabled = true
   mechanisms = {
     email = [{
       id = "test@example.com"
     }]
     pagerduty = [{
-
+      id = "e8133a15-00a4-4d69-aec1-32f70c51f6e5"
     }]
     webhooks = [{
-
+      id = "14cc1190-5d2b-4b98-a696-c424cb2ad05f"
     }]
   }
   name = "SSL Notification Event Policy"

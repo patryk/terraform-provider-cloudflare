@@ -37,12 +37,8 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  customfield.NewNestedObjectListType[ZeroTrustGatewayPoliciesResultDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							Description: "The API resource UUID.",
-							Computed:    true,
-						},
 						"action": schema.StringAttribute{
-							Description: "The action to preform when the associated traffic, identity, and device posture expressions are either absent or evaluate to `true`.",
+							Description: "The action to perform when the associated traffic, identity, and device posture expressions are either absent or evaluate to `true`.\nAvailable values: \"on\", \"off\", \"allow\", \"block\", \"scan\", \"noscan\", \"safesearch\", \"ytrestricted\", \"isolate\", \"noisolate\", \"override\", \"l4_override\", \"egress\", \"resolve\", \"quarantine\", \"redirect\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -61,8 +57,46 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 									"egress",
 									"resolve",
 									"quarantine",
+									"redirect",
 								),
 							},
+						},
+						"enabled": schema.BoolAttribute{
+							Description: "True if the rule is enabled.",
+							Computed:    true,
+						},
+						"filters": schema.ListAttribute{
+							Description: "The protocol or layer to evaluate the traffic, identity, and device posture expressions.",
+							Computed:    true,
+							Validators: []validator.List{
+								listvalidator.ValueStringsAre(
+									stringvalidator.OneOfCaseInsensitive(
+										"http",
+										"dns",
+										"l4",
+										"egress",
+										"dns_resolver",
+									),
+								),
+							},
+							CustomType:  customfield.NewListType[types.String](ctx),
+							ElementType: types.StringType,
+						},
+						"name": schema.StringAttribute{
+							Description: "The name of the rule.",
+							Computed:    true,
+						},
+						"precedence": schema.Int64Attribute{
+							Description: "Precedence sets the order of your rules. Lower values indicate higher precedence. At each processing phase, applicable rules are evaluated in ascending order of this value. Refer to [Order of enforcement](http://developers.cloudflare.com/learning-paths/secure-internet-traffic/understand-policies/order-of-enforcement/#manage-precedence-with-terraform) docs on how to manage precedence via Terraform.",
+							Computed:    true,
+						},
+						"traffic": schema.StringAttribute{
+							Description: "The wirefilter expression used for traffic matching. The API automatically formats and sanitizes this expression. This returns a normalized version that may differ from your input and cause Terraform state drift.",
+							Computed:    true,
+						},
+						"id": schema.StringAttribute{
+							Description: "The API resource UUID.",
+							Computed:    true,
 						},
 						"created_at": schema.StringAttribute{
 							Computed:   true,
@@ -78,20 +112,16 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"device_posture": schema.StringAttribute{
-							Description: "The wirefilter expression used for device posture check matching.",
-							Computed:    true,
-						},
-						"enabled": schema.BoolAttribute{
-							Description: "True if the rule is enabled.",
+							Description: "The wirefilter expression used for device posture check matching. The API automatically formats and sanitizes this expression. This returns a normalized version that may differ from your input and cause Terraform state drift.",
 							Computed:    true,
 						},
 						"expiration": schema.SingleNestedAttribute{
-							Description: "The expiration time stamp and default duration of a DNS policy. Takes\nprecedence over the policy's `schedule` configuration, if any.\n\nThis does not apply to HTTP or network policies.\n",
+							Description: "The expiration time stamp and default duration of a DNS policy. Takes\nprecedence over the policy's `schedule` configuration, if any.\n\nThis does not apply to HTTP or network policies.",
 							Computed:    true,
 							CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesExpirationDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"expires_at": schema.StringAttribute{
-									Description: "The time stamp at which the policy will expire and cease to be\napplied.\n\nMust adhere to RFC 3339 and include a UTC offset. Non-zero\noffsets are accepted but will be converted to the equivalent\nvalue with offset zero (UTC+00:00) and will be returned as time\nstamps with offset zero denoted by a trailing 'Z'.\n\nPolicies with an expiration do not consider the timezone of\nclients they are applied to, and expire \"globally\" at the point\ngiven by their `expires_at` value.\n",
+									Description: "The time stamp at which the policy will expire and cease to be\napplied.\n\nMust adhere to RFC 3339 and include a UTC offset. Non-zero\noffsets are accepted but will be converted to the equivalent\nvalue with offset zero (UTC+00:00) and will be returned as time\nstamps with offset zero denoted by a trailing 'Z'.\n\nPolicies with an expiration do not consider the timezone of\nclients they are applied to, and expire \"globally\" at the point\ngiven by their `expires_at` value.",
 									Computed:    true,
 									CustomType:  timetypes.RFC3339Type{},
 								},
@@ -108,32 +138,16 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"filters": schema.ListAttribute{
-							Description: "The protocol or layer to evaluate the traffic, identity, and device posture expressions.",
-							Computed:    true,
-							Validators: []validator.List{
-								listvalidator.ValueStringsAre(
-									stringvalidator.OneOfCaseInsensitive(
-										"http",
-										"dns",
-										"l4",
-										"egress",
-									),
-								),
-							},
-							CustomType:  customfield.NewListType[types.String](ctx),
-							ElementType: types.StringType,
-						},
 						"identity": schema.StringAttribute{
-							Description: "The wirefilter expression used for identity matching.",
+							Description: "The wirefilter expression used for identity matching. The API automatically formats and sanitizes this expression. This returns a normalized version that may differ from your input and cause Terraform state drift.",
 							Computed:    true,
 						},
-						"name": schema.StringAttribute{
-							Description: "The name of the rule.",
+						"not_sharable": schema.BoolAttribute{
+							Description: "The rule cannot be shared via the Orgs API",
 							Computed:    true,
 						},
-						"precedence": schema.Int64Attribute{
-							Description: "Precedence sets the order of your rules. Lower values indicate higher precedence. At each processing phase, applicable rules are evaluated in ascending order of this value.",
+						"read_only": schema.BoolAttribute{
+							Description: "The rule was shared via the Orgs API and cannot be edited by the current account",
 							Computed:    true,
 						},
 						"rule_settings": schema.SingleNestedAttribute{
@@ -144,8 +158,10 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 								"add_headers": schema.MapAttribute{
 									Description: "Add custom headers to allowed requests, in the form of key-value pairs. Keys are header names, pointing to an array with its header value(s).",
 									Computed:    true,
-									CustomType:  customfield.NewMapType[types.String](ctx),
-									ElementType: types.StringType,
+									CustomType:  customfield.NewMapType[customfield.List[types.String]](ctx),
+									ElementType: types.ListType{
+										ElemType: types.StringType,
+									},
 								},
 								"allow_child_bypass": schema.BoolAttribute{
 									Description: "Set by parent MSP accounts to enable their children to bypass this rule.",
@@ -168,7 +184,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsBISOAdminControlsDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"copy": schema.StringAttribute{
-											Description: "Configure whether copy is enabled or not. When set with \"remote_only\", copying isolated content from the remote browser to the user's local clipboard is disabled. When absent, copy is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether copy is enabled or not. When set with \"remote_only\", copying isolated content from the remote browser to the user's local clipboard is disabled. When absent, copy is enabled. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\", \"remote_only\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -191,10 +207,14 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 											Computed:    true,
 										},
 										"download": schema.StringAttribute{
-											Description: "Configure whether downloading enabled or not. When absent, downloading is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether downloading enabled or not. When set with \"remote_only\", downloads are only available for viewing. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\", \"remote_only\".",
 											Computed:    true,
 											Validators: []validator.String{
-												stringvalidator.OneOfCaseInsensitive("enabled", "disabled"),
+												stringvalidator.OneOfCaseInsensitive(
+													"enabled",
+													"disabled",
+													"remote_only",
+												),
 											},
 										},
 										"dp": schema.BoolAttribute{
@@ -206,14 +226,14 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 											Computed:    true,
 										},
 										"keyboard": schema.StringAttribute{
-											Description: "Configure whether keyboard usage is enabled or not. When absent, keyboard usage is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether keyboard usage is enabled or not. When absent, keyboard usage is enabled. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive("enabled", "disabled"),
 											},
 										},
 										"paste": schema.StringAttribute{
-											Description: "Configure whether pasting is enabled or not. When set with \"remote_only\", pasting content from the user's local clipboard into isolated pages is disabled. When absent, paste is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether pasting is enabled or not. When set with \"remote_only\", pasting content from the user's local clipboard into isolated pages is disabled. When absent, paste is enabled. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\", \"remote_only\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -224,25 +244,40 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 										"printing": schema.StringAttribute{
-											Description: "Configure whether printing is enabled or not. When absent, printing is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether printing is enabled or not. When absent, printing is enabled. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive("enabled", "disabled"),
 											},
 										},
 										"upload": schema.StringAttribute{
-											Description: "Configure whether uploading is enabled or not. When absent, uploading is enabled. Only applies when `version == \"v2\"`.",
+											Description: "Configure whether uploading is enabled or not. When absent, uploading is enabled. Only applies when `version == \"v2\"`.\nAvailable values: \"enabled\", \"disabled\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive("enabled", "disabled"),
 											},
 										},
 										"version": schema.StringAttribute{
-											Description: "Indicates which version of the browser isolation controls should apply.",
+											Description: "Indicates which version of the browser isolation controls should apply.\nAvailable values: \"v1\", \"v2\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive("v1", "v2"),
 											},
+										},
+									},
+								},
+								"block_page": schema.SingleNestedAttribute{
+									Description: "Custom block page settings. If missing/null, blocking will use the the account settings.",
+									Computed:    true,
+									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsBlockPageDataSourceModel](ctx),
+									Attributes: map[string]schema.Attribute{
+										"target_uri": schema.StringAttribute{
+											Description: "URI to which the user will be redirected",
+											Computed:    true,
+										},
+										"include_context": schema.BoolAttribute{
+											Description: "If true, context information will be passed as query parameters",
+											Computed:    true,
 										},
 									},
 								},
@@ -264,7 +299,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsCheckSessionDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"duration": schema.StringAttribute{
-											Description: "Configure how fresh the session needs to be to be considered valid.",
+											Description: "Configure how fresh the session needs to be to be considered valid. The API automatically formats and sanitizes this expression. This returns a normalized version that may differ from your input and cause Terraform state drift.",
 											Computed:    true,
 										},
 										"enforce": schema.BoolAttribute{
@@ -387,6 +422,10 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 											Description: "Set notification on",
 											Computed:    true,
 										},
+										"include_context": schema.BoolAttribute{
+											Description: "If true, context information will be passed as query parameters",
+											Computed:    true,
+										},
 										"msg": schema.StringAttribute{
 											Description: "Customize the message shown in the notification.",
 											Computed:    true,
@@ -450,13 +489,32 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 								},
+								"redirect": schema.SingleNestedAttribute{
+									Description: "Settings that apply to redirect rules",
+									Computed:    true,
+									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsRedirectDataSourceModel](ctx),
+									Attributes: map[string]schema.Attribute{
+										"target_uri": schema.StringAttribute{
+											Description: "URI to which the user will be redirected",
+											Computed:    true,
+										},
+										"include_context": schema.BoolAttribute{
+											Description: "If true, context information will be passed as query parameters",
+											Computed:    true,
+										},
+										"preserve_path_and_query": schema.BoolAttribute{
+											Description: "If true, the path and query parameters from the original request will be appended to target_uri",
+											Computed:    true,
+										},
+									},
+								},
 								"resolve_dns_internally": schema.SingleNestedAttribute{
 									Description: "Configure to forward the query to the internal DNS service, passing the specified 'view_id' as input. Cannot be set when 'dns_resolvers' are specified or 'resolve_dns_through_cloudflare' is set. Only valid when a rule's action is set to 'resolve'.",
 									Computed:    true,
 									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsResolveDNSInternallyDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"fallback": schema.StringAttribute{
-											Description: "The fallback behavior to apply when the internal DNS response code is different from 'NOERROR' or when the response data only contains CNAME records for 'A' or 'AAAA' queries.",
+											Description: "The fallback behavior to apply when the internal DNS response code is different from 'NOERROR' or when the response data only contains CNAME records for 'A' or 'AAAA' queries.\nAvailable values: \"none\", \"public_dns\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive("none", "public_dns"),
@@ -478,7 +536,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 									CustomType:  customfield.NewNestedObjectType[ZeroTrustGatewayPoliciesRuleSettingsUntrustedCERTDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"action": schema.StringAttribute{
-											Description: "The action performed when an untrusted certificate is seen. The default action is an error with HTTP code 526.",
+											Description: "The action performed when an untrusted certificate is seen. The default action is an error with HTTP code 526.\nAvailable values: \"pass_through\", \"block\", \"error\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -531,8 +589,8 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"traffic": schema.StringAttribute{
-							Description: "The wirefilter expression used for traffic matching.",
+						"source_account": schema.StringAttribute{
+							Description: "account tag of account that created the rule",
 							Computed:    true,
 						},
 						"updated_at": schema.StringAttribute{
@@ -541,6 +599,10 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 						},
 						"version": schema.Int64Attribute{
 							Description: "version number of the rule",
+							Computed:    true,
+						},
+						"warning_status": schema.StringAttribute{
+							Description: "Warning for a misconfigured rule, if any.",
 							Computed:    true,
 						},
 					},

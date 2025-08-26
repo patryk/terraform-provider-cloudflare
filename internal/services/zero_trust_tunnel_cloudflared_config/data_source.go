@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -65,7 +65,7 @@ func (d *ZeroTrustTunnelCloudflaredConfigDataSource) Read(ctx context.Context, r
 
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredConfigResultDataSourceEnvelope{*data}
-	_, err := d.client.ZeroTrust.Tunnels.Configurations.Get(
+	_, err := d.client.ZeroTrust.Tunnels.Cloudflared.Configurations.Get(
 		ctx,
 		data.TunnelID.ValueString(),
 		params,

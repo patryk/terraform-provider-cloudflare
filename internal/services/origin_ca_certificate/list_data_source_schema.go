@@ -21,7 +21,15 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
+				Required:    true,
+			},
+			"limit": schema.Int64Attribute{
+				Description: "Limit to the number of records returned.",
+				Optional:    true,
+			},
+			"offset": schema.Int64Attribute{
+				Description: "Offset the results",
 				Optional:    true,
 			},
 			"max_items": schema.Int64Attribute{
@@ -48,7 +56,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							ElementType: types.StringType,
 						},
 						"request_type": schema.StringAttribute{
-							Description: "Signature type desired on certificate (\"origin-rsa\" (rsa), \"origin-ecc\" (ecdsa), or \"keyless-certificate\" (for Keyless SSL servers).",
+							Description: "Signature type desired on certificate (\"origin-rsa\" (rsa), \"origin-ecc\" (ecdsa), or \"keyless-certificate\" (for Keyless SSL servers).\nAvailable values: \"origin-rsa\", \"origin-ecc\", \"keyless-certificate\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -59,7 +67,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"requested_validity": schema.Float64Attribute{
-							Description: "The number of days for which the certificate should be valid.",
+							Description: "The number of days for which the certificate should be valid.\nAvailable values: 7, 30, 90, 365, 730, 1095, 5475.",
 							Computed:    true,
 							Validators: []validator.Float64{
 								float64validator.OneOf(
@@ -74,7 +82,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"id": schema.StringAttribute{
-							Description: "Identifier",
+							Description: "Identifier.",
 							Computed:    true,
 						},
 						"certificate": schema.StringAttribute{

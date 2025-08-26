@@ -24,22 +24,23 @@ resource "cloudflare_email_routing_dns" "example_email_routing_dns" {
 ### Required
 
 - `name` (String) Domain of your zone.
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Read-Only
 
 - `created` (String) The date and time the settings have been created.
 - `enabled` (Boolean) State of the zone settings for Email Routing.
 - `errors` (Attributes List) (see [below for nested schema](#nestedatt--errors))
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `messages` (Attributes List) (see [below for nested schema](#nestedatt--messages))
 - `modified` (String) The date and time the settings have been modified.
 - `result` (Attributes) (see [below for nested schema](#nestedatt--result))
 - `result_info` (Attributes) (see [below for nested schema](#nestedatt--result_info))
 - `skip_wizard` (Boolean) Flag to check if the user skipped the configuration wizard.
 - `status` (String) Show the state of your account, and the type or configuration error.
-- `success` (Boolean) Whether the API call was successful
-- `tag` (String) Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)
+Available values: "ready", "unconfigured", "misconfigured", "misconfigured/locked", "unlocked".
+- `success` (Boolean) Whether the API call was successful.
+- `tag` (String, Deprecated) Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)
 
 <a id="nestedatt--errors"></a>
 ### Nested Schema for `errors`
@@ -47,7 +48,17 @@ resource "cloudflare_email_routing_dns" "example_email_routing_dns" {
 Read-Only:
 
 - `code` (Number)
+- `documentation_url` (String)
 - `message` (String)
+- `source` (Attributes) (see [below for nested schema](#nestedatt--errors--source))
+
+<a id="nestedatt--errors--source"></a>
+### Nested Schema for `errors.source`
+
+Read-Only:
+
+- `pointer` (String)
+
 
 
 <a id="nestedatt--messages"></a>
@@ -56,7 +67,17 @@ Read-Only:
 Read-Only:
 
 - `code` (Number)
+- `documentation_url` (String)
 - `message` (String)
+- `source` (Attributes) (see [below for nested schema](#nestedatt--messages--source))
+
+<a id="nestedatt--messages--source"></a>
+### Nested Schema for `messages.source`
+
+Read-Only:
+
+- `pointer` (String)
+
 
 
 <a id="nestedatt--result"></a>
@@ -71,6 +92,7 @@ Read-Only:
 - `record` (Attributes List) (see [below for nested schema](#nestedatt--result--record))
 - `ttl` (Number) Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.
 - `type` (String) DNS record type.
+Available values: "A", "AAAA", "CNAME", "HTTPS", "TXT", "SRV", "LOC", "MX", "NS", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "SVCB", "TLSA", "URI".
 
 <a id="nestedatt--result--errors"></a>
 ### Nested Schema for `result.errors`
@@ -90,6 +112,7 @@ Read-Only:
 - `priority` (Number) Required for MX, SRV and URI records. Unused by other record types. Records with lower priorities are preferred.
 - `ttl` (Number) Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.
 - `type` (String) DNS record type.
+Available values: "A", "AAAA", "CNAME", "HTTPS", "TXT", "SRV", "LOC", "MX", "NS", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "SVCB", "TLSA", "URI".
 
 
 
@@ -103,6 +126,7 @@ Read-Only:
 - `priority` (Number) Required for MX, SRV and URI records. Unused by other record types. Records with lower priorities are preferred.
 - `ttl` (Number) Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.
 - `type` (String) DNS record type.
+Available values: "A", "AAAA", "CNAME", "HTTPS", "TXT", "SRV", "LOC", "MX", "NS", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "SVCB", "TLSA", "URI".
 
 
 
@@ -111,10 +135,10 @@ Read-Only:
 
 Read-Only:
 
-- `count` (Number) Total number of results for the requested service
-- `page` (Number) Current page within paginated list of results
-- `per_page` (Number) Number of results per page of results
-- `total_count` (Number) Total results available without any search parameters
+- `count` (Number) Total number of results for the requested service.
+- `page` (Number) Current page within paginated list of results.
+- `per_page` (Number) Number of results per page of results.
+- `total_count` (Number) Total results available without any search parameters.
 
 ## Import
 

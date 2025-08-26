@@ -37,7 +37,7 @@ data "cloudflare_email_security_impersonation_registry" "example_email_security_
 - `directory_id` (Number)
 - `directory_node_id` (Number)
 - `email` (String)
-- `external_directory_node_id` (String)
+- `external_directory_node_id` (String, Deprecated)
 - `id` (Number) The ID of this resource.
 - `is_email_regex` (Boolean)
 - `last_modified` (String)
@@ -50,8 +50,10 @@ data "cloudflare_email_security_impersonation_registry" "example_email_security_
 Optional:
 
 - `direction` (String) The sorting direction.
+Available values: "asc", "desc".
 - `order` (String) The field to sort by.
-- `provenance` (String)
+Available values: "name", "email", "created_at".
+- `provenance` (String) Available values: "A1S_INTERNAL", "SNOOPY-CASB_OFFICE_365", "SNOOPY-OFFICE_365", "SNOOPY-GOOGLE_DIRECTORY".
 - `search` (String) Allows searching in multiple properties of a record simultaneously.
 This parameter is intended for human users, not automation. Its exact
 behavior is intentionally left unspecified and is subject to change

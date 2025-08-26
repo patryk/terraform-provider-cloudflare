@@ -16,17 +16,17 @@ var _ datasource.DataSourceWithConfigValidators = (*ListDataSource)(nil)
 func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Description: "The unique ID of the list.",
-				Computed:    true,
+			"account_id": schema.StringAttribute{
+				Description: "The Account ID for this resource.",
+				Required:    true,
 			},
 			"list_id": schema.StringAttribute{
 				Description: "The unique ID of the list.",
-				Optional:    true,
-			},
-			"account_id": schema.StringAttribute{
-				Description: "Identifier",
 				Required:    true,
+			},
+			"id": schema.StringAttribute{
+				Description: "The unique ID of the list.",
+				Computed:    true,
 			},
 			"created_on": schema.StringAttribute{
 				Description: "The RFC 3339 timestamp of when the list was created.",
@@ -37,7 +37,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"kind": schema.StringAttribute{
-				Description: "The type of the list. Each type supports specific list items (IP addresses, ASNs, hostnames or redirects).",
+				Description: "The type of the list. Each type supports specific list items (IP addresses, ASNs, hostnames or redirects).\nAvailable values: \"ip\", \"redirect\", \"hostname\", \"asn\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -61,7 +61,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"num_referencing_filters": schema.Float64Attribute{
-				Description: "The number of [filters](/operations/filters-list-filters) referencing the list.",
+				Description: "The number of [filters](/api/resources/filters/) referencing the list.",
 				Computed:    true,
 			},
 		},

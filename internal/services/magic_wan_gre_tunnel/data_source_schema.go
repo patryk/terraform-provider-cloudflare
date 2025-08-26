@@ -30,6 +30,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:   true,
 				CustomType: customfield.NewNestedObjectType[MagicWANGRETunnelGRETunnelDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
+					"id": schema.StringAttribute{
+						Description: "Identifier",
+						Computed:    true,
+					},
 					"cloudflare_gre_endpoint": schema.StringAttribute{
 						Description: "The IP address assigned to the Cloudflare side of the GRE tunnel.",
 						Computed:    true,
@@ -46,10 +50,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Description: "The name of the tunnel. The name cannot contain spaces or special characters, must be 15 characters or less, and cannot share a name with another GRE tunnel.",
 						Computed:    true,
 					},
-					"id": schema.StringAttribute{
-						Description: "Tunnel identifier tag.",
-						Computed:    true,
-					},
 					"created_on": schema.StringAttribute{
 						Description: "The date and time the tunnel was created.",
 						Computed:    true,
@@ -64,7 +64,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						CustomType: customfield.NewNestedObjectType[MagicWANGRETunnelGRETunnelHealthCheckDataSourceModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"direction": schema.StringAttribute{
-								Description: "The direction of the flow of the healthcheck. Either unidirectional, where the probe comes to you via the tunnel and the result comes back to Cloudflare via the open Internet, or bidirectional where both the probe and result come and go via the tunnel.",
+								Description: "The direction of the flow of the healthcheck. Either unidirectional, where the probe comes to you via the tunnel and the result comes back to Cloudflare via the open Internet, or bidirectional where both the probe and result come and go via the tunnel.\nAvailable values: \"unidirectional\", \"bidirectional\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive("unidirectional", "bidirectional"),
@@ -75,7 +75,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"rate": schema.StringAttribute{
-								Description: "How frequent the health check is run. The default value is `mid`.",
+								Description: "How frequent the health check is run. The default value is `mid`.\nAvailable values: \"low\", \"mid\", \"high\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive(
@@ -101,13 +101,17 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 							"type": schema.StringAttribute{
-								Description: "The type of healthcheck to run, reply or request. The default value is `reply`.",
+								Description: "The type of healthcheck to run, reply or request. The default value is `reply`.\nAvailable values: \"reply\", \"request\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive("reply", "request"),
 								},
 							},
 						},
+					},
+					"interface_address6": schema.StringAttribute{
+						Description: "A 127 bit IPV6 prefix from within the virtual_subnet6 prefix space with the address being the first IP of the subnet and not same as the address of virtual_subnet6. Eg if virtual_subnet6 is 2606:54c1:7:0:a9fe:12d2::/127 , interface_address6 could be 2606:54c1:7:0:a9fe:12d2:1:200/127",
+						Computed:    true,
 					},
 					"modified_on": schema.StringAttribute{
 						Description: "The date and time the tunnel was last modified.",

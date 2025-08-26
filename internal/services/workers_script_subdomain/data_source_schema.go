@@ -15,7 +15,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"script_name": schema.StringAttribute{
@@ -27,7 +27,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"previews_enabled": schema.BoolAttribute{
-				Description: "Whether the Worker's Preview URLs should be available on the workers.dev subdomain.",
+				Description: "Whether the Worker's Preview URLs are available on the workers.dev subdomain.",
 				Computed:    true,
 			},
 		},

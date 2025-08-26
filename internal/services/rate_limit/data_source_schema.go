@@ -19,21 +19,22 @@ var _ datasource.DataSourceWithConfigValidators = (*RateLimitDataSource)(nil)
 
 func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		DeprecationMessage: "Rate limiting API is deprecated in favour of using the Ruleset Engine. See https://developers.cloudflare.com/fundamentals/api/reference/deprecations/#rate-limiting-api-previous-version for full details.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The unique identifier of the rate limit.",
+				Description: "Defines the unique identifier of the rate limit.",
 				Computed:    true,
 			},
 			"rate_limit_id": schema.StringAttribute{
-				Description: "The unique identifier of the rate limit.",
+				Description: "Defines the unique identifier of the rate limit.",
 				Optional:    true,
 			},
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Defines an identifier.",
 				Required:    true,
 			},
 			"description": schema.StringAttribute{
-				Description: "An informative summary of the rate limit. This value is sanitized and any tags will be removed.",
+				Description: "An informative summary of the rule. This value is sanitized and any tags will be removed.",
 				Computed:    true,
 			},
 			"disabled": schema.BoolAttribute{
@@ -60,7 +61,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  customfield.NewNestedObjectType[RateLimitActionDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"mode": schema.StringAttribute{
-						Description: "The action to perform.",
+						Description: "The action to perform.\nAvailable values: \"simulate\", \"ban\", \"challenge\", \"js_challenge\", \"managed_challenge\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -103,7 +104,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "url".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("url"),
 							},
@@ -130,7 +132,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"op": schema.StringAttribute{
-									Description: "The operator used when matching: `eq` means \"equal\" and `ne` means \"not equal\".",
+									Description: "The operator used when matching: `eq` means \"equal\" and `ne` means \"not equal\".\nAvailable values: \"eq\", \"ne\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive("eq", "ne"),

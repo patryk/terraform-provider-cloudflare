@@ -1,9 +1,10 @@
 resource "cloudflare_ruleset" "example_ruleset" {
-  kind = "managed"
+  kind = "root"
   name = "My ruleset"
-  phase = "ddos_l4"
+  phase = "http_request_firewall_custom"
+  zone_id = "zone_id"
+  description = "My ruleset to execute managed rulesets"
   rules = [{
-    id = "3a03d665bac047339bb530ecb439a90d"
     action = "block"
     action_parameters = {
       response = {
@@ -29,7 +30,7 @@ resource "cloudflare_ruleset" "example_ruleset" {
     }
     ratelimit = {
       characteristics = ["ip.src"]
-      period = 10
+      period = 60
       counting_expression = "http.request.body.raw eq \"abcd\""
       mitigation_timeout = 600
       requests_per_period = 1000
@@ -39,6 +40,4 @@ resource "cloudflare_ruleset" "example_ruleset" {
     }
     ref = "my_ref"
   }]
-  zone_id = "zone_id"
-  description = "My ruleset to execute managed rulesets"
 }

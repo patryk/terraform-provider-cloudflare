@@ -14,6 +14,7 @@ description: |-
 ```terraform
 data "cloudflare_workers_scripts" "example_workers_scripts" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
+  tags = "production:yes,staging:no"
 }
 ```
 
@@ -22,11 +23,12 @@ data "cloudflare_workers_scripts" "example_workers_scripts" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 
 ### Optional
 
 - `max_items` (Number) Max items to fetch, default: 1000
+- `tags` (String) Filter scripts by tags. Format: comma-separated list of tag:allowed pairs where allowed is 'yes' or 'no'.
 
 ### Read-Only
 
@@ -45,18 +47,24 @@ Read-Only:
 - `logpush` (Boolean) Whether Logpush is turned on for the Worker.
 - `modified_on` (String) When the script was last modified.
 - `placement` (Attributes) Configuration for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement). (see [below for nested schema](#nestedatt--result--placement))
-- `placement_mode` (String) Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
-- `placement_status` (String) Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
-- `tail_consumers` (Attributes List) List of Workers that will consume logs from the attached Worker. (see [below for nested schema](#nestedatt--result--tail_consumers))
+- `placement_mode` (String, Deprecated) Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
+Available values: "smart".
+- `placement_status` (String, Deprecated) Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
+Available values: "SUCCESS", "UNSUPPORTED_APPLICATION", "INSUFFICIENT_INVOCATIONS".
+- `tail_consumers` (Attributes Set) List of Workers that will consume logs from the attached Worker. (see [below for nested schema](#nestedatt--result--tail_consumers))
 - `usage_model` (String) Usage model for the Worker invocations.
+Available values: "standard".
 
 <a id="nestedatt--result--placement"></a>
 ### Nested Schema for `result.placement`
 
 Read-Only:
 
+- `last_analyzed_at` (String) The last time the script was analyzed for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
 - `mode` (String) Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
+Available values: "smart".
 - `status` (String) Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).
+Available values: "SUCCESS", "UNSUPPORTED_APPLICATION", "INSUFFICIENT_INVOCATIONS".
 
 
 <a id="nestedatt--result--tail_consumers"></a>

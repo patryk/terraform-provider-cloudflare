@@ -5,8 +5,8 @@ package email_security_impersonation_registry
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/email_security"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/email_security"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type EmailSecurityImpersonationRegistryResultDataSourceEnvelope struct {
 }
 
 type EmailSecurityImpersonationRegistryDataSourceModel struct {
-	ID                      types.Int64                                                 `tfsdk:"id" json:"-,computed"`
+	ID                      types.Int64                                                 `tfsdk:"id" path:"display_name_id,computed"`
 	DisplayNameID           types.Int64                                                 `tfsdk:"display_name_id" path:"display_name_id,optional"`
 	AccountID               types.String                                                `tfsdk:"account_id" path:"account_id,required"`
 	Comments                types.String                                                `tfsdk:"comments" json:"comments,computed"`

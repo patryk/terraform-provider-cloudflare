@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
-	"github.com/cloudflare/cloudflare-go/v4/workers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/cloudflare/cloudflare-go/v5/workers"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -67,6 +67,7 @@ func (r *WorkersScriptSubdomainResource) Create(ctx context.Context, req resourc
 		return
 	}
 	res := new(http.Response)
+	env := WorkersScriptSubdomainResultEnvelope{*data}
 	_, err = r.client.Workers.Scripts.Subdomain.New(
 		ctx,
 		data.ScriptName.ValueString(),
@@ -82,11 +83,12 @@ func (r *WorkersScriptSubdomainResource) Create(ctx context.Context, req resourc
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &data)
+	err = apijson.UnmarshalComputed(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
+	data = &env.Result
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -114,6 +116,7 @@ func (r *WorkersScriptSubdomainResource) Update(ctx context.Context, req resourc
 		return
 	}
 	res := new(http.Response)
+	env := WorkersScriptSubdomainResultEnvelope{*data}
 	_, err = r.client.Workers.Scripts.Subdomain.New(
 		ctx,
 		data.ScriptName.ValueString(),
@@ -129,11 +132,12 @@ func (r *WorkersScriptSubdomainResource) Update(ctx context.Context, req resourc
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &data)
+	err = apijson.UnmarshalComputed(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
+	data = &env.Result
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -148,6 +152,7 @@ func (r *WorkersScriptSubdomainResource) Read(ctx context.Context, req resource.
 	}
 
 	res := new(http.Response)
+	env := WorkersScriptSubdomainResultEnvelope{*data}
 	_, err := r.client.Workers.Scripts.Subdomain.Get(
 		ctx,
 		data.ScriptName.ValueString(),
@@ -167,33 +172,41 @@ func (r *WorkersScriptSubdomainResource) Read(ctx context.Context, req resource.
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &data)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
+		return
+	}
+	data = &env.Result
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *WorkersScriptSubdomainResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *WorkersScriptSubdomainModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	_, err := r.client.Workers.Scripts.Subdomain.Delete(
+		ctx,
+		data.ScriptName.ValueString(),
+		workers.ScriptSubdomainDeleteParams{
+			AccountID: cloudflare.F(data.AccountID.ValueString()),
+		},
+		option.WithMiddleware(logging.Middleware(ctx)),
+	)
+	if err != nil {
+		resp.Diagnostics.AddError("failed to make http request", err.Error())
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *WorkersScriptSubdomainResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *WorkersScriptSubdomainResource) ModifyPlan(_ context.Context, _ resource.ModifyPlanRequest, _ *resource.ModifyPlanResponse) {
 
-}
-
-func (r *WorkersScriptSubdomainResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() {
-		resp.Diagnostics.AddWarning(
-			"Resource Destruction Considerations",
-			"This resource cannot be destroyed from Terraform. If you create this resource, it will be "+
-				"present in the API until manually deleted.",
-		)
-	}
-	if req.Plan.Raw.IsNull() {
-		resp.Diagnostics.AddWarning(
-			"Resource Destruction Considerations",
-			"Applying this resource destruction will remove the resource from the Terraform state "+
-				"but will not change it in the API. If you would like to destroy or reset this resource "+
-				"in the API, refer to the documentation for how to do it manually.",
-		)
-	}
 }

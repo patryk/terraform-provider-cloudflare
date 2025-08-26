@@ -5,7 +5,6 @@ package queue_consumer
 import (
 	"context"
 
-	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -42,15 +41,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:    true,
 			},
 			"type": schema.StringAttribute{
-				Optional: true,
+				Description: `Available values: "worker", "http_pull".`,
+				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("worker", "http_pull"),
 				},
 			},
 			"settings": schema.SingleNestedAttribute{
-				Computed:   true,
-				Optional:   true,
-				CustomType: customfield.NewNestedObjectType[QueueConsumerSettingsModel](ctx),
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"batch_size": schema.Float64Attribute{
 						Description: "The maximum number of messages to include in a batch.",

@@ -23,7 +23,7 @@ data "cloudflare_api_shield" "example_api_shield" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -40,5 +40,6 @@ Read-Only:
 
 - `name` (String) The name of the characteristic field, i.e., the header or cookie name.
 - `type` (String) The type of characteristic.
+Available values: "header", "cookie", "jwt".
 
 

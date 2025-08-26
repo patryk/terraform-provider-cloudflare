@@ -5,7 +5,7 @@ package zone_subscription
 import (
 	"context"
 
-	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -20,13 +20,18 @@ var _ resource.ResourceWithConfigValidators = (*ZoneSubscriptionResource)(nil)
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"identifier": schema.StringAttribute{
+			"id": schema.StringAttribute{
+				Description:   "Subscription identifier tag.",
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
+			},
+			"zone_id": schema.StringAttribute{
 				Description:   "Subscription identifier tag.",
 				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"frequency": schema.StringAttribute{
-				Description: "How often the subscription is renewed automatically.",
+				Description: "How often the subscription is renewed automatically.\nAvailable values: \"weekly\", \"monthly\", \"quarterly\", \"yearly\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -39,12 +44,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"rate_plan": schema.SingleNestedAttribute{
 				Description: "The rate plan applied to the subscription.",
-				Computed:    true,
 				Optional:    true,
-				CustomType:  customfield.NewNestedObjectType[ZoneSubscriptionRatePlanModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
-						Description: "The ID of the rate plan.",
+						Description: "The ID of the rate plan.\nAvailable values: \"free\", \"lite\", \"pro\", \"pro_plus\", \"business\", \"enterprise\", \"partners_free\", \"partners_pro\", \"partners_business\", \"partners_enterprise\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -86,6 +89,39 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Optional:    true,
 						ElementType: types.StringType,
 					},
+				},
+			},
+			"currency": schema.StringAttribute{
+				Description: "The monetary unit in which pricing information is displayed.",
+				Computed:    true,
+			},
+			"current_period_end": schema.StringAttribute{
+				Description: "The end of the current period and also when the next billing is due.",
+				Computed:    true,
+				CustomType:  timetypes.RFC3339Type{},
+			},
+			"current_period_start": schema.StringAttribute{
+				Description: "When the current billing period started. May match initial_period_start if this is the first period.",
+				Computed:    true,
+				CustomType:  timetypes.RFC3339Type{},
+			},
+			"price": schema.Float64Attribute{
+				Description: "The price of the subscription that will be billed, in US dollars.",
+				Computed:    true,
+			},
+			"state": schema.StringAttribute{
+				Description: "The state that the subscription is in.\nAvailable values: \"Trial\", \"Provisioned\", \"Paid\", \"AwaitingPayment\", \"Cancelled\", \"Failed\", \"Expired\".",
+				Computed:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"Trial",
+						"Provisioned",
+						"Paid",
+						"AwaitingPayment",
+						"Cancelled",
+						"Failed",
+						"Expired",
+					),
 				},
 			},
 		},

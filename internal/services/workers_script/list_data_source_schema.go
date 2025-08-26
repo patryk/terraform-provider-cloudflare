@@ -20,8 +20,12 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
+			},
+			"tags": schema.StringAttribute{
+				Description: "Filter scripts by tags. Format: comma-separated list of tag:allowed pairs where allowed is 'yes' or 'no'.",
+				Optional:    true,
 			},
 			"max_items": schema.Int64Attribute{
 				Description: "Max items to fetch, default: 1000",
@@ -71,15 +75,20 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 							CustomType:  customfield.NewNestedObjectType[WorkersScriptsPlacementDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
+								"last_analyzed_at": schema.StringAttribute{
+									Description: "The last time the script was analyzed for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).",
+									Computed:    true,
+									CustomType:  timetypes.RFC3339Type{},
+								},
 								"mode": schema.StringAttribute{
-									Description: "Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).",
+									Description: "Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).\nAvailable values: \"smart\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive("smart"),
 									},
 								},
 								"status": schema.StringAttribute{
-									Description: "Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).",
+									Description: "Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).\nAvailable values: \"SUCCESS\", \"UNSUPPORTED_APPLICATION\", \"INSUFFICIENT_INVOCATIONS\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -92,15 +101,17 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"placement_mode": schema.StringAttribute{
-							Description: "Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).",
-							Computed:    true,
+							Description:        "Enables [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).\nAvailable values: \"smart\".",
+							Computed:           true,
+							DeprecationMessage: "This attribute is deprecated.",
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("smart"),
 							},
 						},
 						"placement_status": schema.StringAttribute{
-							Description: "Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).",
-							Computed:    true,
+							Description:        "Status of [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement).\nAvailable values: \"SUCCESS\", \"UNSUPPORTED_APPLICATION\", \"INSUFFICIENT_INVOCATIONS\".",
+							Computed:           true,
+							DeprecationMessage: "This attribute is deprecated.",
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"SUCCESS",
@@ -109,10 +120,10 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 								),
 							},
 						},
-						"tail_consumers": schema.ListNestedAttribute{
+						"tail_consumers": schema.SetNestedAttribute{
 							Description: "List of Workers that will consume logs from the attached Worker.",
 							Computed:    true,
-							CustomType:  customfield.NewNestedObjectListType[WorkersScriptsTailConsumersDataSourceModel](ctx),
+							CustomType:  customfield.NewNestedObjectSetType[WorkersScriptsTailConsumersDataSourceModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"service": schema.StringAttribute{
@@ -131,7 +142,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"usage_model": schema.StringAttribute{
-							Description: "Usage model for the Worker invocations.",
+							Description: "Usage model for the Worker invocations.\nAvailable values: \"standard\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("standard"),

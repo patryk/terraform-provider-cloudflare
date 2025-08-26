@@ -5,8 +5,8 @@ package byo_ip_prefix
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/addressing"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/addressing"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,9 +17,9 @@ type ByoIPPrefixResultDataSourceEnvelope struct {
 }
 
 type ByoIPPrefixDataSourceModel struct {
-	ID                   types.String      `tfsdk:"id" json:"-,computed"`
+	ID                   types.String      `tfsdk:"id" path:"prefix_id,computed"`
 	PrefixID             types.String      `tfsdk:"prefix_id" path:"prefix_id,optional"`
-	AccountID            types.String      `tfsdk:"account_id" path:"account_id,computed"`
+	AccountID            types.String      `tfsdk:"account_id" path:"account_id,required"`
 	Advertised           types.Bool        `tfsdk:"advertised" json:"advertised,computed"`
 	AdvertisedModifiedAt timetypes.RFC3339 `tfsdk:"advertised_modified_at" json:"advertised_modified_at,computed" format:"date-time"`
 	Approved             types.String      `tfsdk:"approved" json:"approved,computed"`
@@ -35,14 +35,6 @@ type ByoIPPrefixDataSourceModel struct {
 
 func (m *ByoIPPrefixDataSourceModel) toReadParams(_ context.Context) (params addressing.PrefixGetParams, diags diag.Diagnostics) {
 	params = addressing.PrefixGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *ByoIPPrefixDataSourceModel) toListParams(_ context.Context) (params addressing.PrefixListParams, diags diag.Diagnostics) {
-	params = addressing.PrefixListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

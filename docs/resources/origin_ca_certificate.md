@@ -34,7 +34,7 @@ resource "cloudflare_origin_ca_certificate" "example_origin_ca_certificate" {
   EOT
   hostnames = ["example.com", "*.example.com"]
   request_type = "origin-rsa"
-  requested_validity = 7
+  requested_validity = 5475
 }
 ```
 
@@ -46,13 +46,15 @@ resource "cloudflare_origin_ca_certificate" "example_origin_ca_certificate" {
 - `csr` (String) The Certificate Signing Request (CSR). Must be newline-encoded.
 - `hostnames` (List of String) Array of hostnames or wildcard names (e.g., *.example.com) bound to the certificate.
 - `request_type` (String) Signature type desired on certificate ("origin-rsa" (rsa), "origin-ecc" (ecdsa), or "keyless-certificate" (for Keyless SSL servers).
+Available values: "origin-rsa", "origin-ecc", "keyless-certificate".
 - `requested_validity` (Number) The number of days for which the certificate should be valid.
+Available values: 7, 30, 90, 365, 730, 1095, 5475.
 
 ### Read-Only
 
 - `certificate` (String) The Origin CA certificate. Will be newline-encoded.
 - `expires_on` (String) When the certificate will expire.
-- `id` (String) Identifier
+- `id` (String) Identifier.
 
 ## Import
 

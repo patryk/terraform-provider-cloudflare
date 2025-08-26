@@ -28,7 +28,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
-							Description: "Type of supported action.",
+							Description: "Type of supported action.\nAvailable values: \"drop\", \"forward\", \"worker\".",
 							Required:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -49,7 +49,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"value": schema.ListAttribute{
-							Required:    true,
+							Optional:    true,
 							ElementType: types.StringType,
 						},
 					},
@@ -60,23 +60,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"field": schema.StringAttribute{
-							Description: "Field for type matcher.",
+						"type": schema.StringAttribute{
+							Description: "Type of matcher.\nAvailable values: \"all\", \"literal\".",
 							Required:    true,
+							Validators: []validator.String{
+								stringvalidator.OneOfCaseInsensitive("all", "literal"),
+							},
+						},
+						"field": schema.StringAttribute{
+							Description: "Field for type matcher.\nAvailable values: \"to\".",
+							Optional:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("to"),
 							},
 						},
-						"type": schema.StringAttribute{
-							Description: "Type of matcher.",
-							Required:    true,
-							Validators: []validator.String{
-								stringvalidator.OneOfCaseInsensitive("literal"),
-							},
-						},
 						"value": schema.StringAttribute{
 							Description: "Value for matcher.",
-							Required:    true,
+							Optional:    true,
 						},
 					},
 				},
@@ -101,8 +101,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Default: float64default.StaticFloat64(0),
 			},
 			"tag": schema.StringAttribute{
-				Description: "Routing rule tag. (Deprecated, replaced by routing rule identifier)",
-				Computed:    true,
+				Description:        "Routing rule tag. (Deprecated, replaced by routing rule identifier)",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
 			},
 		},
 	}

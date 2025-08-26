@@ -8,10 +8,12 @@ import (
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ datasource.DataSourceWithConfigValidators = (*ZeroTrustTunnelCloudflaredRoutesDataSource)(nil)
@@ -23,14 +25,9 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "Cloudflare account ID",
 				Required:    true,
 			},
-			"comment": schema.StringAttribute{
-				Description: "Optional remark describing the route.",
-				Optional:    true,
-			},
 			"existed_at": schema.StringAttribute{
-				Description: "If provided, include only tunnels that were created (and not deleted) before this time.",
+				Description: "If provided, include only resources that were created (and not deleted) before this time. URL encoded.",
 				Optional:    true,
-				CustomType:  timetypes.RFC3339Type{},
 			},
 			"is_deleted": schema.BoolAttribute{
 				Description: "If `true`, only include deleted routes. If `false`, exclude deleted routes. If empty, all routes will be included.",
@@ -48,16 +45,35 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "UUID of the route.",
 				Optional:    true,
 			},
-			"tun_types": schema.StringAttribute{
-				Description: "The types of tunnels to filter separated by a comma.",
-				Optional:    true,
-			},
 			"tunnel_id": schema.StringAttribute{
 				Description: "UUID of the tunnel.",
 				Optional:    true,
 			},
 			"virtual_network_id": schema.StringAttribute{
 				Description: "UUID of the virtual network.",
+				Optional:    true,
+			},
+			"tun_types": schema.ListAttribute{
+				Description: "The types of tunnels to filter by, separated by commas.",
+				Optional:    true,
+				Validators: []validator.List{
+					listvalidator.ValueStringsAre(
+						stringvalidator.OneOfCaseInsensitive(
+							"cfd_tunnel",
+							"warp_connector",
+							"warp",
+							"magic",
+							"ip_sec",
+							"gre",
+							"cni",
+						),
+					),
+				},
+				ElementType: types.StringType,
+			},
+			"comment": schema.StringAttribute{
+				Description: "Optional remark describing the route.",
+				Computed:    true,
 				Optional:    true,
 			},
 			"max_items": schema.Int64Attribute{
@@ -96,12 +112,14 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"tun_type": schema.StringAttribute{
-							Description: "The type of tunnel.",
+							Description: "The type of tunnel.\nAvailable values: \"cfd_tunnel\", \"warp_connector\", \"warp\", \"magic\", \"ip_sec\", \"gre\", \"cni\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"cfd_tunnel",
 									"warp_connector",
+									"warp",
+									"magic",
 									"ip_sec",
 									"gre",
 									"cni",

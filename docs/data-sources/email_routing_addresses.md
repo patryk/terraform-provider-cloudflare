@@ -22,11 +22,12 @@ data "cloudflare_email_routing_addresses" "example_email_routing_addresses" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 
 ### Optional
 
 - `direction` (String) Sorts results in an ascending or descending order.
+Available values: "asc", "desc".
 - `max_items` (Number) Max items to fetch, default: 1000
 - `verified` (Boolean) Filter by verified destination addresses.
 
@@ -43,7 +44,7 @@ Read-Only:
 - `email` (String) The contact email address of the user.
 - `id` (String) Destination address identifier.
 - `modified` (String) The date and time the destination address was last modified.
-- `tag` (String) Destination address tag. (Deprecated, replaced by destination address identifier)
+- `tag` (String, Deprecated) Destination address tag. (Deprecated, replaced by destination address identifier)
 - `verified` (String) The date and time the destination address has been verified. Null means not verified yet.
 
 

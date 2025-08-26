@@ -5,8 +5,8 @@ package zero_trust_dlp_custom_profile
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
@@ -54,17 +54,18 @@ type ZeroTrustDLPCustomProfileContextAwarenessSkipDataSourceModel struct {
 }
 
 type ZeroTrustDLPCustomProfileEntriesDataSourceModel struct {
-	ID         types.String                                                                        `tfsdk:"id" json:"id,computed"`
-	CreatedAt  timetypes.RFC3339                                                                   `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`
-	Enabled    types.Bool                                                                          `tfsdk:"enabled" json:"enabled,computed"`
-	Name       types.String                                                                        `tfsdk:"name" json:"name,computed"`
-	Pattern    customfield.NestedObject[ZeroTrustDLPCustomProfileEntriesPatternDataSourceModel]    `tfsdk:"pattern" json:"pattern,computed"`
-	Type       types.String                                                                        `tfsdk:"type" json:"type,computed"`
-	UpdatedAt  timetypes.RFC3339                                                                   `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
-	ProfileID  types.String                                                                        `tfsdk:"profile_id" json:"profile_id,computed"`
-	Confidence customfield.NestedObject[ZeroTrustDLPCustomProfileEntriesConfidenceDataSourceModel] `tfsdk:"confidence" json:"confidence,computed"`
-	Secret     types.Bool                                                                          `tfsdk:"secret" json:"secret,computed"`
-	WordList   jsontypes.Normalized                                                                `tfsdk:"word_list" json:"word_list,computed"`
+	ID            types.String                                                                        `tfsdk:"id" json:"id,computed"`
+	CreatedAt     timetypes.RFC3339                                                                   `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`
+	Enabled       types.Bool                                                                          `tfsdk:"enabled" json:"enabled,computed"`
+	Name          types.String                                                                        `tfsdk:"name" json:"name,computed"`
+	Pattern       customfield.NestedObject[ZeroTrustDLPCustomProfileEntriesPatternDataSourceModel]    `tfsdk:"pattern" json:"pattern,computed"`
+	Type          types.String                                                                        `tfsdk:"type" json:"type,computed"`
+	UpdatedAt     timetypes.RFC3339                                                                   `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
+	ProfileID     types.String                                                                        `tfsdk:"profile_id" json:"profile_id,computed"`
+	Confidence    customfield.NestedObject[ZeroTrustDLPCustomProfileEntriesConfidenceDataSourceModel] `tfsdk:"confidence" json:"confidence,computed"`
+	CaseSensitive types.Bool                                                                          `tfsdk:"case_sensitive" json:"case_sensitive,computed"`
+	Secret        types.Bool                                                                          `tfsdk:"secret" json:"secret,computed"`
+	WordList      jsontypes.Normalized                                                                `tfsdk:"word_list" json:"word_list,computed"`
 }
 
 type ZeroTrustDLPCustomProfileEntriesPatternDataSourceModel struct {

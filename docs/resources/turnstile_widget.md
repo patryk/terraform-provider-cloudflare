@@ -15,10 +15,10 @@ description: |-
 resource "cloudflare_turnstile_widget" "example_turnstile_widget" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
   domains = ["203.0.113.1", "cloudflare.com", "blog.example.com"]
-  mode = "non-interactive"
+  mode = "invisible"
   name = "blog.cloudflare.com login form"
   bot_fight_mode = false
-  clearance_level = "no_clearance"
+  clearance_level = "interactive"
   ephemeral_id = false
   offlabel = false
   region = "world"
@@ -33,6 +33,7 @@ resource "cloudflare_turnstile_widget" "example_turnstile_widget" {
 - `account_id` (String) Identifier
 - `domains` (List of String)
 - `mode` (String) Widget Mode
+Available values: "non-interactive", "invisible", "managed".
 - `name` (String) Human readable widget name. Not unique. Cloudflare suggests that you
 set this to a meaningful string to make it easier to identify your
 widget, and where it is used.
@@ -43,16 +44,18 @@ widget, and where it is used.
 expensive challenges in response to malicious bots (ENT only).
 - `clearance_level` (String) If Turnstile is embedded on a Cloudflare site and the widget should grant challenge clearance,
 this setting can determine the clearance level to be set
+Available values: "no_clearance", "jschallenge", "managed", "interactive".
 - `ephemeral_id` (Boolean) Return the Ephemeral ID in /siteverify (ENT only).
 - `offlabel` (Boolean) Do not show any Cloudflare branding on the widget (ENT only).
-- `region` (String) Region where this widget can be used.
+- `region` (String) Region where this widget can be used. This cannot be changed after creation.
+Available values: "world", "china".
 
 ### Read-Only
 
 - `created_on` (String) When the widget was created.
 - `id` (String) Widget item identifier tag.
 - `modified_on` (String) When the widget was modified.
-- `secret` (String) Secret key for this widget.
+- `secret` (String, Sensitive) Secret key for this widget.
 - `sitekey` (String) Widget item identifier tag.
 
 ## Import

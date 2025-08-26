@@ -5,8 +5,8 @@ package workers_for_platforms_dispatch_namespace
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/workers_for_platforms"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/workers_for_platforms"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type WorkersForPlatformsDispatchNamespaceResultDataSourceEnvelope struct {
 }
 
 type WorkersForPlatformsDispatchNamespaceDataSourceModel struct {
-	ID                types.String      `tfsdk:"id" json:"-,computed"`
+	ID                types.String      `tfsdk:"id" path:"dispatch_namespace,computed"`
 	DispatchNamespace types.String      `tfsdk:"dispatch_namespace" path:"dispatch_namespace,optional"`
 	AccountID         types.String      `tfsdk:"account_id" path:"account_id,required"`
 	CreatedBy         types.String      `tfsdk:"created_by" json:"created_by,computed"`
@@ -27,18 +27,11 @@ type WorkersForPlatformsDispatchNamespaceDataSourceModel struct {
 	NamespaceID       types.String      `tfsdk:"namespace_id" json:"namespace_id,computed"`
 	NamespaceName     types.String      `tfsdk:"namespace_name" json:"namespace_name,computed"`
 	ScriptCount       types.Int64       `tfsdk:"script_count" json:"script_count,computed"`
+	TrustedWorkers    types.Bool        `tfsdk:"trusted_workers" json:"trusted_workers,computed"`
 }
 
 func (m *WorkersForPlatformsDispatchNamespaceDataSourceModel) toReadParams(_ context.Context) (params workers_for_platforms.DispatchNamespaceGetParams, diags diag.Diagnostics) {
 	params = workers_for_platforms.DispatchNamespaceGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *WorkersForPlatformsDispatchNamespaceDataSourceModel) toListParams(_ context.Context) (params workers_for_platforms.DispatchNamespaceListParams, diags diag.Diagnostics) {
-	params = workers_for_platforms.DispatchNamespaceListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

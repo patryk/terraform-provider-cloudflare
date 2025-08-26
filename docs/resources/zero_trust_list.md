@@ -32,11 +32,12 @@ resource "cloudflare_zero_trust_list" "example_zero_trust_list" {
 - `account_id` (String)
 - `name` (String) The name of the list.
 - `type` (String) The type of list.
+Available values: "SERIAL", "URL", "DOMAIN", "EMAIL", "IP".
 
 ### Optional
 
 - `description` (String) The description of the list.
-- `items` (Attributes List) The items in the list. (see [below for nested schema](#nestedatt--items))
+- `items` (Attributes Set) items to add to the list. (see [below for nested schema](#nestedatt--items))
 
 ### Read-Only
 
@@ -52,10 +53,6 @@ Optional:
 
 - `description` (String) The description of the list item, if present
 - `value` (String) The value of the item in a list.
-
-Read-Only:
-
-- `created_at` (String)
 
 ## Import
 

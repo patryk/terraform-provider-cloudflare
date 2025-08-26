@@ -5,8 +5,8 @@ package address_map
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/addressing"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/addressing"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type AddressMapResultDataSourceEnvelope struct {
 }
 
 type AddressMapDataSourceModel struct {
-	ID           types.String                                                       `tfsdk:"id" json:"-,computed"`
+	ID           types.String                                                       `tfsdk:"id" path:"address_map_id,computed"`
 	AddressMapID types.String                                                       `tfsdk:"address_map_id" path:"address_map_id,optional"`
 	AccountID    types.String                                                       `tfsdk:"account_id" path:"account_id,required"`
 	CanDelete    types.Bool                                                         `tfsdk:"can_delete" json:"can_delete,computed"`
@@ -34,14 +34,6 @@ type AddressMapDataSourceModel struct {
 
 func (m *AddressMapDataSourceModel) toReadParams(_ context.Context) (params addressing.AddressMapGetParams, diags diag.Diagnostics) {
 	params = addressing.AddressMapGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *AddressMapDataSourceModel) toListParams(_ context.Context) (params addressing.AddressMapListParams, diags diag.Diagnostics) {
-	params = addressing.AddressMapListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

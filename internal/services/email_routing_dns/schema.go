@@ -23,12 +23,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
@@ -55,7 +55,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Show the state of your account, and the type or configuration error.",
+				Description: "Show the state of your account, and the type or configuration error.\nAvailable values: \"ready\", \"unconfigured\", \"misconfigured\", \"misconfigured/locked\", \"unlocked\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -68,12 +68,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"success": schema.BoolAttribute{
-				Description: "Whether the API call was successful",
+				Description: "Whether the API call was successful.",
 				Computed:    true,
 			},
 			"tag": schema.StringAttribute{
-				Description: "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
-				Computed:    true,
+				Description:        "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
 			},
 			"errors": schema.ListNestedAttribute{
 				Computed:   true,
@@ -88,6 +89,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"message": schema.StringAttribute{
 							Computed: true,
+						},
+						"documentation_url": schema.StringAttribute{
+							Computed: true,
+						},
+						"source": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[EmailRoutingDNSErrorsSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"pointer": schema.StringAttribute{
+									Computed: true,
+								},
+							},
 						},
 					},
 				},
@@ -105,6 +118,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"message": schema.StringAttribute{
 							Computed: true,
+						},
+						"documentation_url": schema.StringAttribute{
+							Computed: true,
+						},
+						"source": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[EmailRoutingDNSMessagesSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"pointer": schema.StringAttribute{
+									Computed: true,
+								},
+							},
 						},
 					},
 				},
@@ -144,12 +169,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										"ttl": schema.Float64Attribute{
 											Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 											Computed:    true,
-											Validators: []validator.Float64{
-												float64validator.Between(1, 86400),
-											},
 										},
 										"type": schema.StringAttribute{
-											Description: "DNS record type.",
+											Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -202,12 +224,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"ttl": schema.Float64Attribute{
 									Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 									Computed:    true,
-									Validators: []validator.Float64{
-										float64validator.Between(1, 86400),
-									},
 								},
 								"type": schema.StringAttribute{
-									Description: "DNS record type.",
+									Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -253,12 +272,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"ttl": schema.Float64Attribute{
 						Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 						Computed:    true,
-						Validators: []validator.Float64{
-							float64validator.Between(1, 86400),
-						},
 					},
 					"type": schema.StringAttribute{
-						Description: "DNS record type.",
+						Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -290,19 +306,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectType[EmailRoutingDNSResultInfoModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"count": schema.Float64Attribute{
-						Description: "Total number of results for the requested service",
+						Description: "Total number of results for the requested service.",
 						Computed:    true,
 					},
 					"page": schema.Float64Attribute{
-						Description: "Current page within paginated list of results",
+						Description: "Current page within paginated list of results.",
 						Computed:    true,
 					},
 					"per_page": schema.Float64Attribute{
-						Description: "Number of results per page of results",
+						Description: "Number of results per page of results.",
 						Computed:    true,
 					},
 					"total_count": schema.Float64Attribute{
-						Description: "Total results available without any search parameters",
+						Description: "Total results available without any search parameters.",
 						Computed:    true,
 					},
 				},

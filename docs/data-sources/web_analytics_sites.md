@@ -23,12 +23,13 @@ data "cloudflare_web_analytics_sites" "example_web_analytics_sites" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 
 ### Optional
 
 - `max_items` (Number) Max items to fetch, default: 1000
 - `order_by` (String) The property used to sort the list of results.
+Available values: "host", "created".
 
 ### Read-Only
 

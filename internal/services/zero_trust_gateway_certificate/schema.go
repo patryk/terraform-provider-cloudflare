@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -30,12 +31,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"validity_period_days": schema.Int64Attribute{
-				Description:   "Number of days the generated certificate will be valid, minimum 1 day and maximum 30 years. Defaults to 5 years.",
+				Description:   "Number of days the generated certificate will be valid, minimum 1 day and maximum 30 years. Defaults to 5 years. In terraform, validity_period_days can only be used while creating a certificate, and this CAN NOT be used to extend the validity of an already generated certificate.",
 				Optional:      true,
 				PlanModifiers: []planmodifier.Int64{int64planmodifier.RequiresReplace()},
 			},
 			"binding_status": schema.StringAttribute{
-				Description: "The deployment status of the certificate on Cloudflare's edge. Certificates in the 'available' (previously called 'active') state may be used for Gateway TLS interception.",
+				Description: "The read only deployment status of the certificate on Cloudflare's edge. Certificates in the 'available' (previously called 'active') state may be used for Gateway TLS interception.\nAvailable values: \"pending_deployment\", \"available\", \"pending_deletion\", \"inactive\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -47,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"certificate": schema.StringAttribute{
-				Description: "The CA certificate",
+				Description: "The CA certificate(read only).",
 				Computed:    true,
 			},
 			"created_at": schema.StringAttribute{
@@ -59,23 +60,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType: timetypes.RFC3339Type{},
 			},
 			"fingerprint": schema.StringAttribute{
-				Description: "The SHA256 fingerprint of the certificate.",
+				Description: "The SHA256 fingerprint of the certificate(read only).",
 				Computed:    true,
 			},
 			"in_use": schema.BoolAttribute{
-				Description: "Use this certificate for Gateway TLS interception",
+				Description: "Read-only field that shows whether Gateway TLS interception is using this certificate. This value cannot be set directly. To configure the certificate for interception, use the Gateway configuration setting named certificate.",
 				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 			},
 			"issuer_org": schema.StringAttribute{
-				Description: "The organization that issued the certificate.",
+				Description: "The organization that issued the certificate(read only).",
 				Computed:    true,
 			},
 			"issuer_raw": schema.StringAttribute{
-				Description: "The entire issuer field of the certificate.",
+				Description: "The entire issuer field of the certificate(read only).",
 				Computed:    true,
 			},
 			"type": schema.StringAttribute{
-				Description: "The type of certificate, either BYO-PKI (custom) or Gateway-managed.",
+				Description: "The type of certificate, either BYO-PKI (custom) or Gateway-managed(read only).\nAvailable values: \"custom\", \"gateway_managed\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("custom", "gateway_managed"),

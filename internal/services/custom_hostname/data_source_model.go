@@ -5,8 +5,8 @@ package custom_hostname
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/custom_hostnames"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/custom_hostnames"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type CustomHostnameResultDataSourceEnvelope struct {
 }
 
 type CustomHostnameDataSourceModel struct {
-	ID                        types.String                                                                     `tfsdk:"id" json:"-,computed"`
+	ID                        types.String                                                                     `tfsdk:"id" path:"custom_hostname_id,computed"`
 	CustomHostnameID          types.String                                                                     `tfsdk:"custom_hostname_id" path:"custom_hostname_id,optional"`
 	ZoneID                    types.String                                                                     `tfsdk:"zone_id" path:"zone_id,required"`
 	CreatedAt                 timetypes.RFC3339                                                                `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`

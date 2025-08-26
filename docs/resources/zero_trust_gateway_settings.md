@@ -24,6 +24,7 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
       fail_closed = false
       notification_settings = {
         enabled = true
+        include_context = true
         msg = "msg"
         support_url = "support_url"
       }
@@ -33,11 +34,14 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
       enabled = true
       footer_text = "--footer--"
       header_text = "--header--"
+      include_context = true
       logo_path = "https://logos.com/a.png"
       mailto_address = "admin@example.com"
       mailto_subject = "Blocked User Inquiry"
+      mode = ""
       name = "Cloudflare"
       suppress_footer = false
+      target_uri = "https://example.com"
     }
     body_scanning = {
       inspection_mode = "deep"
@@ -58,6 +62,12 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
     }
     fips = {
       tls = true
+    }
+    host_selector = {
+      enabled = false
+    }
+    inspection = {
+      mode = "static"
     }
     protocol_detection = {
       enabled = true
@@ -101,9 +111,11 @@ Optional:
 - `body_scanning` (Attributes) DLP body scanning settings. (see [below for nested schema](#nestedatt--settings--body_scanning))
 - `browser_isolation` (Attributes) Browser isolation settings. (see [below for nested schema](#nestedatt--settings--browser_isolation))
 - `certificate` (Attributes) Certificate settings for Gateway TLS interception. If not specified, the Cloudflare Root CA will be used. (see [below for nested schema](#nestedatt--settings--certificate))
-- `custom_certificate` (Attributes) Custom certificate settings for BYO-PKI. (deprecated and replaced by `certificate`) (see [below for nested schema](#nestedatt--settings--custom_certificate))
+- `custom_certificate` (Attributes, Deprecated) Custom certificate settings for BYO-PKI. (deprecated and replaced by `certificate`) (see [below for nested schema](#nestedatt--settings--custom_certificate))
 - `extended_email_matching` (Attributes) Extended e-mail matching settings. (see [below for nested schema](#nestedatt--settings--extended_email_matching))
 - `fips` (Attributes) FIPS settings. (see [below for nested schema](#nestedatt--settings--fips))
+- `host_selector` (Attributes) Setting to enable host selector in egress policies. (see [below for nested schema](#nestedatt--settings--host_selector))
+- `inspection` (Attributes) Setting to define inspection settings (see [below for nested schema](#nestedatt--settings--inspection))
 - `protocol_detection` (Attributes) Protocol Detection settings. (see [below for nested schema](#nestedatt--settings--protocol_detection))
 - `sandbox` (Attributes) Sandbox settings. (see [below for nested schema](#nestedatt--settings--sandbox))
 - `tls_decrypt` (Attributes) TLS interception settings. (see [below for nested schema](#nestedatt--settings--tls_decrypt))
@@ -132,6 +144,7 @@ Optional:
 Optional:
 
 - `enabled` (Boolean) Set notification on
+- `include_context` (Boolean) If true, context information will be passed as query parameters
 - `msg` (String) Customize the message shown in the notification.
 - `support_url` (String) Optional URL to direct users to additional information. If not set, the notification will open a block page.
 
@@ -142,15 +155,22 @@ Optional:
 
 Optional:
 
-- `background_color` (String) Block page background color in #rrggbb format.
+- `background_color` (String) If mode is customized_block_page: block page background color in #rrggbb format.
 - `enabled` (Boolean) Enable only cipher suites and TLS versions compliant with FIPS 140-2.
-- `footer_text` (String) Block page footer text.
-- `header_text` (String) Block page header text.
-- `logo_path` (String) Full URL to the logo file.
-- `mailto_address` (String) Admin email for users to contact.
-- `mailto_subject` (String) Subject line for emails created from block page.
-- `name` (String) Block page title.
-- `suppress_footer` (Boolean) Suppress detailed info at the bottom of the block page.
+- `footer_text` (String) If mode is customized_block_page: block page footer text.
+- `header_text` (String) If mode is customized_block_page: block page header text.
+- `include_context` (Boolean) If mode is redirect_uri: when enabled, context will be appended to target_uri as query parameters.
+- `logo_path` (String) If mode is customized_block_page: full URL to the logo file.
+- `mailto_address` (String) If mode is customized_block_page: admin email for users to contact.
+- `mailto_subject` (String) If mode is customized_block_page: subject line for emails created from block page.
+- `mode` (String) Controls whether the user is redirected to a Cloudflare-hosted block page or to a customer-provided URI.
+Available values: "", "customized_block_page", "redirect_uri".
+- `name` (String) If mode is customized_block_page: block page title.
+- `read_only` (Boolean) This setting was shared via the Orgs API and cannot be edited by the current account
+- `source_account` (String) Account tag of account that shared this setting
+- `suppress_footer` (Boolean) If mode is customized_block_page: suppress detailed info at the bottom of the block page.
+- `target_uri` (String) If mode is redirect_uri: URI to which the user should be redirected.
+- `version` (Number) Version number of the setting
 
 
 <a id="nestedatt--settings--body_scanning"></a>
@@ -159,6 +179,7 @@ Optional:
 Optional:
 
 - `inspection_mode` (String) Set the inspection mode to either `deep` or `shallow`.
+Available values: "deep", "shallow".
 
 
 <a id="nestedatt--settings--browser_isolation"></a>
@@ -187,11 +208,8 @@ Required:
 
 Optional:
 
-- `id` (String) UUID of certificate (ID from MTLS certificate store).
-
-Read-Only:
-
 - `binding_status` (String) Certificate status (internal).
+- `id` (String) UUID of certificate (ID from MTLS certificate store).
 - `updated_at` (String)
 
 
@@ -201,6 +219,9 @@ Read-Only:
 Optional:
 
 - `enabled` (Boolean) Enable matching all variants of user emails (with + or . modifiers) used as criteria in Firewall policies.
+- `read_only` (Boolean) This setting was shared via the Orgs API and cannot be edited by the current account
+- `source_account` (String) Account tag of account that shared this setting
+- `version` (Number) Version number of the setting
 
 
 <a id="nestedatt--settings--fips"></a>
@@ -209,6 +230,25 @@ Optional:
 Optional:
 
 - `tls` (Boolean) Enable only cipher suites and TLS versions compliant with FIPS 140-2.
+
+
+<a id="nestedatt--settings--host_selector"></a>
+### Nested Schema for `settings.host_selector`
+
+Optional:
+
+- `enabled` (Boolean) Enable filtering via hosts for egress policies.
+
+
+<a id="nestedatt--settings--inspection"></a>
+### Nested Schema for `settings.inspection`
+
+Optional:
+
+- `mode` (String) Defines the mode of inspection the proxy will use.
+- static: Gateway will use static inspection to inspect HTTP on TCP(80). If TLS decryption is on, Gateway will inspect HTTPS traffic on TCP(443) & UDP(443).
+- dynamic: Gateway will use protocol detection to dynamically inspect HTTP and HTTPS traffic on any port. TLS decryption must be on to inspect HTTPS traffic.
+Available values: "static", "dynamic".
 
 
 <a id="nestedatt--settings--protocol_detection"></a>
@@ -226,6 +266,7 @@ Optional:
 
 - `enabled` (Boolean) Enable sandbox.
 - `fallback_action` (String) Action to take when the file cannot be scanned.
+Available values: "allow", "block".
 
 
 <a id="nestedatt--settings--tls_decrypt"></a>

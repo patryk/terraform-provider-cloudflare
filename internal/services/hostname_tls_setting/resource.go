@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/hostnames"
-	"github.com/cloudflare/cloudflare-go/v4/option"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/hostnames"
+	"github.com/cloudflare/cloudflare-go/v5/option"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/importpath"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
@@ -125,7 +125,7 @@ func (r *HostnameTLSSettingResource) Update(ctx context.Context, req resource.Up
 	_, err = r.client.Hostnames.Settings.TLS.Update(
 		ctx,
 		hostnames.SettingTLSUpdateParamsSettingID(data.SettingID.ValueString()),
-		data.SettingID.ValueString(),
+		data.Hostname.ValueString(),
 		hostnames.SettingTLSUpdateParams{
 			ZoneID: cloudflare.F(data.ZoneID.ValueString()),
 		},
@@ -179,7 +179,7 @@ func (r *HostnameTLSSettingResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return

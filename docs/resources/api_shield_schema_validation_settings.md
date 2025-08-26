@@ -14,7 +14,7 @@ description: |-
 ```terraform
 resource "cloudflare_api_shield_schema_validation_settings" "example_api_shield_schema_validation_settings" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
-  validation_default_mitigation_action = "none"
+  validation_default_mitigation_action = "block"
   validation_override_mitigation_action = "none"
 }
 ```
@@ -32,7 +32,8 @@ Mitigation actions are as follows:
   * `block` - deny access to the site when request does not conform to schema
 
 A special value of of `none` will skip running schema validation entirely for the request when there is no mitigation action defined on the operation
-- `zone_id` (String) Identifier
+Available values: "none", "log", "block".
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -42,10 +43,11 @@ A special value of of `none` will skip running schema validation entirely for th
   - `null` indicates that no override is in place
 
 To clear any override, use the special value `disable_override` or `null`
+Available values: "none", "disable_override".
 
 ### Read-Only
 
-- `id` (String) Identifier
+- `id` (String) Identifier.
 
 ## Import
 

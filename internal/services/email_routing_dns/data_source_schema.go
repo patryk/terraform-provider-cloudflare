@@ -20,7 +20,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"subdomain": schema.StringAttribute{
@@ -28,7 +28,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Optional:    true,
 			},
 			"success": schema.BoolAttribute{
-				Description: "Whether the API call was successful",
+				Description: "Whether the API call was successful.",
 				Computed:    true,
 			},
 			"errors": schema.ListNestedAttribute{
@@ -44,6 +44,18 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 						"message": schema.StringAttribute{
 							Computed: true,
+						},
+						"documentation_url": schema.StringAttribute{
+							Computed: true,
+						},
+						"source": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[EmailRoutingDNSErrorsSourceDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"pointer": schema.StringAttribute{
+									Computed: true,
+								},
+							},
 						},
 					},
 				},
@@ -61,6 +73,18 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 						"message": schema.StringAttribute{
 							Computed: true,
+						},
+						"documentation_url": schema.StringAttribute{
+							Computed: true,
+						},
+						"source": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[EmailRoutingDNSMessagesSourceDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"pointer": schema.StringAttribute{
+									Computed: true,
+								},
+							},
 						},
 					},
 				},
@@ -100,12 +124,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 										"ttl": schema.Float64Attribute{
 											Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 											Computed:    true,
-											Validators: []validator.Float64{
-												float64validator.Between(1, 86400),
-											},
 										},
 										"type": schema.StringAttribute{
-											Description: "DNS record type.",
+											Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -158,12 +179,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								"ttl": schema.Float64Attribute{
 									Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 									Computed:    true,
-									Validators: []validator.Float64{
-										float64validator.Between(1, 86400),
-									},
 								},
 								"type": schema.StringAttribute{
-									Description: "DNS record type.",
+									Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -209,12 +227,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					"ttl": schema.Float64Attribute{
 						Description: "Time to live, in seconds, of the DNS record. Must be between 60 and 86400, or 1 for 'automatic'.",
 						Computed:    true,
-						Validators: []validator.Float64{
-							float64validator.Between(1, 86400),
-						},
 					},
 					"type": schema.StringAttribute{
-						Description: "DNS record type.",
+						Description: "DNS record type.\nAvailable values: \"A\", \"AAAA\", \"CNAME\", \"HTTPS\", \"TXT\", \"SRV\", \"LOC\", \"MX\", \"NS\", \"CERT\", \"DNSKEY\", \"DS\", \"NAPTR\", \"SMIMEA\", \"SSHFP\", \"SVCB\", \"TLSA\", \"URI\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -246,19 +261,19 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectType[EmailRoutingDNSResultInfoDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"count": schema.Float64Attribute{
-						Description: "Total number of results for the requested service",
+						Description: "Total number of results for the requested service.",
 						Computed:    true,
 					},
 					"page": schema.Float64Attribute{
-						Description: "Current page within paginated list of results",
+						Description: "Current page within paginated list of results.",
 						Computed:    true,
 					},
 					"per_page": schema.Float64Attribute{
-						Description: "Number of results per page of results",
+						Description: "Number of results per page of results.",
 						Computed:    true,
 					},
 					"total_count": schema.Float64Attribute{
-						Description: "Total results available without any search parameters",
+						Description: "Total results available without any search parameters.",
 						Computed:    true,
 					},
 				},

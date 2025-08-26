@@ -13,7 +13,7 @@ description: |-
 
 ```terraform
 resource "cloudflare_zero_trust_dex_test" "example_zero_trust_dex_test" {
-  account_id = "699d98642c564d2e855e9661899b7252"
+  account_id = "01a7362d577a6c3019a474fd6f485823"
   data = {
     host = "https://dash.cloudflare.com"
     kind = "http"
@@ -46,7 +46,7 @@ resource "cloudflare_zero_trust_dex_test" "example_zero_trust_dex_test" {
 ### Optional
 
 - `description` (String) Additional details about the test.
-- `target_policies` (Attributes List) Device settings profiles targeted by this test (see [below for nested schema](#nestedatt--target_policies))
+- `target_policies` (Attributes List) DEX rules targeted by this test (see [below for nested schema](#nestedatt--target_policies))
 - `targeted` (Boolean)
 
 ### Read-Only
@@ -69,9 +69,9 @@ Optional:
 
 Optional:
 
-- `default` (Boolean) Whether the profile is the account default
-- `id` (String) The id of the device settings profile
-- `name` (String) The name of the device settings profile
+- `default` (Boolean) Whether the DEX rule is the account default
+- `id` (String) The id of the DEX rule
+- `name` (String) The name of the DEX rule
 
 ## Import
 

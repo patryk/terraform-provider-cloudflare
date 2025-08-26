@@ -5,8 +5,8 @@ package magic_wan_static_route
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/magic_transit"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/magic_transit"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -32,10 +32,10 @@ func (m *MagicWANStaticRouteDataSourceModel) toReadParams(_ context.Context) (pa
 }
 
 type MagicWANStaticRouteRouteDataSourceModel struct {
+	ID          types.String                                                           `tfsdk:"id" json:"id,computed"`
 	Nexthop     types.String                                                           `tfsdk:"nexthop" json:"nexthop,computed"`
 	Prefix      types.String                                                           `tfsdk:"prefix" json:"prefix,computed"`
 	Priority    types.Int64                                                            `tfsdk:"priority" json:"priority,computed"`
-	ID          types.String                                                           `tfsdk:"id" json:"id,computed"`
 	CreatedOn   timetypes.RFC3339                                                      `tfsdk:"created_on" json:"created_on,computed" format:"date-time"`
 	Description types.String                                                           `tfsdk:"description" json:"description,computed"`
 	ModifiedOn  timetypes.RFC3339                                                      `tfsdk:"modified_on" json:"modified_on,computed" format:"date-time"`

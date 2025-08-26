@@ -5,11 +5,9 @@ package cloud_connector_rules
 import (
 	"context"
 
-	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -21,21 +19,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
+				Description:   "Identifier.",
 				Computed:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"rules": schema.ListNestedAttribute{
-				Description: "List of Cloud Connector rules",
-				Required:    true,
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Optional: true,
+							Computed: true,
 						},
 						"description": schema.StringAttribute{
 							Optional: true,
@@ -56,51 +54,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"cloud_provider": schema.StringAttribute{
-							Description: "Cloud Provider type",
+						"provider": schema.StringAttribute{
+							Description: "Cloud Provider type\nAvailable values: \"aws_s3\", \"cloudflare_r2\", \"gcp_storage\", \"azure_storage\".",
 							Optional:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"aws_s3",
-									"r2",
+									"cloudflare_r2",
 									"gcp_storage",
 									"azure_storage",
 								),
 							},
 						},
-					},
-				},
-				PlanModifiers: []planmodifier.List{listplanmodifier.RequiresReplace()},
-			},
-			"cloud_provider": schema.StringAttribute{
-				Description: "Cloud Provider type",
-				Computed:    true,
-				Validators: []validator.String{
-					stringvalidator.OneOfCaseInsensitive(
-						"aws_s3",
-						"r2",
-						"gcp_storage",
-						"azure_storage",
-					),
-				},
-			},
-			"description": schema.StringAttribute{
-				Computed: true,
-			},
-			"enabled": schema.BoolAttribute{
-				Computed: true,
-			},
-			"expression": schema.StringAttribute{
-				Computed: true,
-			},
-			"parameters": schema.SingleNestedAttribute{
-				Description: "Parameters of Cloud Connector Rule",
-				Computed:    true,
-				CustomType:  customfield.NewNestedObjectType[CloudConnectorRulesParametersModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"host": schema.StringAttribute{
-						Description: "Host to perform Cloud Connection to",
-						Computed:    true,
 					},
 				},
 			},

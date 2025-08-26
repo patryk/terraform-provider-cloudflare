@@ -27,20 +27,22 @@ resource "cloudflare_zero_trust_gateway_certificate" "example_zero_trust_gateway
 
 ### Optional
 
-- `validity_period_days` (Number) Number of days the generated certificate will be valid, minimum 1 day and maximum 30 years. Defaults to 5 years.
+- `validity_period_days` (Number) Number of days the generated certificate will be valid, minimum 1 day and maximum 30 years. Defaults to 5 years. In terraform, validity_period_days can only be used while creating a certificate, and this CAN NOT be used to extend the validity of an already generated certificate.
 
 ### Read-Only
 
-- `binding_status` (String) The deployment status of the certificate on Cloudflare's edge. Certificates in the 'available' (previously called 'active') state may be used for Gateway TLS interception.
-- `certificate` (String) The CA certificate
+- `binding_status` (String) The read only deployment status of the certificate on Cloudflare's edge. Certificates in the 'available' (previously called 'active') state may be used for Gateway TLS interception.
+Available values: "pending_deployment", "available", "pending_deletion", "inactive".
+- `certificate` (String) The CA certificate(read only).
 - `created_at` (String)
 - `expires_on` (String)
-- `fingerprint` (String) The SHA256 fingerprint of the certificate.
+- `fingerprint` (String) The SHA256 fingerprint of the certificate(read only).
 - `id` (String) Certificate UUID tag.
-- `in_use` (Boolean) Use this certificate for Gateway TLS interception
-- `issuer_org` (String) The organization that issued the certificate.
-- `issuer_raw` (String) The entire issuer field of the certificate.
-- `type` (String) The type of certificate, either BYO-PKI (custom) or Gateway-managed.
+- `in_use` (Boolean) Read-only field that shows whether Gateway TLS interception is using this certificate. This value cannot be set directly. To configure the certificate for interception, use the Gateway configuration setting named certificate.
+- `issuer_org` (String) The organization that issued the certificate(read only).
+- `issuer_raw` (String) The entire issuer field of the certificate(read only).
+- `type` (String) The type of certificate, either BYO-PKI (custom) or Gateway-managed(read only).
+Available values: "custom", "gateway_managed".
 - `updated_at` (String)
 - `uploaded_on` (String)
 

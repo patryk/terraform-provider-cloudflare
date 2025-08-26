@@ -24,16 +24,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "UUID",
+				Description: "UUID.",
 				Computed:    true,
 			},
 			"operation_id": schema.StringAttribute{
-				Description: "UUID",
+				Description: "UUID.",
 				Computed:    true,
 				Optional:    true,
 			},
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"feature": schema.ListAttribute{
@@ -63,7 +63,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType: timetypes.RFC3339Type{},
 			},
 			"method": schema.StringAttribute{
-				Description: "The HTTP method used to access the endpoint.",
+				Description: "The HTTP method used to access the endpoint.\nAvailable values: \"GET\", \"POST\", \"HEAD\", \"OPTIONS\", \"PUT\", \"DELETE\", \"CONNECT\", \"PATCH\", \"TRACE\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -249,7 +249,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								CustomType:  customfield.NewNestedObjectType[APIShieldOperationFeaturesSchemaInfoActiveSchemaDataSourceModel](ctx),
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
-										Description: "UUID",
+										Description: "UUID.",
 										Computed:    true,
 									},
 									"created_at": schema.StringAttribute{
@@ -271,7 +271,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"mitigation_action": schema.StringAttribute{
-								Description: "Action taken on requests failing validation.",
+								Description: "Action taken on requests failing validation.\nAvailable values: \"none\", \"log\", \"block\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive(
@@ -289,7 +289,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"direction": schema.StringAttribute{
-						Description: "Direction to order results.",
+						Description: "Direction to order results.\nAvailable values: \"asc\", \"desc\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("asc", "desc"),
@@ -324,7 +324,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						ElementType: types.StringType,
 					},
 					"order": schema.StringAttribute{
-						Description: "Field to order by. When requesting a feature, the feature keys are available for ordering as well, e.g., `thresholds.suggested_threshold`.",
+						Description: "Field to order by. When requesting a feature, the feature keys are available for ordering as well, e.g., `thresholds.suggested_threshold`.\nAvailable values: \"method\", \"host\", \"endpoint\", \"thresholds.$key\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(

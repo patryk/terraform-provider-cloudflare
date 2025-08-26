@@ -18,35 +18,36 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Account ID",
+				Description: "Account ID.",
 				Required:    true,
 			},
 			"bucket_name": schema.StringAttribute{
-				Description: "Name of the bucket",
+				Description: "Name of the bucket.",
 				Required:    true,
 			},
 			"enabled": schema.BoolAttribute{
-				Description: "State of Sippy for this bucket",
+				Description: "State of Sippy for this bucket.",
 				Computed:    true,
 			},
 			"destination": schema.SingleNestedAttribute{
-				Description: "Details about the configured destination bucket",
+				Description: "Details about the configured destination bucket.",
 				Computed:    true,
 				CustomType:  customfield.NewNestedObjectType[R2BucketSippyDestinationDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"access_key_id": schema.StringAttribute{
-						Description: "ID of the Cloudflare API token used when writing objects to this\nbucket\n",
+						Description: "ID of the Cloudflare API token used when writing objects to this\nbucket.",
 						Computed:    true,
 					},
 					"account": schema.StringAttribute{
 						Computed: true,
 					},
 					"bucket": schema.StringAttribute{
-						Description: "Name of the bucket on the provider",
+						Description: "Name of the bucket on the provider.",
 						Computed:    true,
 					},
 					"provider": schema.StringAttribute{
-						Computed: true,
+						Description: `Available values: "r2".`,
+						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("r2"),
 						},
@@ -54,22 +55,23 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"source": schema.SingleNestedAttribute{
-				Description: "Details about the configured source bucket",
+				Description: "Details about the configured source bucket.",
 				Computed:    true,
 				CustomType:  customfield.NewNestedObjectType[R2BucketSippySourceDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"bucket": schema.StringAttribute{
-						Description: "Name of the bucket on the provider",
+						Description: "Name of the bucket on the provider.",
 						Computed:    true,
 					},
 					"provider": schema.StringAttribute{
-						Computed: true,
+						Description: `Available values: "aws", "gcs".`,
+						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("aws", "gcs"),
 						},
 					},
 					"region": schema.StringAttribute{
-						Description: "Region where the bucket resides (AWS only)",
+						Description: "Region where the bucket resides (AWS only).",
 						Computed:    true,
 					},
 				},

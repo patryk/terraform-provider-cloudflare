@@ -5,11 +5,15 @@ package workers_script_subdomain
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/workers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/workers"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+type WorkersScriptSubdomainResultDataSourceEnvelope struct {
+	Result WorkersScriptSubdomainDataSourceModel `json:"result,computed"`
+}
 
 type WorkersScriptSubdomainDataSourceModel struct {
 	AccountID       types.String `tfsdk:"account_id" path:"account_id,required"`

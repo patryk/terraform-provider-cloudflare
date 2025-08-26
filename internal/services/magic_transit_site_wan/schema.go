@@ -5,7 +5,6 @@ package magic_transit_site_wan
 import (
 	"context"
 
-	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -38,21 +37,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"physport": schema.Int64Attribute{
 				Required: true,
 			},
-			"vlan_tag": schema.Int64Attribute{
-				Description: "VLAN port number.",
-				Required:    true,
-			},
 			"name": schema.StringAttribute{
 				Optional: true,
 			},
 			"priority": schema.Int64Attribute{
 				Optional: true,
 			},
+			"vlan_tag": schema.Int64Attribute{
+				Description: "VLAN ID. Use zero for untagged.",
+				Optional:    true,
+			},
 			"static_addressing": schema.SingleNestedAttribute{
 				Description: "(optional) if omitted, use DHCP. Submit secondary_address when site is in high availability mode.",
-				Computed:    true,
 				Optional:    true,
-				CustomType:  customfield.NewNestedObjectType[MagicTransitSiteWANStaticAddressingModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"address": schema.StringAttribute{
 						Description: "A valid CIDR notation representing an IP range.",
@@ -69,7 +66,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"health_check_rate": schema.StringAttribute{
-				Description: "Magic WAN health check rate for tunnels created on this link. The default value is `mid`.",
+				Description: "Magic WAN health check rate for tunnels created on this link. The default value is `mid`.\nAvailable values: \"low\", \"mid\", \"high\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(

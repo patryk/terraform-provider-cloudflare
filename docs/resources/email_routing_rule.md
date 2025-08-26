@@ -15,12 +15,12 @@ description: |-
 resource "cloudflare_email_routing_rule" "example_email_routing_rule" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
   actions = [{
-    type = "drop"
+    type = "forward"
     value = ["destinationaddress@example.net"]
   }]
   matchers = [{
-    field = "to"
     type = "literal"
+    field = "to"
     value = "test@example.com"
   }]
   enabled = true
@@ -36,7 +36,7 @@ resource "cloudflare_email_routing_rule" "example_email_routing_rule" {
 
 - `actions` (Attributes List) List actions patterns. (see [below for nested schema](#nestedatt--actions))
 - `matchers` (Attributes List) Matching patterns to forward to your actions. (see [below for nested schema](#nestedatt--matchers))
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -47,7 +47,7 @@ resource "cloudflare_email_routing_rule" "example_email_routing_rule" {
 ### Read-Only
 
 - `id` (String) Routing rule identifier.
-- `tag` (String) Routing rule tag. (Deprecated, replaced by routing rule identifier)
+- `tag` (String, Deprecated) Routing rule tag. (Deprecated, replaced by routing rule identifier)
 
 <a id="nestedatt--actions"></a>
 ### Nested Schema for `actions`
@@ -55,6 +55,10 @@ resource "cloudflare_email_routing_rule" "example_email_routing_rule" {
 Required:
 
 - `type` (String) Type of supported action.
+Available values: "drop", "forward", "worker".
+
+Optional:
+
 - `value` (List of String)
 
 
@@ -63,8 +67,13 @@ Required:
 
 Required:
 
-- `field` (String) Field for type matcher.
 - `type` (String) Type of matcher.
+Available values: "all", "literal".
+
+Optional:
+
+- `field` (String) Field for type matcher.
+Available values: "to".
 - `value` (String) Value for matcher.
 
 ## Import

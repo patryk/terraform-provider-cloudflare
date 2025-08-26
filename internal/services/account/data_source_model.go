@@ -5,8 +5,8 @@ package account
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/accounts"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/accounts"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type AccountResultDataSourceEnvelope struct {
 }
 
 type AccountDataSourceModel struct {
-	ID        types.String                                             `tfsdk:"id" json:"-,computed"`
+	ID        types.String                                             `tfsdk:"id" path:"account_id,computed"`
 	AccountID types.String                                             `tfsdk:"account_id" path:"account_id,optional"`
 	CreatedOn timetypes.RFC3339                                        `tfsdk:"created_on" json:"created_on,computed" format:"date-time"`
 	Name      types.String                                             `tfsdk:"name" json:"name,computed"`
@@ -48,10 +48,8 @@ func (m *AccountDataSourceModel) toListParams(_ context.Context) (params account
 }
 
 type AccountSettingsDataSourceModel struct {
-	AbuseContactEmail           types.String `tfsdk:"abuse_contact_email" json:"abuse_contact_email,computed"`
-	DefaultNameservers          types.String `tfsdk:"default_nameservers" json:"default_nameservers,computed"`
-	EnforceTwofactor            types.Bool   `tfsdk:"enforce_twofactor" json:"enforce_twofactor,computed"`
-	UseAccountCustomNSByDefault types.Bool   `tfsdk:"use_account_custom_ns_by_default" json:"use_account_custom_ns_by_default,computed"`
+	AbuseContactEmail types.String `tfsdk:"abuse_contact_email" json:"abuse_contact_email,computed"`
+	EnforceTwofactor  types.Bool   `tfsdk:"enforce_twofactor" json:"enforce_twofactor,computed"`
 }
 
 type AccountFindOneByDataSourceModel struct {

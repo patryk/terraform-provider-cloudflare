@@ -5,8 +5,8 @@ package load_balancer
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/load_balancers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/load_balancers"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type LoadBalancerResultDataSourceEnvelope struct {
 }
 
 type LoadBalancerDataSourceModel struct {
-	ID                        types.String                                                                   `tfsdk:"id" json:"-,computed"`
+	ID                        types.String                                                                   `tfsdk:"id" path:"load_balancer_id,computed"`
 	LoadBalancerID            types.String                                                                   `tfsdk:"load_balancer_id" path:"load_balancer_id,optional"`
 	ZoneID                    types.String                                                                   `tfsdk:"zone_id" path:"zone_id,required"`
 	CreatedOn                 types.String                                                                   `tfsdk:"created_on" json:"created_on,computed"`
@@ -28,10 +28,10 @@ type LoadBalancerDataSourceModel struct {
 	Name                      types.String                                                                   `tfsdk:"name" json:"name,computed"`
 	Proxied                   types.Bool                                                                     `tfsdk:"proxied" json:"proxied,computed"`
 	SessionAffinity           types.String                                                                   `tfsdk:"session_affinity" json:"session_affinity,computed"`
-	SessionAffinityTTL        types.Float64                                                                  `tfsdk:"session_affinity_ttl" json:"session_affinity_ttl,computed_optional"`
-	SteeringPolicy            types.String                                                                   `tfsdk:"steering_policy" json:"steering_policy,computed_optional"`
-	TTL                       types.Float64                                                                  `tfsdk:"ttl" json:"ttl,computed_optional"`
-	CountryPools              customfield.Map[customfield.List[types.String]]                                `tfsdk:"country_pools" json:"country_pools,computed_optional"`
+	SessionAffinityTTL        types.Float64                                                                  `tfsdk:"session_affinity_ttl" json:"session_affinity_ttl,computed"`
+	SteeringPolicy            types.String                                                                   `tfsdk:"steering_policy" json:"steering_policy,computed"`
+	TTL                       types.Float64                                                                  `tfsdk:"ttl" json:"ttl,computed"`
+	CountryPools              customfield.Map[customfield.List[types.String]]                                `tfsdk:"country_pools" json:"country_pools,computed"`
 	DefaultPools              customfield.List[types.String]                                                 `tfsdk:"default_pools" json:"default_pools,computed"`
 	Networks                  customfield.List[types.String]                                                 `tfsdk:"networks" json:"networks,computed"`
 	POPPools                  customfield.Map[customfield.List[types.String]]                                `tfsdk:"pop_pools" json:"pop_pools,computed_optional"`
@@ -45,14 +45,6 @@ type LoadBalancerDataSourceModel struct {
 
 func (m *LoadBalancerDataSourceModel) toReadParams(_ context.Context) (params load_balancers.LoadBalancerGetParams, diags diag.Diagnostics) {
 	params = load_balancers.LoadBalancerGetParams{
-		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
-	}
-
-	return
-}
-
-func (m *LoadBalancerDataSourceModel) toListParams(_ context.Context) (params load_balancers.LoadBalancerListParams, diags diag.Diagnostics) {
-	params = load_balancers.LoadBalancerListParams{
 		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
 	}
 
@@ -92,18 +84,18 @@ type LoadBalancerRulesFixedResponseDataSourceModel struct {
 
 type LoadBalancerRulesOverridesDataSourceModel struct {
 	AdaptiveRouting           customfield.NestedObject[LoadBalancerRulesOverridesAdaptiveRoutingDataSourceModel]           `tfsdk:"adaptive_routing" json:"adaptive_routing,computed"`
-	CountryPools              customfield.Map[customfield.List[types.String]]                                              `tfsdk:"country_pools" json:"country_pools,computed_optional"`
+	CountryPools              customfield.Map[customfield.List[types.String]]                                              `tfsdk:"country_pools" json:"country_pools,computed"`
 	DefaultPools              customfield.List[types.String]                                                               `tfsdk:"default_pools" json:"default_pools,computed"`
 	FallbackPool              types.String                                                                                 `tfsdk:"fallback_pool" json:"fallback_pool,computed"`
 	LocationStrategy          customfield.NestedObject[LoadBalancerRulesOverridesLocationStrategyDataSourceModel]          `tfsdk:"location_strategy" json:"location_strategy,computed"`
 	POPPools                  customfield.Map[customfield.List[types.String]]                                              `tfsdk:"pop_pools" json:"pop_pools,computed_optional"`
 	RandomSteering            customfield.NestedObject[LoadBalancerRulesOverridesRandomSteeringDataSourceModel]            `tfsdk:"random_steering" json:"random_steering,computed"`
-	RegionPools               customfield.Map[customfield.List[types.String]]                                              `tfsdk:"region_pools" json:"region_pools,computed_optional"`
+	RegionPools               customfield.Map[customfield.List[types.String]]                                              `tfsdk:"region_pools" json:"region_pools,computed"`
 	SessionAffinity           types.String                                                                                 `tfsdk:"session_affinity" json:"session_affinity,computed"`
 	SessionAffinityAttributes customfield.NestedObject[LoadBalancerRulesOverridesSessionAffinityAttributesDataSourceModel] `tfsdk:"session_affinity_attributes" json:"session_affinity_attributes,computed"`
-	SessionAffinityTTL        types.Float64                                                                                `tfsdk:"session_affinity_ttl" json:"session_affinity_ttl,computed_optional"`
-	SteeringPolicy            types.String                                                                                 `tfsdk:"steering_policy" json:"steering_policy,computed_optional"`
-	TTL                       types.Float64                                                                                `tfsdk:"ttl" json:"ttl,computed_optional"`
+	SessionAffinityTTL        types.Float64                                                                                `tfsdk:"session_affinity_ttl" json:"session_affinity_ttl,computed"`
+	SteeringPolicy            types.String                                                                                 `tfsdk:"steering_policy" json:"steering_policy,computed"`
+	TTL                       types.Float64                                                                                `tfsdk:"ttl" json:"ttl,computed"`
 }
 
 type LoadBalancerRulesOverridesAdaptiveRoutingDataSourceModel struct {

@@ -5,8 +5,8 @@ package magic_transit_site_acl
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/magic_transit"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/magic_transit"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type MagicTransitSiteACLResultDataSourceEnvelope struct {
 }
 
 type MagicTransitSiteACLDataSourceModel struct {
-	ID             types.String                                                     `tfsdk:"id" json:"-,computed"`
+	ID             types.String                                                     `tfsdk:"id" path:"acl_id,computed"`
 	ACLID          types.String                                                     `tfsdk:"acl_id" path:"acl_id,optional"`
 	AccountID      types.String                                                     `tfsdk:"account_id" path:"account_id,required"`
 	SiteID         types.String                                                     `tfsdk:"site_id" path:"site_id,required"`
@@ -32,14 +32,6 @@ type MagicTransitSiteACLDataSourceModel struct {
 
 func (m *MagicTransitSiteACLDataSourceModel) toReadParams(_ context.Context) (params magic_transit.SiteACLGetParams, diags diag.Diagnostics) {
 	params = magic_transit.SiteACLGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *MagicTransitSiteACLDataSourceModel) toListParams(_ context.Context) (params magic_transit.SiteACLListParams, diags diag.Diagnostics) {
-	params = magic_transit.SiteACLListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

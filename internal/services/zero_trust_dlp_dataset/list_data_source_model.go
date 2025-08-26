@@ -5,8 +5,8 @@ package zero_trust_dlp_dataset
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,6 +42,7 @@ type ZeroTrustDLPDatasetsResultDataSourceModel struct {
 	Status          types.String                                                             `tfsdk:"status" json:"status,computed"`
 	UpdatedAt       timetypes.RFC3339                                                        `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
 	Uploads         customfield.NestedObjectList[ZeroTrustDLPDatasetsUploadsDataSourceModel] `tfsdk:"uploads" json:"uploads,computed"`
+	CaseSensitive   types.Bool                                                               `tfsdk:"case_sensitive" json:"case_sensitive,computed"`
 	Description     types.String                                                             `tfsdk:"description" json:"description,computed"`
 }
 

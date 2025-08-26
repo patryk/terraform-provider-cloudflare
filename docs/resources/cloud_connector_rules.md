@@ -22,7 +22,7 @@ resource "cloudflare_cloud_connector_rules" "example_cloud_connector_rules" {
     parameters = {
       host = "examplebucket.s3.eu-north-1.amazonaws.com"
     }
-    cloud_provider = "aws_s3"
+    provider = "aws_s3"
   }]
 }
 ```
@@ -32,29 +32,31 @@ resource "cloudflare_cloud_connector_rules" "example_cloud_connector_rules" {
 
 ### Required
 
-- `rules` (Attributes List) List of Cloud Connector rules (see [below for nested schema](#nestedatt--rules))
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
+
+### Optional
+
+- `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
 
 ### Read-Only
 
-- `cloud_provider` (String) Cloud Provider type
-- `description` (String)
-- `enabled` (Boolean)
-- `expression` (String)
-- `id` (String) The ID of this resource.
-- `parameters` (Attributes) Parameters of Cloud Connector Rule (see [below for nested schema](#nestedatt--parameters))
+- `id` (String) Identifier.
 
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`
 
 Optional:
 
-- `cloud_provider` (String) Cloud Provider type
 - `description` (String)
 - `enabled` (Boolean)
 - `expression` (String)
-- `id` (String)
 - `parameters` (Attributes) Parameters of Cloud Connector Rule (see [below for nested schema](#nestedatt--rules--parameters))
+- `provider` (String) Cloud Provider type
+Available values: "aws_s3", "cloudflare_r2", "gcp_storage", "azure_storage".
+
+Read-Only:
+
+- `id` (String)
 
 <a id="nestedatt--rules--parameters"></a>
 ### Nested Schema for `rules.parameters`
@@ -63,13 +65,10 @@ Optional:
 
 - `host` (String) Host to perform Cloud Connection to
 
+## Import
 
+Import is supported using the following syntax:
 
-<a id="nestedatt--parameters"></a>
-### Nested Schema for `parameters`
-
-Read-Only:
-
-- `host` (String) Host to perform Cloud Connection to
-
-
+```shell
+$ terraform import cloudflare_cloud_connector_rules.example '<zone_id>'
+```

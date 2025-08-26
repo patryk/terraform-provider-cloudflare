@@ -5,8 +5,8 @@ package zero_trust_access_mtls_certificate
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type ZeroTrustAccessMTLSCertificateResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustAccessMTLSCertificateDataSourceModel struct {
-	ID                  types.String                   `tfsdk:"id" json:"-,computed"`
+	ID                  types.String                   `tfsdk:"id" path:"certificate_id,computed"`
 	CertificateID       types.String                   `tfsdk:"certificate_id" path:"certificate_id,optional"`
 	AccountID           types.String                   `tfsdk:"account_id" path:"account_id,optional"`
 	ZoneID              types.String                   `tfsdk:"zone_id" path:"zone_id,optional"`
@@ -32,18 +32,6 @@ type ZeroTrustAccessMTLSCertificateDataSourceModel struct {
 
 func (m *ZeroTrustAccessMTLSCertificateDataSourceModel) toReadParams(_ context.Context) (params zero_trust.AccessCertificateGetParams, diags diag.Diagnostics) {
 	params = zero_trust.AccessCertificateGetParams{}
-
-	if !m.AccountID.IsNull() {
-		params.AccountID = cloudflare.F(m.AccountID.ValueString())
-	} else {
-		params.ZoneID = cloudflare.F(m.ZoneID.ValueString())
-	}
-
-	return
-}
-
-func (m *ZeroTrustAccessMTLSCertificateDataSourceModel) toListParams(_ context.Context) (params zero_trust.AccessCertificateListParams, diags diag.Diagnostics) {
-	params = zero_trust.AccessCertificateListParams{}
 
 	if !m.AccountID.IsNull() {
 		params.AccountID = cloudflare.F(m.AccountID.ValueString())

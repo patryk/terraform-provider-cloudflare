@@ -4,7 +4,6 @@ package page_rule
 
 import (
 	"context"
-
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -27,23 +27,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Computed:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"priority": schema.Int64Attribute{
-				Description: "The priority of the rule, used to define which Page Rule is processed\nover another. A higher number indicates a higher priority. For example,\nif you have a catch-all Page Rule (rule A: `/images/*`) but want a more\nspecific Page Rule to take precedence (rule B: `/images/special/*`),\nspecify a higher priority for rule B so it overrides rule A.\n",
+				Description: "The priority of the rule, used to define which Page Rule is processed\nover another. A higher number indicates a higher priority. For example,\nif you have a catch-all Page Rule (rule A: `/images/*`) but want a more\nspecific Page Rule to take precedence (rule B: `/images/special/*`),\nspecify a higher priority for rule B so it overrides rule A.",
 				Computed:    true,
 				Optional:    true,
 				Default:     int64default.StaticInt64(1),
 			},
 			"status": schema.StringAttribute{
-				Description: "The status of the Page Rule.",
+				Description: "The status of the Page Rule.\nAvailable values: \"active\", \"disabled\".",
 				Computed:    true,
 				Optional:    true,
 				Validators: []validator.String{
@@ -150,9 +150,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"host": schema.SingleNestedAttribute{
 								Optional: true,
+								Computed: true,
 								Attributes: map[string]schema.Attribute{
 									"resolved": schema.BoolAttribute{
 										Optional: true,
+										Computed: true,
+										Default:  booldefault.StaticBool(false),
 									},
 								},
 							},
@@ -175,15 +178,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"user": schema.SingleNestedAttribute{
 								Optional: true,
+								Computed: true,
 								Attributes: map[string]schema.Attribute{
 									"device_type": schema.BoolAttribute{
 										Optional: true,
+										Computed: true,
+										Default:  booldefault.StaticBool(false),
 									},
 									"geo": schema.BoolAttribute{
 										Optional: true,
+										Computed: true,
+										Default:  booldefault.StaticBool(false),
 									},
 									"lang": schema.BoolAttribute{
 										Optional: true,
+										Computed: true,
+										Default:  booldefault.StaticBool(false),
 									},
 								},
 							},
@@ -198,8 +208,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"cache_on_cookie": schema.StringAttribute{
 						Optional: true,
 					},
-					"cache_ttl_by_status": schema.DynamicAttribute{
-						Optional: true,
+					"cache_ttl_by_status": schema.MapAttribute{
+						Optional:    true,
+						ElementType: types.StringType,
 					},
 					"disable_apps": schema.BoolAttribute{
 						Optional: true,

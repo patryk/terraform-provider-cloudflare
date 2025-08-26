@@ -22,7 +22,7 @@ data "cloudflare_email_routing_catch_all" "example_email_routing_catch_all" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Read-Only
 
@@ -31,7 +31,7 @@ data "cloudflare_email_routing_catch_all" "example_email_routing_catch_all" {
 - `id` (String) Routing rule identifier.
 - `matchers` (Attributes List) List of matchers for the catch-all routing rule. (see [below for nested schema](#nestedatt--matchers))
 - `name` (String) Routing rule name.
-- `tag` (String) Routing rule tag. (Deprecated, replaced by routing rule identifier)
+- `tag` (String, Deprecated) Routing rule tag. (Deprecated, replaced by routing rule identifier)
 
 <a id="nestedatt--actions"></a>
 ### Nested Schema for `actions`
@@ -39,6 +39,7 @@ data "cloudflare_email_routing_catch_all" "example_email_routing_catch_all" {
 Read-Only:
 
 - `type` (String) Type of action for catch-all rule.
+Available values: "drop", "forward", "worker".
 - `value` (List of String)
 
 
@@ -48,5 +49,6 @@ Read-Only:
 Read-Only:
 
 - `type` (String) Type of matcher. Default is 'all'.
+Available values: "all".
 
 

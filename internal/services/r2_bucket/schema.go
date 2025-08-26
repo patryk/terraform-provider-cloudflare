@@ -20,22 +20,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description:   "Name of the bucket",
+				Description:   "Name of the bucket.",
 				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"name": schema.StringAttribute{
-				Description:   "Name of the bucket",
+				Description:   "Name of the bucket.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"account_id": schema.StringAttribute{
-				Description:   "Account ID",
+				Description:   "Account ID.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"location": schema.StringAttribute{
-				Description: "Location of the bucket",
+				Description: "Location of the bucket.\nAvailable values: \"apac\", \"eeur\", \"enam\", \"weur\", \"wnam\", \"oc\".",
+				Computed:    true,
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -44,11 +45,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"enam",
 						"weur",
 						"wnam",
+						"oc",
 					),
 				},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplaceIfConfigured()},
 			},
 			"jurisdiction": schema.StringAttribute{
-				Description: "Jurisdiction of the bucket",
+				Description: "Jurisdiction where objects in this bucket are guaranteed to be stored.\nAvailable values: \"default\", \"eu\", \"fedramp\".",
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString("default"),
@@ -61,7 +64,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"storage_class": schema.StringAttribute{
-				Description: "Storage class for newly uploaded objects, unless specified otherwise.",
+				Description: "Storage class for newly uploaded objects, unless specified otherwise.\nAvailable values: \"Standard\", \"InfrequentAccess\".",
 				Computed:    true,
 				Optional:    true,
 				Validators: []validator.String{
@@ -70,7 +73,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Default: stringdefault.StaticString("Standard"),
 			},
 			"creation_date": schema.StringAttribute{
-				Description: "Creation timestamp",
+				Description: "Creation timestamp.",
 				Computed:    true,
 			},
 		},

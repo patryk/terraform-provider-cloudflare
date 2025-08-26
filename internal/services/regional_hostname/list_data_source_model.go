@@ -5,8 +5,8 @@ package regional_hostname
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/addressing"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/addressing"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -35,4 +35,5 @@ type RegionalHostnamesResultDataSourceModel struct {
 	CreatedOn timetypes.RFC3339 `tfsdk:"created_on" json:"created_on,computed" format:"date-time"`
 	Hostname  types.String      `tfsdk:"hostname" json:"hostname,computed"`
 	RegionKey types.String      `tfsdk:"region_key" json:"region_key,computed"`
+	Routing   types.String      `tfsdk:"routing" json:"routing,computed"`
 }

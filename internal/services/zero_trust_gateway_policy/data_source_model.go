@@ -5,8 +5,8 @@ package zero_trust_gateway_policy
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type ZeroTrustGatewayPolicyResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustGatewayPolicyDataSourceModel struct {
-	ID            types.String                                                                `tfsdk:"id" json:"-,computed"`
+	ID            types.String                                                                `tfsdk:"id" path:"rule_id,computed"`
 	RuleID        types.String                                                                `tfsdk:"rule_id" path:"rule_id,optional"`
 	AccountID     types.String                                                                `tfsdk:"account_id" path:"account_id,required"`
 	Action        types.String                                                                `tfsdk:"action" json:"action,computed"`
@@ -29,10 +29,14 @@ type ZeroTrustGatewayPolicyDataSourceModel struct {
 	Enabled       types.Bool                                                                  `tfsdk:"enabled" json:"enabled,computed"`
 	Identity      types.String                                                                `tfsdk:"identity" json:"identity,computed"`
 	Name          types.String                                                                `tfsdk:"name" json:"name,computed"`
+	NotSharable   types.Bool                                                                  `tfsdk:"not_sharable" json:"not_sharable,computed"`
 	Precedence    types.Int64                                                                 `tfsdk:"precedence" json:"precedence,computed"`
+	ReadOnly      types.Bool                                                                  `tfsdk:"read_only" json:"read_only,computed"`
+	SourceAccount types.String                                                                `tfsdk:"source_account" json:"source_account,computed"`
 	Traffic       types.String                                                                `tfsdk:"traffic" json:"traffic,computed"`
 	UpdatedAt     timetypes.RFC3339                                                           `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
 	Version       types.Int64                                                                 `tfsdk:"version" json:"version,computed"`
+	WarningStatus types.String                                                                `tfsdk:"warning_status" json:"warning_status,computed"`
 	Filters       customfield.List[types.String]                                              `tfsdk:"filters" json:"filters,computed"`
 	Expiration    customfield.NestedObject[ZeroTrustGatewayPolicyExpirationDataSourceModel]   `tfsdk:"expiration" json:"expiration,computed"`
 	RuleSettings  customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsDataSourceModel] `tfsdk:"rule_settings" json:"rule_settings,computed"`
@@ -47,14 +51,6 @@ func (m *ZeroTrustGatewayPolicyDataSourceModel) toReadParams(_ context.Context) 
 	return
 }
 
-func (m *ZeroTrustGatewayPolicyDataSourceModel) toListParams(_ context.Context) (params zero_trust.GatewayRuleListParams, diags diag.Diagnostics) {
-	params = zero_trust.GatewayRuleListParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
 type ZeroTrustGatewayPolicyExpirationDataSourceModel struct {
 	ExpiresAt timetypes.RFC3339 `tfsdk:"expires_at" json:"expires_at,computed" format:"date-time"`
 	Duration  types.Int64       `tfsdk:"duration" json:"duration,computed"`
@@ -62,10 +58,11 @@ type ZeroTrustGatewayPolicyExpirationDataSourceModel struct {
 }
 
 type ZeroTrustGatewayPolicyRuleSettingsDataSourceModel struct {
-	AddHeaders                      customfield.Map[types.String]                                                                   `tfsdk:"add_headers" json:"add_headers,computed"`
+	AddHeaders                      customfield.Map[customfield.List[types.String]]                                                 `tfsdk:"add_headers" json:"add_headers,computed"`
 	AllowChildBypass                types.Bool                                                                                      `tfsdk:"allow_child_bypass" json:"allow_child_bypass,computed"`
 	AuditSSH                        customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsAuditSSHDataSourceModel]             `tfsdk:"audit_ssh" json:"audit_ssh,computed"`
 	BISOAdminControls               customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsBISOAdminControlsDataSourceModel]    `tfsdk:"biso_admin_controls" json:"biso_admin_controls,computed"`
+	BlockPage                       customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsBlockPageDataSourceModel]            `tfsdk:"block_page" json:"block_page,computed"`
 	BlockPageEnabled                types.Bool                                                                                      `tfsdk:"block_page_enabled" json:"block_page_enabled,computed"`
 	BlockReason                     types.String                                                                                    `tfsdk:"block_reason" json:"block_reason,computed"`
 	BypassParentRule                types.Bool                                                                                      `tfsdk:"bypass_parent_rule" json:"bypass_parent_rule,computed"`
@@ -82,6 +79,7 @@ type ZeroTrustGatewayPolicyRuleSettingsDataSourceModel struct {
 	OverrideIPs                     customfield.List[types.String]                                                                  `tfsdk:"override_ips" json:"override_ips,computed"`
 	PayloadLog                      customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsPayloadLogDataSourceModel]           `tfsdk:"payload_log" json:"payload_log,computed"`
 	Quarantine                      customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsQuarantineDataSourceModel]           `tfsdk:"quarantine" json:"quarantine,computed"`
+	Redirect                        customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsRedirectDataSourceModel]             `tfsdk:"redirect" json:"redirect,computed"`
 	ResolveDNSInternally            customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsResolveDNSInternallyDataSourceModel] `tfsdk:"resolve_dns_internally" json:"resolve_dns_internally,computed"`
 	ResolveDNSThroughCloudflare     types.Bool                                                                                      `tfsdk:"resolve_dns_through_cloudflare" json:"resolve_dns_through_cloudflare,computed"`
 	UntrustedCERT                   customfield.NestedObject[ZeroTrustGatewayPolicyRuleSettingsUntrustedCERTDataSourceModel]        `tfsdk:"untrusted_cert" json:"untrusted_cert,computed"`
@@ -104,6 +102,11 @@ type ZeroTrustGatewayPolicyRuleSettingsBISOAdminControlsDataSourceModel struct {
 	Printing types.String `tfsdk:"printing" json:"printing,computed"`
 	Upload   types.String `tfsdk:"upload" json:"upload,computed"`
 	Version  types.String `tfsdk:"version" json:"version,computed"`
+}
+
+type ZeroTrustGatewayPolicyRuleSettingsBlockPageDataSourceModel struct {
+	TargetURI      types.String `tfsdk:"target_uri" json:"target_uri,computed"`
+	IncludeContext types.Bool   `tfsdk:"include_context" json:"include_context,computed"`
 }
 
 type ZeroTrustGatewayPolicyRuleSettingsCheckSessionDataSourceModel struct {
@@ -142,9 +145,10 @@ type ZeroTrustGatewayPolicyRuleSettingsL4overrideDataSourceModel struct {
 }
 
 type ZeroTrustGatewayPolicyRuleSettingsNotificationSettingsDataSourceModel struct {
-	Enabled    types.Bool   `tfsdk:"enabled" json:"enabled,computed"`
-	Msg        types.String `tfsdk:"msg" json:"msg,computed"`
-	SupportURL types.String `tfsdk:"support_url" json:"support_url,computed"`
+	Enabled        types.Bool   `tfsdk:"enabled" json:"enabled,computed"`
+	IncludeContext types.Bool   `tfsdk:"include_context" json:"include_context,computed"`
+	Msg            types.String `tfsdk:"msg" json:"msg,computed"`
+	SupportURL     types.String `tfsdk:"support_url" json:"support_url,computed"`
 }
 
 type ZeroTrustGatewayPolicyRuleSettingsPayloadLogDataSourceModel struct {
@@ -153,6 +157,12 @@ type ZeroTrustGatewayPolicyRuleSettingsPayloadLogDataSourceModel struct {
 
 type ZeroTrustGatewayPolicyRuleSettingsQuarantineDataSourceModel struct {
 	FileTypes customfield.List[types.String] `tfsdk:"file_types" json:"file_types,computed"`
+}
+
+type ZeroTrustGatewayPolicyRuleSettingsRedirectDataSourceModel struct {
+	TargetURI            types.String `tfsdk:"target_uri" json:"target_uri,computed"`
+	IncludeContext       types.Bool   `tfsdk:"include_context" json:"include_context,computed"`
+	PreservePathAndQuery types.Bool   `tfsdk:"preserve_path_and_query" json:"preserve_path_and_query,computed"`
 }
 
 type ZeroTrustGatewayPolicyRuleSettingsResolveDNSInternallyDataSourceModel struct {

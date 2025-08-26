@@ -24,7 +24,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				Required:    true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The sorting direction.",
+				Description: "The sorting direction.\nAvailable values: \"asc\", \"desc\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("asc", "desc"),
@@ -37,11 +37,14 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 			},
 			"order": schema.StringAttribute{
-				Description: "The field to sort by.",
+				Description: "The field to sort by.\nAvailable values: \"pattern\", \"created_at\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("pattern", "created_at"),
 				},
+			},
+			"pattern": schema.StringAttribute{
+				Optional: true,
 			},
 			"search": schema.StringAttribute{
 				Description: "Allows searching in multiple properties of a record simultaneously.\nThis parameter is intended for human users, not automation. Its exact\nbehavior is intentionally left unspecified and is subject to change\nin the future.",

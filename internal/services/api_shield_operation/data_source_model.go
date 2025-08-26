@@ -5,8 +5,8 @@ package api_shield_operation
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/api_gateway"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/api_gateway"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
@@ -19,7 +19,7 @@ type APIShieldOperationResultDataSourceEnvelope struct {
 }
 
 type APIShieldOperationDataSourceModel struct {
-	ID          types.String                                                        `tfsdk:"id" json:"-,computed"`
+	ID          types.String                                                        `tfsdk:"id" path:"operation_id,computed"`
 	OperationID types.String                                                        `tfsdk:"operation_id" path:"operation_id,computed_optional"`
 	ZoneID      types.String                                                        `tfsdk:"zone_id" path:"zone_id,required"`
 	Feature     *[]types.String                                                     `tfsdk:"feature" query:"feature,optional"`
@@ -32,8 +32,14 @@ type APIShieldOperationDataSourceModel struct {
 }
 
 func (m *APIShieldOperationDataSourceModel) toReadParams(_ context.Context) (params api_gateway.OperationGetParams, diags diag.Diagnostics) {
+	mFeature := []api_gateway.OperationGetParamsFeature{}
+	for _, item := range *m.Feature {
+		mFeature = append(mFeature, api_gateway.OperationGetParamsFeature(item.ValueString()))
+	}
+
 	params = api_gateway.OperationGetParams{
-		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
+		ZoneID:  cloudflare.F(m.ZoneID.ValueString()),
+		Feature: cloudflare.F(mFeature),
 	}
 
 	return

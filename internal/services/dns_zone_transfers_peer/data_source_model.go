@@ -5,8 +5,8 @@ package dns_zone_transfers_peer
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/dns"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/dns"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,7 +16,7 @@ type DNSZoneTransfersPeerResultDataSourceEnvelope struct {
 }
 
 type DNSZoneTransfersPeerDataSourceModel struct {
-	ID         types.String  `tfsdk:"id" json:"-,computed"`
+	ID         types.String  `tfsdk:"id" path:"peer_id,computed"`
 	PeerID     types.String  `tfsdk:"peer_id" path:"peer_id,optional"`
 	AccountID  types.String  `tfsdk:"account_id" path:"account_id,required"`
 	IP         types.String  `tfsdk:"ip" json:"ip,computed"`
@@ -28,14 +28,6 @@ type DNSZoneTransfersPeerDataSourceModel struct {
 
 func (m *DNSZoneTransfersPeerDataSourceModel) toReadParams(_ context.Context) (params dns.ZoneTransferPeerGetParams, diags diag.Diagnostics) {
 	params = dns.ZoneTransferPeerGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *DNSZoneTransfersPeerDataSourceModel) toListParams(_ context.Context) (params dns.ZoneTransferPeerListParams, diags diag.Diagnostics) {
-	params = dns.ZoneTransferPeerListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

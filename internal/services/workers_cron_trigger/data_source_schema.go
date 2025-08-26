@@ -16,7 +16,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"script_name": schema.StringAttribute{
@@ -28,10 +28,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectListType[WorkersCronTriggerSchedulesDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"created_on": schema.StringAttribute{
+						"cron": schema.StringAttribute{
 							Computed: true,
 						},
-						"cron": schema.StringAttribute{
+						"created_on": schema.StringAttribute{
 							Computed: true,
 						},
 						"modified_on": schema.StringAttribute{

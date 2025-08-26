@@ -15,6 +15,7 @@ description: |-
 data "cloudflare_queue_consumer" "example_queue_consumer" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
   queue_id = "023e105f4ecef8ad9ca31a8372d0c353"
+  consumer_id = "023e105f4ecef8ad9ca31a8372d0c353"
 }
 ```
 
@@ -24,16 +25,16 @@ data "cloudflare_queue_consumer" "example_queue_consumer" {
 ### Required
 
 - `account_id` (String) A Resource identifier.
+- `consumer_id` (String) A Resource identifier.
+- `queue_id` (String) A Resource identifier.
 
 ### Read-Only
 
-- `consumer_id` (String) A Resource identifier.
 - `created_on` (String)
-- `queue_id` (String) A Resource identifier.
 - `script` (String) Name of a Worker
 - `script_name` (String) Name of a Worker
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--settings))
-- `type` (String)
+- `type` (String) Available values: "worker", "http_pull".
 
 <a id="nestedatt--settings"></a>
 ### Nested Schema for `settings`

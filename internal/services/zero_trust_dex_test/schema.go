@@ -5,7 +5,6 @@ package zero_trust_dex_test
 import (
 	"context"
 
-	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -18,8 +17,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "The unique identifier for the test.",
-				Computed:    true,
+				Description:   "The unique identifier for the test.",
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"test_id": schema.StringAttribute{
 				Description:   "The unique identifier for the test.",
@@ -68,22 +68,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 			},
 			"target_policies": schema.ListNestedAttribute{
-				Description: "Device settings profiles targeted by this test",
-				Computed:    true,
+				Description: "DEX rules targeted by this test",
 				Optional:    true,
-				CustomType:  customfield.NewNestedObjectListType[ZeroTrustDEXTestTargetPoliciesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "The id of the device settings profile",
+							Description: "The id of the DEX rule",
 							Optional:    true,
 						},
 						"default": schema.BoolAttribute{
-							Description: "Whether the profile is the account default",
+							Description: "Whether the DEX rule is the account default",
 							Optional:    true,
 						},
 						"name": schema.StringAttribute{
-							Description: "The name of the device settings profile",
+							Description: "The name of the DEX rule",
 							Optional:    true,
 						},
 					},

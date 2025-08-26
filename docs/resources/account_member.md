@@ -13,7 +13,7 @@ description: |-
 
 ```terraform
 resource "cloudflare_account_member" "example_account_member" {
-  account_id = "eb78d65290b24279ba6f44721b3ea3c4"
+  account_id = "023e105f4ecef8ad9ca31a8372d0c353"
   email = "user@example.com"
   roles = ["3536bcfad5faccb999b47003c79917fb"]
   status = "accepted"
@@ -32,7 +32,7 @@ resource "cloudflare_account_member" "example_account_member" {
 
 - `policies` (Attributes List) Array of policies associated with this member. (see [below for nested schema](#nestedatt--policies))
 - `roles` (List of String) Array of roles associated with this member.
-- `status` (String)
+- `status` (String) Available values: "accepted", "pending".
 
 ### Read-Only
 
@@ -45,6 +45,7 @@ resource "cloudflare_account_member" "example_account_member" {
 Required:
 
 - `access` (String) Allow or deny operations against the resources.
+Available values: "allow", "deny".
 - `permission_groups` (Attributes List) A set of permission groups that are specified to the policy. (see [below for nested schema](#nestedatt--policies--permission_groups))
 - `resource_groups` (Attributes List) A list of resource groups that the policy applies to. (see [below for nested schema](#nestedatt--policies--resource_groups))
 

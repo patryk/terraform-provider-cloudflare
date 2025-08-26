@@ -5,8 +5,8 @@ package zero_trust_access_application
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,48 +18,50 @@ type ZeroTrustAccessApplicationResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustAccessApplicationDataSourceModel struct {
-	ID                       types.String                                                                          `tfsdk:"id" json:"-,computed"`
-	AppID                    types.String                                                                          `tfsdk:"app_id" path:"app_id,optional"`
-	AccountID                types.String                                                                          `tfsdk:"account_id" path:"account_id,optional"`
-	ZoneID                   types.String                                                                          `tfsdk:"zone_id" path:"zone_id,optional"`
-	AllowAuthenticateViaWARP types.Bool                                                                            `tfsdk:"allow_authenticate_via_warp" json:"allow_authenticate_via_warp,computed"`
-	AppLauncherLogoURL       types.String                                                                          `tfsdk:"app_launcher_logo_url" json:"app_launcher_logo_url,computed"`
-	AppLauncherVisible       types.Bool                                                                            `tfsdk:"app_launcher_visible" json:"app_launcher_visible,computed"`
-	AUD                      types.String                                                                          `tfsdk:"aud" json:"aud,computed"`
-	AutoRedirectToIdentity   types.Bool                                                                            `tfsdk:"auto_redirect_to_identity" json:"auto_redirect_to_identity,computed"`
-	BgColor                  types.String                                                                          `tfsdk:"bg_color" json:"bg_color,computed"`
-	CreatedAt                timetypes.RFC3339                                                                     `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`
-	CustomDenyMessage        types.String                                                                          `tfsdk:"custom_deny_message" json:"custom_deny_message,computed"`
-	CustomDenyURL            types.String                                                                          `tfsdk:"custom_deny_url" json:"custom_deny_url,computed"`
-	CustomNonIdentityDenyURL types.String                                                                          `tfsdk:"custom_non_identity_deny_url" json:"custom_non_identity_deny_url,computed"`
-	Domain                   types.String                                                                          `tfsdk:"domain" json:"domain,computed"`
-	EnableBindingCookie      types.Bool                                                                            `tfsdk:"enable_binding_cookie" json:"enable_binding_cookie,computed"`
-	HeaderBgColor            types.String                                                                          `tfsdk:"header_bg_color" json:"header_bg_color,computed"`
-	HTTPOnlyCookieAttribute  types.Bool                                                                            `tfsdk:"http_only_cookie_attribute" json:"http_only_cookie_attribute,computed"`
-	LogoURL                  types.String                                                                          `tfsdk:"logo_url" json:"logo_url,computed"`
-	Name                     types.String                                                                          `tfsdk:"name" json:"name,computed"`
-	OptionsPreflightBypass   types.Bool                                                                            `tfsdk:"options_preflight_bypass" json:"options_preflight_bypass,computed"`
-	PathCookieAttribute      types.Bool                                                                            `tfsdk:"path_cookie_attribute" json:"path_cookie_attribute,computed"`
-	SameSiteCookieAttribute  types.String                                                                          `tfsdk:"same_site_cookie_attribute" json:"same_site_cookie_attribute,computed"`
-	ServiceAuth401Redirect   types.Bool                                                                            `tfsdk:"service_auth_401_redirect" json:"service_auth_401_redirect,computed"`
-	SessionDuration          types.String                                                                          `tfsdk:"session_duration" json:"session_duration,computed"`
-	SkipAppLauncherLoginPage types.Bool                                                                            `tfsdk:"skip_app_launcher_login_page" json:"skip_app_launcher_login_page,computed"`
-	SkipInterstitial         types.Bool                                                                            `tfsdk:"skip_interstitial" json:"skip_interstitial,computed"`
-	Type                     types.String                                                                          `tfsdk:"type" json:"type,computed"`
-	UpdatedAt                timetypes.RFC3339                                                                     `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
-	AllowedIdPs              customfield.List[types.String]                                                        `tfsdk:"allowed_idps" json:"allowed_idps,computed"`
-	CustomPages              customfield.List[types.String]                                                        `tfsdk:"custom_pages" json:"custom_pages,computed"`
-	SelfHostedDomains        customfield.List[types.String]                                                        `tfsdk:"self_hosted_domains" json:"self_hosted_domains,computed"`
-	Tags                     customfield.List[types.String]                                                        `tfsdk:"tags" json:"tags,computed"`
-	CORSHeaders              customfield.NestedObject[ZeroTrustAccessApplicationCORSHeadersDataSourceModel]        `tfsdk:"cors_headers" json:"cors_headers,computed"`
-	Destinations             customfield.NestedObjectList[ZeroTrustAccessApplicationDestinationsDataSourceModel]   `tfsdk:"destinations" json:"destinations,computed"`
-	FooterLinks              customfield.NestedObjectList[ZeroTrustAccessApplicationFooterLinksDataSourceModel]    `tfsdk:"footer_links" json:"footer_links,computed"`
-	LandingPageDesign        customfield.NestedObject[ZeroTrustAccessApplicationLandingPageDesignDataSourceModel]  `tfsdk:"landing_page_design" json:"landing_page_design,computed"`
-	Policies                 customfield.NestedObjectList[ZeroTrustAccessApplicationPoliciesDataSourceModel]       `tfsdk:"policies" json:"policies,computed"`
-	SaaSApp                  customfield.NestedObject[ZeroTrustAccessApplicationSaaSAppDataSourceModel]            `tfsdk:"saas_app" json:"saas_app,computed"`
-	SCIMConfig               customfield.NestedObject[ZeroTrustAccessApplicationSCIMConfigDataSourceModel]         `tfsdk:"scim_config" json:"scim_config,computed"`
-	TargetCriteria           customfield.NestedObjectList[ZeroTrustAccessApplicationTargetCriteriaDataSourceModel] `tfsdk:"target_criteria" json:"target_criteria,computed"`
-	Filter                   *ZeroTrustAccessApplicationFindOneByDataSourceModel                                   `tfsdk:"filter"`
+	ID                          types.String                                                                          `tfsdk:"id" path:"app_id,computed"`
+	AppID                       types.String                                                                          `tfsdk:"app_id" path:"app_id,optional"`
+	AccountID                   types.String                                                                          `tfsdk:"account_id" path:"account_id,optional"`
+	ZoneID                      types.String                                                                          `tfsdk:"zone_id" path:"zone_id,optional"`
+	AllowAuthenticateViaWARP    types.Bool                                                                            `tfsdk:"allow_authenticate_via_warp" json:"allow_authenticate_via_warp,computed"`
+	AllowIframe                 types.Bool                                                                            `tfsdk:"allow_iframe" json:"allow_iframe,computed"`
+	AppLauncherLogoURL          types.String                                                                          `tfsdk:"app_launcher_logo_url" json:"app_launcher_logo_url,computed"`
+	AppLauncherVisible          types.Bool                                                                            `tfsdk:"app_launcher_visible" json:"app_launcher_visible,computed"`
+	AUD                         types.String                                                                          `tfsdk:"aud" json:"aud,computed"`
+	AutoRedirectToIdentity      types.Bool                                                                            `tfsdk:"auto_redirect_to_identity" json:"auto_redirect_to_identity,computed"`
+	BgColor                     types.String                                                                          `tfsdk:"bg_color" json:"bg_color,computed"`
+	CreatedAt                   timetypes.RFC3339                                                                     `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`
+	CustomDenyMessage           types.String                                                                          `tfsdk:"custom_deny_message" json:"custom_deny_message,computed"`
+	CustomDenyURL               types.String                                                                          `tfsdk:"custom_deny_url" json:"custom_deny_url,computed"`
+	CustomNonIdentityDenyURL    types.String                                                                          `tfsdk:"custom_non_identity_deny_url" json:"custom_non_identity_deny_url,computed"`
+	Domain                      types.String                                                                          `tfsdk:"domain" json:"domain,computed"`
+	EnableBindingCookie         types.Bool                                                                            `tfsdk:"enable_binding_cookie" json:"enable_binding_cookie,computed"`
+	HeaderBgColor               types.String                                                                          `tfsdk:"header_bg_color" json:"header_bg_color,computed"`
+	HTTPOnlyCookieAttribute     types.Bool                                                                            `tfsdk:"http_only_cookie_attribute" json:"http_only_cookie_attribute,computed"`
+	LogoURL                     types.String                                                                          `tfsdk:"logo_url" json:"logo_url,computed"`
+	Name                        types.String                                                                          `tfsdk:"name" json:"name,computed"`
+	OptionsPreflightBypass      types.Bool                                                                            `tfsdk:"options_preflight_bypass" json:"options_preflight_bypass,computed"`
+	PathCookieAttribute         types.Bool                                                                            `tfsdk:"path_cookie_attribute" json:"path_cookie_attribute,computed"`
+	ReadServiceTokensFromHeader types.String                                                                          `tfsdk:"read_service_tokens_from_header" json:"read_service_tokens_from_header,computed"`
+	SameSiteCookieAttribute     types.String                                                                          `tfsdk:"same_site_cookie_attribute" json:"same_site_cookie_attribute,computed"`
+	ServiceAuth401Redirect      types.Bool                                                                            `tfsdk:"service_auth_401_redirect" json:"service_auth_401_redirect,computed"`
+	SessionDuration             types.String                                                                          `tfsdk:"session_duration" json:"session_duration,computed"`
+	SkipAppLauncherLoginPage    types.Bool                                                                            `tfsdk:"skip_app_launcher_login_page" json:"skip_app_launcher_login_page,computed"`
+	SkipInterstitial            types.Bool                                                                            `tfsdk:"skip_interstitial" json:"skip_interstitial,computed"`
+	Type                        types.String                                                                          `tfsdk:"type" json:"type,computed"`
+	UpdatedAt                   timetypes.RFC3339                                                                     `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
+	AllowedIdPs                 customfield.List[types.String]                                                        `tfsdk:"allowed_idps" json:"allowed_idps,computed"`
+	CustomPages                 customfield.List[types.String]                                                        `tfsdk:"custom_pages" json:"custom_pages,computed"`
+	SelfHostedDomains           customfield.List[types.String]                                                        `tfsdk:"self_hosted_domains" json:"self_hosted_domains,computed"`
+	Tags                        customfield.List[types.String]                                                        `tfsdk:"tags" json:"tags,computed"`
+	CORSHeaders                 customfield.NestedObject[ZeroTrustAccessApplicationCORSHeadersDataSourceModel]        `tfsdk:"cors_headers" json:"cors_headers,computed"`
+	Destinations                customfield.NestedObjectList[ZeroTrustAccessApplicationDestinationsDataSourceModel]   `tfsdk:"destinations" json:"destinations,computed"`
+	FooterLinks                 customfield.NestedObjectList[ZeroTrustAccessApplicationFooterLinksDataSourceModel]    `tfsdk:"footer_links" json:"footer_links,computed"`
+	LandingPageDesign           customfield.NestedObject[ZeroTrustAccessApplicationLandingPageDesignDataSourceModel]  `tfsdk:"landing_page_design" json:"landing_page_design,computed"`
+	Policies                    customfield.NestedObjectList[ZeroTrustAccessApplicationPoliciesDataSourceModel]       `tfsdk:"policies" json:"policies,computed"`
+	SaaSApp                     customfield.NestedObject[ZeroTrustAccessApplicationSaaSAppDataSourceModel]            `tfsdk:"saas_app" json:"saas_app,computed"`
+	SCIMConfig                  customfield.NestedObject[ZeroTrustAccessApplicationSCIMConfigDataSourceModel]         `tfsdk:"scim_config" json:"scim_config,computed"`
+	TargetCriteria              customfield.NestedObjectList[ZeroTrustAccessApplicationTargetCriteriaDataSourceModel] `tfsdk:"target_criteria" json:"target_criteria,computed"`
+	Filter                      *ZeroTrustAccessApplicationFindOneByDataSourceModel                                   `tfsdk:"filter"`
 }
 
 func (m *ZeroTrustAccessApplicationDataSourceModel) toReadParams(_ context.Context) (params zero_trust.AccessApplicationGetParams, diags diag.Diagnostics) {
@@ -82,6 +84,9 @@ func (m *ZeroTrustAccessApplicationDataSourceModel) toListParams(_ context.Conte
 	}
 	if !m.Filter.Domain.IsNull() {
 		params.Domain = cloudflare.F(m.Filter.Domain.ValueString())
+	}
+	if !m.Filter.Exact.IsNull() {
+		params.Exact = cloudflare.F(m.Filter.Exact.ValueBool())
 	}
 	if !m.Filter.Name.IsNull() {
 		params.Name = cloudflare.F(m.Filter.Name.ValueString())
@@ -143,12 +148,12 @@ type ZeroTrustAccessApplicationPoliciesDataSourceModel struct {
 	Include                      customfield.NestedObjectList[ZeroTrustAccessApplicationPoliciesIncludeDataSourceModel]        `tfsdk:"include" json:"include,computed"`
 	IsolationRequired            types.Bool                                                                                    `tfsdk:"isolation_required" json:"isolation_required,computed"`
 	Name                         types.String                                                                                  `tfsdk:"name" json:"name,computed"`
+	Precedence                   types.Int64                                                                                   `tfsdk:"precedence" json:"precedence,computed"`
 	PurposeJustificationPrompt   types.String                                                                                  `tfsdk:"purpose_justification_prompt" json:"purpose_justification_prompt,computed"`
 	PurposeJustificationRequired types.Bool                                                                                    `tfsdk:"purpose_justification_required" json:"purpose_justification_required,computed"`
 	Require                      customfield.NestedObjectList[ZeroTrustAccessApplicationPoliciesRequireDataSourceModel]        `tfsdk:"require" json:"require,computed"`
 	SessionDuration              types.String                                                                                  `tfsdk:"session_duration" json:"session_duration,computed"`
 	UpdatedAt                    timetypes.RFC3339                                                                             `tfsdk:"updated_at" json:"updated_at,computed" format:"date-time"`
-	Precedence                   types.Int64                                                                                   `tfsdk:"precedence" json:"precedence,computed"`
 	ConnectionRules              customfield.NestedObject[ZeroTrustAccessApplicationPoliciesConnectionRulesDataSourceModel]    `tfsdk:"connection_rules" json:"connection_rules,computed"`
 }
 
@@ -180,7 +185,9 @@ type ZeroTrustAccessApplicationPoliciesExcludeDataSourceModel struct {
 	IP                   customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeIPDataSourceModel]                   `tfsdk:"ip" json:"ip,computed"`
 	Okta                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeOktaDataSourceModel]                 `tfsdk:"okta" json:"okta,computed"`
 	SAML                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeSAMLDataSourceModel]                 `tfsdk:"saml" json:"saml,computed"`
+	OIDC                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeOIDCDataSourceModel]                 `tfsdk:"oidc" json:"oidc,computed"`
 	ServiceToken         customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeServiceTokenDataSourceModel]         `tfsdk:"service_token" json:"service_token,computed"`
+	LinkedAppToken       customfield.NestedObject[ZeroTrustAccessApplicationPoliciesExcludeLinkedAppTokenDataSourceModel]       `tfsdk:"linked_app_token" json:"linked_app_token,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesExcludeGroupDataSourceModel struct {
@@ -274,8 +281,18 @@ type ZeroTrustAccessApplicationPoliciesExcludeSAMLDataSourceModel struct {
 	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
 }
 
+type ZeroTrustAccessApplicationPoliciesExcludeOIDCDataSourceModel struct {
+	ClaimName          types.String `tfsdk:"claim_name" json:"claim_name,computed"`
+	ClaimValue         types.String `tfsdk:"claim_value" json:"claim_value,computed"`
+	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
+}
+
 type ZeroTrustAccessApplicationPoliciesExcludeServiceTokenDataSourceModel struct {
 	TokenID types.String `tfsdk:"token_id" json:"token_id,computed"`
+}
+
+type ZeroTrustAccessApplicationPoliciesExcludeLinkedAppTokenDataSourceModel struct {
+	AppUID types.String `tfsdk:"app_uid" json:"app_uid,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesIncludeDataSourceModel struct {
@@ -300,7 +317,9 @@ type ZeroTrustAccessApplicationPoliciesIncludeDataSourceModel struct {
 	IP                   customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeIPDataSourceModel]                   `tfsdk:"ip" json:"ip,computed"`
 	Okta                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeOktaDataSourceModel]                 `tfsdk:"okta" json:"okta,computed"`
 	SAML                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeSAMLDataSourceModel]                 `tfsdk:"saml" json:"saml,computed"`
+	OIDC                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeOIDCDataSourceModel]                 `tfsdk:"oidc" json:"oidc,computed"`
 	ServiceToken         customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeServiceTokenDataSourceModel]         `tfsdk:"service_token" json:"service_token,computed"`
+	LinkedAppToken       customfield.NestedObject[ZeroTrustAccessApplicationPoliciesIncludeLinkedAppTokenDataSourceModel]       `tfsdk:"linked_app_token" json:"linked_app_token,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesIncludeGroupDataSourceModel struct {
@@ -394,8 +413,18 @@ type ZeroTrustAccessApplicationPoliciesIncludeSAMLDataSourceModel struct {
 	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
 }
 
+type ZeroTrustAccessApplicationPoliciesIncludeOIDCDataSourceModel struct {
+	ClaimName          types.String `tfsdk:"claim_name" json:"claim_name,computed"`
+	ClaimValue         types.String `tfsdk:"claim_value" json:"claim_value,computed"`
+	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
+}
+
 type ZeroTrustAccessApplicationPoliciesIncludeServiceTokenDataSourceModel struct {
 	TokenID types.String `tfsdk:"token_id" json:"token_id,computed"`
+}
+
+type ZeroTrustAccessApplicationPoliciesIncludeLinkedAppTokenDataSourceModel struct {
+	AppUID types.String `tfsdk:"app_uid" json:"app_uid,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesRequireDataSourceModel struct {
@@ -420,7 +449,9 @@ type ZeroTrustAccessApplicationPoliciesRequireDataSourceModel struct {
 	IP                   customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireIPDataSourceModel]                   `tfsdk:"ip" json:"ip,computed"`
 	Okta                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireOktaDataSourceModel]                 `tfsdk:"okta" json:"okta,computed"`
 	SAML                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireSAMLDataSourceModel]                 `tfsdk:"saml" json:"saml,computed"`
+	OIDC                 customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireOIDCDataSourceModel]                 `tfsdk:"oidc" json:"oidc,computed"`
 	ServiceToken         customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireServiceTokenDataSourceModel]         `tfsdk:"service_token" json:"service_token,computed"`
+	LinkedAppToken       customfield.NestedObject[ZeroTrustAccessApplicationPoliciesRequireLinkedAppTokenDataSourceModel]       `tfsdk:"linked_app_token" json:"linked_app_token,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesRequireGroupDataSourceModel struct {
@@ -514,8 +545,18 @@ type ZeroTrustAccessApplicationPoliciesRequireSAMLDataSourceModel struct {
 	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
 }
 
+type ZeroTrustAccessApplicationPoliciesRequireOIDCDataSourceModel struct {
+	ClaimName          types.String `tfsdk:"claim_name" json:"claim_name,computed"`
+	ClaimValue         types.String `tfsdk:"claim_value" json:"claim_value,computed"`
+	IdentityProviderID types.String `tfsdk:"identity_provider_id" json:"identity_provider_id,computed"`
+}
+
 type ZeroTrustAccessApplicationPoliciesRequireServiceTokenDataSourceModel struct {
 	TokenID types.String `tfsdk:"token_id" json:"token_id,computed"`
+}
+
+type ZeroTrustAccessApplicationPoliciesRequireLinkedAppTokenDataSourceModel struct {
+	AppUID types.String `tfsdk:"app_uid" json:"app_uid,computed"`
 }
 
 type ZeroTrustAccessApplicationPoliciesConnectionRulesDataSourceModel struct {
@@ -639,6 +680,7 @@ type ZeroTrustAccessApplicationTargetCriteriaDataSourceModel struct {
 type ZeroTrustAccessApplicationFindOneByDataSourceModel struct {
 	AUD    types.String `tfsdk:"aud" query:"aud,optional"`
 	Domain types.String `tfsdk:"domain" query:"domain,optional"`
+	Exact  types.Bool   `tfsdk:"exact" query:"exact,optional"`
 	Name   types.String `tfsdk:"name" query:"name,optional"`
 	Search types.String `tfsdk:"search" query:"search,optional"`
 }

@@ -21,11 +21,11 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"order_by": schema.StringAttribute{
-				Description: "The property used to sort the list of results.",
+				Description: "The property used to sort the list of results.\nAvailable values: \"host\", \"created\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("host", "created"),

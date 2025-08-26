@@ -8,11 +8,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
 type ListItemDataSource struct {
@@ -57,13 +58,19 @@ func (d *ListItemDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
+	params, diags := data.toReadParams(ctx)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	res := new(http.Response)
 	env := ListItemResultDataSourceEnvelope{*data}
 	_, err := d.client.Rules.Lists.Items.Get(
 		ctx,
-		data.AccountIdentifier.ValueString(),
 		data.ListID.ValueString(),
 		data.ItemID.ValueString(),
+		params,
 		option.WithResponseBodyInto(&res),
 		option.WithMiddleware(logging.Middleware(ctx)),
 	)

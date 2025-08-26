@@ -19,11 +19,11 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Include Certificate Packs of all statuses, not just active ones.",
+				Description: "Include Certificate Packs of all statuses, not just active ones.\nAvailable values: \"all\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("all"),

@@ -5,8 +5,8 @@ package queue
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/queues"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/queues"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -69,5 +69,6 @@ type QueuesProducersDataSourceModel struct {
 
 type QueuesSettingsDataSourceModel struct {
 	DeliveryDelay          types.Float64 `tfsdk:"delivery_delay" json:"delivery_delay,computed"`
+	DeliveryPaused         types.Bool    `tfsdk:"delivery_paused" json:"delivery_paused,computed"`
 	MessageRetentionPeriod types.Float64 `tfsdk:"message_retention_period" json:"message_retention_period,computed"`
 }

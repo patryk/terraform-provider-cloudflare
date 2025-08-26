@@ -53,11 +53,13 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 										Computed: true,
 									},
 									"upload_status": schema.StringAttribute{
-										Computed: true,
+										Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive(
 												"empty",
 												"uploading",
+												"pending",
 												"processing",
 												"failed",
 												"complete",
@@ -87,11 +89,13 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed: true,
 						},
 						"status": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"empty",
 									"uploading",
+									"pending",
 									"processing",
 									"failed",
 									"complete",
@@ -112,11 +116,13 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 										Computed: true,
 									},
 									"status": schema.StringAttribute{
-										Computed: true,
+										Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive(
 												"empty",
 												"uploading",
+												"pending",
 												"processing",
 												"failed",
 												"complete",
@@ -129,8 +135,11 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"case_sensitive": schema.BoolAttribute{
+							Computed: true,
+						},
 						"description": schema.StringAttribute{
-							Description: "The description of the dataset",
+							Description: "The description of the dataset.",
 							Computed:    true,
 						},
 					},

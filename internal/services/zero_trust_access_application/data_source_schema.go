@@ -24,11 +24,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Computed:    true,
 			},
 			"app_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Optional:    true,
 			},
 			"account_id": schema.StringAttribute{
@@ -41,6 +41,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"allow_authenticate_via_warp": schema.BoolAttribute{
 				Description: "When set to true, users can authenticate to this application using their WARP session.  When set to false this application will always require direct IdP authentication. This setting always overrides the organization setting for WARP authentication.",
+				Computed:    true,
+			},
+			"allow_iframe": schema.BoolAttribute{
+				Description: "Enables loading application content in an iFrame.",
 				Computed:    true,
 			},
 			"app_launcher_logo_url": schema.StringAttribute{
@@ -111,6 +115,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "Enables cookie paths to scope an application's JWT to the application path. If disabled, the JWT will scope to the hostname by default",
 				Computed:    true,
 			},
+			"read_service_tokens_from_header": schema.StringAttribute{
+				Description: "Allows matching Access Service Tokens passed HTTP in a single header with this name.\nThis works as an alternative to the (CF-Access-Client-Id, CF-Access-Client-Secret) pair of headers.\nThe header value will be interpreted as a json object similar to: \n  {\n    \"cf-access-client-id\": \"88bf3b6d86161464f6509f7219099e57.access.example.com\",\n    \"cf-access-client-secret\": \"bdd31cbc4dec990953e39163fbbb194c93313ca9f0a6e420346af9d326b1d2a5\"\n  }",
+				Computed:    true,
+			},
 			"same_site_cookie_attribute": schema.StringAttribute{
 				Description: "Sets the SameSite cookie setting, which provides increased security against CSRF attacks.",
 				Computed:    true,
@@ -120,7 +128,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"session_duration": schema.StringAttribute{
-				Description: "The amount of time that tokens issued for this application will be valid. Must be in the format `300ms` or `2h45m`. Valid time units are: ns, us (or µs), ms, s, m, h.",
+				Description: "The amount of time that tokens issued for this application will be valid. Must be in the format `300ms` or `2h45m`. Valid time units are: ns, us (or µs), ms, s, m, h. Note: unsupported for infrastructure type applications.",
 				Computed:    true,
 			},
 			"skip_app_launcher_login_page": schema.BoolAttribute{
@@ -132,8 +140,23 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"type": schema.StringAttribute{
-				Description: "The application type.",
+				Description: "The application type.\nAvailable values: \"self_hosted\", \"saas\", \"ssh\", \"vnc\", \"app_launcher\", \"warp\", \"biso\", \"bookmark\", \"dash_sso\", \"infrastructure\", \"rdp\".",
 				Computed:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"self_hosted",
+						"saas",
+						"ssh",
+						"vnc",
+						"app_launcher",
+						"warp",
+						"biso",
+						"bookmark",
+						"dash_sso",
+						"infrastructure",
+						"rdp",
+					),
+				},
 			},
 			"updated_at": schema.StringAttribute{
 				Computed:   true,
@@ -152,10 +175,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				ElementType: types.StringType,
 			},
 			"self_hosted_domains": schema.ListAttribute{
-				Description: "List of public domains that Access will secure. This field is deprecated in favor of `destinations` and will be supported until **November 21, 2025.** If `destinations` are provided, then `self_hosted_domains` will be ignored.\n",
-				Computed:    true,
-				CustomType:  customfield.NewListType[types.String](ctx),
-				ElementType: types.StringType,
+				Description:        "List of public domains that Access will secure. This field is deprecated in favor of `destinations` and will be supported until **November 21, 2025.** If `destinations` are provided, then `self_hosted_domains` will be ignored.",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
+				CustomType:         customfield.NewListType[types.String](ctx),
+				ElementType:        types.StringType,
 			},
 			"tags": schema.ListAttribute{
 				Description: "The tags you want assigned to an application. Tags are used to filter applications in the App Launcher dashboard.",
@@ -226,19 +250,20 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"destinations": schema.ListNestedAttribute{
-				Description: "List of destinations secured by Access. This supersedes `self_hosted_domains` to allow for more flexibility in defining different types of domains. If `destinations` are provided, then `self_hosted_domains` will be ignored.\n",
+				Description: "List of destinations secured by Access. This supersedes `self_hosted_domains` to allow for more flexibility in defining different types of domains. If `destinations` are provided, then `self_hosted_domains` will be ignored.",
 				Computed:    true,
 				CustomType:  customfield.NewNestedObjectListType[ZeroTrustAccessApplicationDestinationsDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "public", "private".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("public", "private"),
 							},
 						},
 						"uri": schema.StringAttribute{
-							Description: "The URI of the destination. Public destinations' URIs can include a domain and path with [wildcards](https://developers.cloudflare.com/cloudflare-one/policies/access/app-paths/).\n",
+							Description: "The URI of the destination. Public destinations' URIs can include a domain and path with [wildcards](https://developers.cloudflare.com/cloudflare-one/policies/access/app-paths/).",
 							Computed:    true,
 						},
 						"cidr": schema.StringAttribute{
@@ -250,14 +275,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"l4_protocol": schema.StringAttribute{
-							Description: "The L4 protocol of the destination. When omitted, both UDP and TCP traffic will match.",
+							Description: "The L4 protocol of the destination. When omitted, both UDP and TCP traffic will match.\nAvailable values: \"tcp\", \"udp\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("tcp", "udp"),
 							},
 						},
 						"port_range": schema.StringAttribute{
-							Description: "The port range of the destination. Can be a single port or a range of ports. When omitted, all ports will match.\n",
+							Description: "The port range of the destination. Can be a single port or a range of ports. When omitted, all ports will match.",
 							Computed:    true,
 						},
 						"vnet_id": schema.StringAttribute{
@@ -355,7 +380,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							CustomType: timetypes.RFC3339Type{},
 						},
 						"decision": schema.StringAttribute{
-							Description: "The action Access will take if a user matches this policy. Infrastructure application policies can only use the Allow action.",
+							Description: "The action Access will take if a user matches this policy. Infrastructure application policies can only use the Allow action.\nAvailable values: \"allow\", \"deny\", \"non_identity\", \"bypass\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -609,12 +634,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
+									"oidc": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesExcludeOIDCDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"claim_name": schema.StringAttribute{
+												Description: "The name of the OIDC claim.",
+												Computed:    true,
+											},
+											"claim_value": schema.StringAttribute{
+												Description: "The OIDC claim value to look for.",
+												Computed:    true,
+											},
+											"identity_provider_id": schema.StringAttribute{
+												Description: "The ID of your OIDC identity provider.",
+												Computed:    true,
+											},
+										},
+									},
 									"service_token": schema.SingleNestedAttribute{
 										Computed:   true,
 										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesExcludeServiceTokenDataSourceModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"token_id": schema.StringAttribute{
 												Description: "The ID of a Service Token.",
+												Computed:    true,
+											},
+										},
+									},
+									"linked_app_token": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesExcludeLinkedAppTokenDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"app_uid": schema.StringAttribute{
+												Description: "The ID of an Access OIDC SaaS application",
 												Computed:    true,
 											},
 										},
@@ -865,12 +918,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
+									"oidc": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesIncludeOIDCDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"claim_name": schema.StringAttribute{
+												Description: "The name of the OIDC claim.",
+												Computed:    true,
+											},
+											"claim_value": schema.StringAttribute{
+												Description: "The OIDC claim value to look for.",
+												Computed:    true,
+											},
+											"identity_provider_id": schema.StringAttribute{
+												Description: "The ID of your OIDC identity provider.",
+												Computed:    true,
+											},
+										},
+									},
 									"service_token": schema.SingleNestedAttribute{
 										Computed:   true,
 										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesIncludeServiceTokenDataSourceModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"token_id": schema.StringAttribute{
 												Description: "The ID of a Service Token.",
+												Computed:    true,
+											},
+										},
+									},
+									"linked_app_token": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesIncludeLinkedAppTokenDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"app_uid": schema.StringAttribute{
+												Description: "The ID of an Access OIDC SaaS application",
 												Computed:    true,
 											},
 										},
@@ -884,6 +965,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 						"name": schema.StringAttribute{
 							Description: "The name of the Access policy.",
+							Computed:    true,
+						},
+						"precedence": schema.Int64Attribute{
+							Description: "The order of execution for this policy. Must be unique for each policy within an app.",
 							Computed:    true,
 						},
 						"purpose_justification_prompt": schema.StringAttribute{
@@ -1137,12 +1222,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 									},
+									"oidc": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesRequireOIDCDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"claim_name": schema.StringAttribute{
+												Description: "The name of the OIDC claim.",
+												Computed:    true,
+											},
+											"claim_value": schema.StringAttribute{
+												Description: "The OIDC claim value to look for.",
+												Computed:    true,
+											},
+											"identity_provider_id": schema.StringAttribute{
+												Description: "The ID of your OIDC identity provider.",
+												Computed:    true,
+											},
+										},
+									},
 									"service_token": schema.SingleNestedAttribute{
 										Computed:   true,
 										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesRequireServiceTokenDataSourceModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"token_id": schema.StringAttribute{
 												Description: "The ID of a Service Token.",
+												Computed:    true,
+											},
+										},
+									},
+									"linked_app_token": schema.SingleNestedAttribute{
+										Computed:   true,
+										CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationPoliciesRequireLinkedAppTokenDataSourceModel](ctx),
+										Attributes: map[string]schema.Attribute{
+											"app_uid": schema.StringAttribute{
+												Description: "The ID of an Access OIDC SaaS application",
 												Computed:    true,
 											},
 										},
@@ -1157,10 +1270,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						"updated_at": schema.StringAttribute{
 							Computed:   true,
 							CustomType: timetypes.RFC3339Type{},
-						},
-						"precedence": schema.Int64Attribute{
-							Description: "The order of execution for this policy. Must be unique for each policy within an app.",
-							Computed:    true,
 						},
 						"connection_rules": schema.SingleNestedAttribute{
 							Description: "The rules that define how users may connect to the targets secured by your application.",
@@ -1194,7 +1303,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectType[ZeroTrustAccessApplicationSaaSAppDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"auth_type": schema.StringAttribute{
-						Description: "Optional identifier indicating the authentication protocol used for the saas app. Required for OIDC. Default if unset is \"saml\"",
+						Description: "Optional identifier indicating the authentication protocol used for the saas app. Required for OIDC. Default if unset is \"saml\"\nAvailable values: \"saml\", \"oidc\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("saml", "oidc"),
@@ -1222,7 +1331,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"name_format": schema.StringAttribute{
-									Description: "A globally unique name for an identity or service provider.",
+									Description: "A globally unique name for an identity or service provider.\nAvailable values: \"urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified\", \"urn:oasis:names:tc:SAML:2.0:attrname-format:basic\", \"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -1275,14 +1384,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Computed:    true,
 					},
 					"name_id_format": schema.StringAttribute{
-						Description: "The format of the name identifier sent to the SaaS application.",
+						Description: "The format of the name identifier sent to the SaaS application.\nAvailable values: \"id\", \"email\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("id", "email"),
 						},
 					},
 					"name_id_transform_jsonata": schema.StringAttribute{
-						Description: "A [JSONata](https://jsonata.org/) expression that transforms an application's user identities into a NameID value for its SAML assertion. This expression should evaluate to a singular string. The output of this expression can override the `name_id_format` setting.\n",
+						Description: "A [JSONata](https://jsonata.org/) expression that transforms an application's user identities into a NameID value for its SAML assertion. This expression should evaluate to a singular string. The output of this expression can override the `name_id_format` setting.",
 						Computed:    true,
 					},
 					"public_key": schema.StringAttribute{
@@ -1290,7 +1399,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Computed:    true,
 					},
 					"saml_attribute_transform_jsonata": schema.StringAttribute{
-						Description: "A [JSONata] (https://jsonata.org/) expression that transforms an application's user identities into attribute assertions in the SAML response. The expression can transform id, email, name, and groups values. It can also transform fields listed in the saml_attributes or oidc_fields of the identity provider used to authenticate. The output of this expression must be a JSON object.\n",
+						Description: "A [JSONata] (https://jsonata.org/) expression that transforms an application's user identities into attribute assertions in the SAML response. The expression can transform id, email, name, and groups values. It can also transform fields listed in the saml_attributes or oidc_fields of the identity provider used to authenticate. The output of this expression must be a JSON object.",
 						Computed:    true,
 					},
 					"sp_entity_id": schema.StringAttribute{
@@ -1324,6 +1433,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					"client_secret": schema.StringAttribute{
 						Description: "The application client secret, only returned on POST request.",
 						Computed:    true,
+						Sensitive:   true,
 					},
 					"custom_claims": schema.ListNestedAttribute{
 						Computed:   true,
@@ -1339,7 +1449,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"scope": schema.StringAttribute{
-									Description: "The scope of the claim.",
+									Description: "The scope of the claim.\nAvailable values: \"groups\", \"profile\", \"email\", \"openid\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -1421,7 +1531,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 					"scopes": schema.ListAttribute{
-						Description: "Define the user information shared with access, \"offline_access\" scope will be automatically enabled if refresh tokens are enabled",
+						Description: `Define the user information shared with access, "offline_access" scope will be automatically enabled if refresh tokens are enabled`,
 						Computed:    true,
 						Validators: []validator.List{
 							listvalidator.ValueStringsAre(
@@ -1461,7 +1571,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"scheme": schema.StringAttribute{
-								Description: "The authentication scheme to use when making SCIM requests to this application.",
+								Description: "The authentication scheme to use when making SCIM requests to this application.\nAvailable values: \"httpbasic\", \"oauthbearertoken\", \"oauth2\", \"access_service_token\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive(
@@ -1479,6 +1589,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							"token": schema.StringAttribute{
 								Description: "Token used to authenticate with the remote SCIM service.",
 								Computed:    true,
+								Sensitive:   true,
 							},
 							"authorization_url": schema.StringAttribute{
 								Description: "URL used to generate the auth code used during token generation.",
@@ -1491,6 +1602,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							"client_secret": schema.StringAttribute{
 								Description: "Secret used to authenticate when generating a token for authenticating with the remove SCIM service.",
 								Computed:    true,
+								Sensitive:   true,
 							},
 							"token_url": schema.StringAttribute{
 								Description: "URL used to generate the token used to authenticate with the remote SCIM service.",
@@ -1550,7 +1662,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								"strictness": schema.StringAttribute{
-									Description: "The level of adherence to outbound resource schemas when provisioning to this mapping. ‘Strict’ removes unknown values, while ‘passthrough’ passes unknown values to the target.",
+									Description: "The level of adherence to outbound resource schemas when provisioning to this mapping. ‘Strict’ removes unknown values, while ‘passthrough’ passes unknown values to the target.\nAvailable values: \"strict\", \"passthrough\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive("strict", "passthrough"),
@@ -1575,10 +1687,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"protocol": schema.StringAttribute{
-							Description: "The communication protocol your application secures.",
+							Description: "The communication protocol your application secures.\nAvailable values: \"SSH\", \"RDP\".",
 							Computed:    true,
 							Validators: []validator.String{
-								stringvalidator.OneOfCaseInsensitive("ssh"),
+								stringvalidator.OneOfCaseInsensitive("SSH", "RDP"),
 							},
 						},
 						"target_attributes": schema.MapAttribute{
@@ -1601,6 +1713,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"domain": schema.StringAttribute{
 						Description: "The domain of the app.",
+						Optional:    true,
+					},
+					"exact": schema.BoolAttribute{
+						Description: "True for only exact string matches against passed name/domain query parameters.",
 						Optional:    true,
 					},
 					"name": schema.StringAttribute{

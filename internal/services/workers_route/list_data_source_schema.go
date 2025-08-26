@@ -18,7 +18,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"max_items": schema.Int64Attribute{
@@ -35,14 +35,15 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "Identifier",
+							Description: "Identifier.",
 							Computed:    true,
 						},
 						"pattern": schema.StringAttribute{
-							Computed: true,
+							Description: "Pattern to match incoming requests against. [Learn more](https://developers.cloudflare.com/workers/configuration/routing/routes/#matching-behavior).",
+							Computed:    true,
 						},
 						"script": schema.StringAttribute{
-							Description: "Name of the script, used in URLs and route configuration.",
+							Description: "Name of the script to run if the route matches.",
 							Computed:    true,
 						},
 					},

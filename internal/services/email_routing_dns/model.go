@@ -16,14 +16,14 @@ type EmailRoutingDNSResultEnvelope struct {
 type EmailRoutingDNSModel struct {
 	ID         types.String                                               `tfsdk:"id" json:"-,computed"`
 	ZoneID     types.String                                               `tfsdk:"zone_id" path:"zone_id,required"`
-	Name       types.String                                               `tfsdk:"name" json:"name,required"`
-	Created    timetypes.RFC3339                                          `tfsdk:"created" json:"created,computed" format:"date-time"`
-	Enabled    types.Bool                                                 `tfsdk:"enabled" json:"enabled,computed"`
-	Modified   timetypes.RFC3339                                          `tfsdk:"modified" json:"modified,computed" format:"date-time"`
-	SkipWizard types.Bool                                                 `tfsdk:"skip_wizard" json:"skip_wizard,computed"`
-	Status     types.String                                               `tfsdk:"status" json:"status,computed"`
+	Name       types.String                                               `tfsdk:"name" json:"name,required,no_refresh"`
+	Created    timetypes.RFC3339                                          `tfsdk:"created" json:"created,computed,no_refresh" format:"date-time"`
+	Enabled    types.Bool                                                 `tfsdk:"enabled" json:"enabled,computed,no_refresh"`
+	Modified   timetypes.RFC3339                                          `tfsdk:"modified" json:"modified,computed,no_refresh" format:"date-time"`
+	SkipWizard types.Bool                                                 `tfsdk:"skip_wizard" json:"skip_wizard,computed,no_refresh"`
+	Status     types.String                                               `tfsdk:"status" json:"status,computed,no_refresh"`
 	Success    types.Bool                                                 `tfsdk:"success" json:"success,computed"`
-	Tag        types.String                                               `tfsdk:"tag" json:"tag,computed"`
+	Tag        types.String                                               `tfsdk:"tag" json:"tag,computed,no_refresh"`
 	Errors     customfield.NestedObjectList[EmailRoutingDNSErrorsModel]   `tfsdk:"errors" json:"errors,computed"`
 	Messages   customfield.NestedObjectList[EmailRoutingDNSMessagesModel] `tfsdk:"messages" json:"messages,computed"`
 	Result     customfield.NestedObject[EmailRoutingDNSResultModel]       `tfsdk:"result" json:"result,computed"`
@@ -39,13 +39,25 @@ func (m EmailRoutingDNSModel) MarshalJSONForUpdate(state EmailRoutingDNSModel) (
 }
 
 type EmailRoutingDNSErrorsModel struct {
-	Code    types.Int64  `tfsdk:"code" json:"code,computed"`
-	Message types.String `tfsdk:"message" json:"message,computed"`
+	Code             types.Int64                                                `tfsdk:"code" json:"code,computed"`
+	Message          types.String                                               `tfsdk:"message" json:"message,computed"`
+	DocumentationURL types.String                                               `tfsdk:"documentation_url" json:"documentation_url,computed"`
+	Source           customfield.NestedObject[EmailRoutingDNSErrorsSourceModel] `tfsdk:"source" json:"source,computed"`
+}
+
+type EmailRoutingDNSErrorsSourceModel struct {
+	Pointer types.String `tfsdk:"pointer" json:"pointer,computed"`
 }
 
 type EmailRoutingDNSMessagesModel struct {
-	Code    types.Int64  `tfsdk:"code" json:"code,computed"`
-	Message types.String `tfsdk:"message" json:"message,computed"`
+	Code             types.Int64                                                  `tfsdk:"code" json:"code,computed"`
+	Message          types.String                                                 `tfsdk:"message" json:"message,computed"`
+	DocumentationURL types.String                                                 `tfsdk:"documentation_url" json:"documentation_url,computed"`
+	Source           customfield.NestedObject[EmailRoutingDNSMessagesSourceModel] `tfsdk:"source" json:"source,computed"`
+}
+
+type EmailRoutingDNSMessagesSourceModel struct {
+	Pointer types.String `tfsdk:"pointer" json:"pointer,computed"`
 }
 
 type EmailRoutingDNSResultModel struct {

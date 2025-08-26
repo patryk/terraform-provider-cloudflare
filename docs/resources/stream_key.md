@@ -22,14 +22,14 @@ resource "cloudflare_stream_key" "example_stream_key" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 
 ### Read-Only
 
 - `created` (String) The date and time a signing key was created.
-- `id` (String) Identifier
-- `jwk` (String) The signing key in JWK format.
-- `pem` (String) The signing key in PEM format.
+- `id` (String) Identifier.
+- `jwk` (String, Sensitive) The signing key in JWK format.
+- `pem` (String, Sensitive) The signing key in PEM format.
 
 ## Import
 

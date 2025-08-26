@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ resource.ResourceWithConfigValidators = (*R2CustomDomainResource)(nil)
@@ -20,27 +22,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description:   "Account ID",
+				Description:   "Account ID.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"bucket_name": schema.StringAttribute{
-				Description:   "Name of the bucket",
+				Description:   "Name of the bucket.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
-			"domain_name": schema.StringAttribute{
-				Description:   "Name of the custom domain",
-				Optional:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+			"jurisdiction": schema.StringAttribute{
+				Description: "Jurisdiction of the bucket",
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("default"),
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"default",
+						"eu",
+						"fedramp",
+					),
+				},
 			},
 			"domain": schema.StringAttribute{
-				Description:   "Name of the custom domain to be added",
+				Description:   "Name of the custom domain to be added.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Zone ID of the custom domain",
+				Description:   "Zone ID of the custom domain.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
@@ -49,7 +59,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:    true,
 			},
 			"min_tls": schema.StringAttribute{
-				Description: "Minimum TLS Version the custom domain will accept for incoming connections. If not set, defaults to 1.0.",
+				Description: "Minimum TLS Version the custom domain will accept for incoming connections. If not set, defaults to 1.0.\nAvailable values: \"1.0\", \"1.1\", \"1.2\", \"1.3\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -60,8 +70,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					),
 				},
 			},
+			"ciphers": schema.ListAttribute{
+				Description: "An allowlist of ciphers for TLS termination. These ciphers must be in the BoringSSL format.",
+				Optional:    true,
+				ElementType: types.StringType,
+			},
 			"zone_name": schema.StringAttribute{
-				Description: "Zone that the custom domain resides in",
+				Description: "Zone that the custom domain resides in.",
 				Computed:    true,
 			},
 			"status": schema.SingleNestedAttribute{
@@ -69,7 +84,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectType[R2CustomDomainStatusModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"ownership": schema.StringAttribute{
-						Description: "Ownership status of the domain",
+						Description: "Ownership status of the domain.\nAvailable values: \"pending\", \"active\", \"deactivated\", \"blocked\", \"error\", \"unknown\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -83,7 +98,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 					},
 					"ssl": schema.StringAttribute{
-						Description: "SSL certificate status",
+						Description: "SSL certificate status.\nAvailable values: \"initializing\", \"pending\", \"active\", \"deactivated\", \"error\", \"unknown\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(

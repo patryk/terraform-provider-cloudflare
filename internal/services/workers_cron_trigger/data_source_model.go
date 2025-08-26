@@ -5,8 +5,8 @@ package workers_cron_trigger
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/workers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/workers"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,7 +31,7 @@ func (m *WorkersCronTriggerDataSourceModel) toReadParams(_ context.Context) (par
 }
 
 type WorkersCronTriggerSchedulesDataSourceModel struct {
-	CreatedOn  types.String `tfsdk:"created_on" json:"created_on,computed"`
 	Cron       types.String `tfsdk:"cron" json:"cron,computed"`
+	CreatedOn  types.String `tfsdk:"created_on" json:"created_on,computed"`
 	ModifiedOn types.String `tfsdk:"modified_on" json:"modified_on,computed"`
 }

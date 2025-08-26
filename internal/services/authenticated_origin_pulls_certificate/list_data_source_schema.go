@@ -20,7 +20,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"max_items": schema.Int64Attribute{
@@ -37,7 +37,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "Identifier",
+							Description: "Identifier.",
 							Computed:    true,
 						},
 						"certificate": schema.StringAttribute{
@@ -58,7 +58,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"status": schema.StringAttribute{
-							Description: "Status of the certificate activation.",
+							Description: "Status of the certificate activation.\nAvailable values: \"initializing\", \"pending_deployment\", \"pending_deletion\", \"active\", \"deleted\", \"deployment_timed_out\", \"deletion_timed_out\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -84,6 +84,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 						"private_key": schema.StringAttribute{
 							Description: "The zone's private key.",
 							Computed:    true,
+							Sensitive:   true,
 						},
 					},
 				},

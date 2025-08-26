@@ -52,22 +52,27 @@ data "cloudflare_dns_records" "example_dns_records" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
 - `comment` (Attributes) (see [below for nested schema](#nestedatt--comment))
 - `content` (Attributes) (see [below for nested schema](#nestedatt--content))
 - `direction` (String) Direction to order DNS records in.
+Available values: "asc", "desc".
 - `match` (String) Whether to match all search requirements or at least one (any). If set to `all`, acts like a logical AND between filters. If set to `any`, acts like a logical OR instead. Note that the interaction between tag filters is controlled by the `tag-match` parameter instead.
+Available values: "any", "all".
 - `max_items` (Number) Max items to fetch, default: 1000
 - `name` (Attributes) (see [below for nested schema](#nestedatt--name))
 - `order` (String) Field to order DNS records by.
+Available values: "type", "name", "content", "ttl", "proxied".
 - `proxied` (Boolean) Whether the record is receiving the performance and security benefits of Cloudflare.
 - `search` (String) Allows searching in multiple properties of a DNS record simultaneously. This parameter is intended for human users, not automation. Its exact behavior is intentionally left unspecified and is subject to change in the future. This parameter works independently of the `match` setting. For automated searches, please use the other available parameters.
 - `tag` (Attributes) (see [below for nested schema](#nestedatt--tag))
 - `tag_match` (String) Whether to match all tag search requirements or at least one (any). If set to `all`, acts like a logical AND between tag filters. If set to `any`, acts like a logical OR instead. Note that the regular `match` parameter is still used to combine the resulting condition with other filters that aren't related to tags.
+Available values: "any", "all".
 - `type` (String) Record type.
+Available values: "A", "AAAA", "CAA", "CERT", "CNAME", "DNSKEY", "DS", "HTTPS", "LOC", "MX", "NAPTR", "NS", "OPENPGPKEY", "PTR", "SMIMEA", "SRV", "SSHFP", "SVCB", "TLSA", "TXT", "URI".
 
 ### Read-Only
 
@@ -131,10 +136,10 @@ Read-Only:
 - `content` (String) A valid IPv4 address.
 - `created_on` (String) When the record was created.
 - `data` (Attributes) Components of a CAA record. (see [below for nested schema](#nestedatt--result--data))
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `meta` (String) Extra Cloudflare-specific information about the record.
 - `modified_on` (String) When the record was last modified.
-- `name` (String) DNS record name (or @ for the zone apex) in Punycode.
+- `name` (String) Complete DNS record name, including the zone name, in Punycode.
 - `priority` (Number) Required for MX, SRV and URI records; unused by other record types. Records with lower priorities are preferred.
 - `proxiable` (Boolean) Whether the record can be proxied by Cloudflare or not.
 - `proxied` (Boolean) Whether the record is receiving the performance and security benefits of Cloudflare.
@@ -143,6 +148,7 @@ Read-Only:
 - `tags_modified_on` (String) When the record tags were last modified. Omitted if there are no tags.
 - `ttl` (Number) Time To Live (TTL) of the DNS record in seconds. Setting to 1 means 'automatic'. Value must be between 60 and 86400, with the minimum reduced to 30 for Enterprise zones.
 - `type` (String) Record type.
+Available values: "A", "AAAA", "CNAME", "MX", "NS", "OPENPGPKEY", "PTR", "TXT", "CAA", "CERT", "DNSKEY", "DS", "HTTPS", "LOC", "NAPTR", "SMIMEA", "SRV", "SSHFP", "SVCB", "TLSA", "URI".
 
 <a id="nestedatt--result--data"></a>
 ### Nested Schema for `result.data`
@@ -154,15 +160,17 @@ Read-Only:
 - `certificate` (String) Certificate.
 - `digest` (String) Digest.
 - `digest_type` (Number) Digest Type.
-- `fingerprint` (String) fingerprint.
+- `fingerprint` (String) Fingerprint.
 - `flags` (Dynamic) Flags for the CAA record.
 - `key_tag` (Number) Key Tag.
 - `lat_degrees` (Number) Degrees of latitude.
 - `lat_direction` (String) Latitude direction.
+Available values: "N", "S".
 - `lat_minutes` (Number) Minutes of latitude.
 - `lat_seconds` (Number) Seconds of latitude.
 - `long_degrees` (Number) Degrees of longitude.
 - `long_direction` (String) Longitude direction.
+Available values: "E", "W".
 - `long_minutes` (Number) Minutes of longitude.
 - `long_seconds` (Number) Seconds of longitude.
 - `matching_type` (Number) Matching Type.
@@ -171,7 +179,7 @@ Read-Only:
 - `precision_horz` (Number) Horizontal precision of location.
 - `precision_vert` (Number) Vertical precision of location.
 - `preference` (Number) Preference.
-- `priority` (Number) priority.
+- `priority` (Number) Priority.
 - `protocol` (Number) Protocol.
 - `public_key` (String) Public Key.
 - `regex` (String) Regex.
@@ -180,7 +188,7 @@ Read-Only:
 - `service` (String) Service.
 - `size` (Number) Size of location in meters.
 - `tag` (String) Name of the property controlled by this record (e.g.: issue, issuewild, iodef).
-- `target` (String) target.
+- `target` (String) Target.
 - `type` (Number) Type.
 - `usage` (Number) Usage.
 - `value` (String) Value of the record. This field's semantics depend on the chosen tag.

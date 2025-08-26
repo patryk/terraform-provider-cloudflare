@@ -14,7 +14,7 @@ description: |-
 ```terraform
 resource "cloudflare_zero_trust_device_custom_profile" "example_zero_trust_device_custom_profile" {
   account_id = "699d98642c564d2e855e9661899b7252"
-  match = "user.identity == \"test@cloudflare.com\""
+  match = "identity.email == \"test@cloudflare.com\""
   name = "Allow Developers"
   precedence = 100
   allow_mode_switch = true
@@ -25,9 +25,19 @@ resource "cloudflare_zero_trust_device_custom_profile" "example_zero_trust_devic
   description = "Policy for test teams."
   disable_auto_fallback = true
   enabled = true
+  exclude = [{
+    address = "192.0.2.0/24"
+    description = "Exclude testing domains from the tunnel"
+  }]
   exclude_office_ips = true
+  include = [{
+    address = "192.0.2.0/24"
+    description = "Include testing domains in the tunnel"
+  }]
   lan_allow_minutes = 30
   lan_allow_subnet_size = 24
+  register_interface_ip_with_dns = true
+  sccm_vpn_boundary_support = false
   service_mode_v2 = {
     mode = "proxy"
     port = 3000
@@ -44,7 +54,7 @@ resource "cloudflare_zero_trust_device_custom_profile" "example_zero_trust_devic
 ### Required
 
 - `account_id` (String)
-- `match` (String) The wirefilter expression to match devices.
+- `match` (String) The wirefilter expression to match devices. Available values: "identity.email", "identity.groups.id", "identity.groups.name", "identity.groups.email", "identity.service_token_uuid", "identity.saml_attributes", "network", "os.name", "os.version".
 - `name` (String) The name of the device settings profile.
 - `precedence` (Number) The precedence of the policy. Lower values indicate higher precedence. Policies will be evaluated in ascending order of this field.
 
@@ -58,9 +68,13 @@ resource "cloudflare_zero_trust_device_custom_profile" "example_zero_trust_devic
 - `description` (String) A description of the policy.
 - `disable_auto_fallback` (Boolean) If the `dns_server` field of a fallback domain is not present, the client will fall back to a best guess of the default/system DNS resolvers unless this policy option is set to `true`.
 - `enabled` (Boolean) Whether the policy will be applied to matching devices.
+- `exclude` (Attributes List) List of routes excluded in the WARP client's tunnel. Both 'exclude' and 'include' cannot be set in the same request. (see [below for nested schema](#nestedatt--exclude))
 - `exclude_office_ips` (Boolean) Whether to add Microsoft IPs to Split Tunnel exclusions.
+- `include` (Attributes List) List of routes included in the WARP client's tunnel. Both 'exclude' and 'include' cannot be set in the same request. (see [below for nested schema](#nestedatt--include))
 - `lan_allow_minutes` (Number) The amount of time in minutes a user is allowed access to their LAN. A value of 0 will allow LAN access until the next WARP reconnection, such as a reboot or a laptop waking from sleep. Note that this field is omitted from the response if null or unset.
 - `lan_allow_subnet_size` (Number) The size of the subnet for the local access network. Note that this field is omitted from the response if null or unset.
+- `register_interface_ip_with_dns` (Boolean) Determines if the operating system will register WARP's local interface IP with your on-premises DNS server.
+- `sccm_vpn_boundary_support` (Boolean) Determines whether the WARP client indicates to SCCM that it is inside a VPN boundary. (Windows only).
 - `service_mode_v2` (Attributes) (see [below for nested schema](#nestedatt--service_mode_v2))
 - `support_url` (String) The URL to launch when the Send Feedback button is clicked.
 - `switch_locked` (Boolean) Whether to allow the user to turn off the WARP switch and disconnect the client.
@@ -69,13 +83,31 @@ resource "cloudflare_zero_trust_device_custom_profile" "example_zero_trust_devic
 ### Read-Only
 
 - `default` (Boolean) Whether the policy is the default policy for an account.
-- `exclude` (Attributes List) (see [below for nested schema](#nestedatt--exclude))
 - `fallback_domains` (Attributes List) (see [below for nested schema](#nestedatt--fallback_domains))
 - `gateway_unique_id` (String)
-- `id` (String) Device ID.
-- `include` (Attributes List) (see [below for nested schema](#nestedatt--include))
-- `policy_id` (String) Device ID.
+- `id` (String) The ID of this resource.
+- `policy_id` (String)
 - `target_tests` (Attributes List) (see [below for nested schema](#nestedatt--target_tests))
+
+<a id="nestedatt--exclude"></a>
+### Nested Schema for `exclude`
+
+Optional:
+
+- `address` (String) The address in CIDR format to exclude from the tunnel. If `address` is present, `host` must not be present.
+- `description` (String) A description of the Split Tunnel item, displayed in the client UI.
+- `host` (String) The domain name to exclude from the tunnel. If `host` is present, `address` must not be present.
+
+
+<a id="nestedatt--include"></a>
+### Nested Schema for `include`
+
+Optional:
+
+- `address` (String) The address in CIDR format to include in the tunnel. If `address` is present, `host` must not be present.
+- `description` (String) A description of the Split Tunnel item, displayed in the client UI.
+- `host` (String) The domain name to include in the tunnel. If `host` is present, `address` must not be present.
+
 
 <a id="nestedatt--service_mode_v2"></a>
 ### Nested Schema for `service_mode_v2`
@@ -84,16 +116,6 @@ Optional:
 
 - `mode` (String) The mode to run the WARP client under.
 - `port` (Number) The port number when used with proxy mode.
-
-
-<a id="nestedatt--exclude"></a>
-### Nested Schema for `exclude`
-
-Read-Only:
-
-- `address` (String) The address in CIDR format to exclude from the tunnel. If `address` is present, `host` must not be present.
-- `description` (String) A description of the Split Tunnel item, displayed in the client UI.
-- `host` (String) The domain name to exclude from the tunnel. If `host` is present, `address` must not be present.
 
 
 <a id="nestedatt--fallback_domains"></a>
@@ -106,23 +128,13 @@ Read-Only:
 - `suffix` (String) The domain suffix to match when resolving locally.
 
 
-<a id="nestedatt--include"></a>
-### Nested Schema for `include`
-
-Read-Only:
-
-- `address` (String) The address in CIDR format to include in the tunnel. If address is present, host must not be present.
-- `description` (String) A description of the split tunnel item, displayed in the client UI.
-- `host` (String) The domain name to include in the tunnel. If host is present, address must not be present.
-
-
 <a id="nestedatt--target_tests"></a>
 ### Nested Schema for `target_tests`
 
 Read-Only:
 
-- `id` (String) The id of the DEX test targeting this policy
-- `name` (String) The name of the DEX test targeting this policy
+- `id` (String) The id of the DEX test targeting this policy.
+- `name` (String) The name of the DEX test targeting this policy.
 
 ## Import
 

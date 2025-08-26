@@ -5,8 +5,8 @@ package zero_trust_access_tag
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type ZeroTrustAccessTagResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustAccessTagDataSourceModel struct {
-	ID        types.String      `tfsdk:"id" json:"-,computed"`
+	ID        types.String      `tfsdk:"id" path:"tag_name,computed"`
 	TagName   types.String      `tfsdk:"tag_name" path:"tag_name,optional"`
 	AccountID types.String      `tfsdk:"account_id" path:"account_id,required"`
 	AppCount  types.Int64       `tfsdk:"app_count" json:"app_count,computed"`
@@ -28,14 +28,6 @@ type ZeroTrustAccessTagDataSourceModel struct {
 
 func (m *ZeroTrustAccessTagDataSourceModel) toReadParams(_ context.Context) (params zero_trust.AccessTagGetParams, diags diag.Diagnostics) {
 	params = zero_trust.AccessTagGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *ZeroTrustAccessTagDataSourceModel) toListParams(_ context.Context) (params zero_trust.AccessTagListParams, diags diag.Diagnostics) {
-	params = zero_trust.AccessTagListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

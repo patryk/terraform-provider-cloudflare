@@ -5,8 +5,8 @@ package email_routing_dns
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/email_routing"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/email_routing"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,17 +27,33 @@ func (m *EmailRoutingDNSDataSourceModel) toReadParams(_ context.Context) (params
 		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
 	}
 
+	if !m.Subdomain.IsNull() {
+		params.Subdomain = cloudflare.F(m.Subdomain.ValueString())
+	}
+
 	return
 }
 
 type EmailRoutingDNSErrorsDataSourceModel struct {
-	Code    types.Int64  `tfsdk:"code" json:"code,computed"`
-	Message types.String `tfsdk:"message" json:"message,computed"`
+	Code             types.Int64                                                          `tfsdk:"code" json:"code,computed"`
+	Message          types.String                                                         `tfsdk:"message" json:"message,computed"`
+	DocumentationURL types.String                                                         `tfsdk:"documentation_url" json:"documentation_url,computed"`
+	Source           customfield.NestedObject[EmailRoutingDNSErrorsSourceDataSourceModel] `tfsdk:"source" json:"source,computed"`
+}
+
+type EmailRoutingDNSErrorsSourceDataSourceModel struct {
+	Pointer types.String `tfsdk:"pointer" json:"pointer,computed"`
 }
 
 type EmailRoutingDNSMessagesDataSourceModel struct {
-	Code    types.Int64  `tfsdk:"code" json:"code,computed"`
-	Message types.String `tfsdk:"message" json:"message,computed"`
+	Code             types.Int64                                                            `tfsdk:"code" json:"code,computed"`
+	Message          types.String                                                           `tfsdk:"message" json:"message,computed"`
+	DocumentationURL types.String                                                           `tfsdk:"documentation_url" json:"documentation_url,computed"`
+	Source           customfield.NestedObject[EmailRoutingDNSMessagesSourceDataSourceModel] `tfsdk:"source" json:"source,computed"`
+}
+
+type EmailRoutingDNSMessagesSourceDataSourceModel struct {
+	Pointer types.String `tfsdk:"pointer" json:"pointer,computed"`
 }
 
 type EmailRoutingDNSResultDataSourceModel struct {

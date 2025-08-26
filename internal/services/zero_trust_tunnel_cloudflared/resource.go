@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/importpath"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
@@ -71,9 +71,9 @@ func (r *ZeroTrustTunnelCloudflaredResource) Create(ctx context.Context, req res
 	}
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredResultEnvelope{*data}
-	_, err = r.client.ZeroTrust.Tunnels.New(
+	_, err = r.client.ZeroTrust.Tunnels.Cloudflared.New(
 		ctx,
-		zero_trust.TunnelNewParams{
+		zero_trust.TunnelCloudflaredNewParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
 		option.WithRequestBody("application/json", dataBytes),
@@ -112,6 +112,9 @@ func (r *ZeroTrustTunnelCloudflaredResource) Update(ctx context.Context, req res
 		return
 	}
 
+	configurationSource := data.ConfigSrc
+	tunnelSecret := data.TunnelSecret
+
 	dataBytes, err := data.MarshalJSONForUpdate(*state)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to serialize http request", err.Error())
@@ -119,10 +122,10 @@ func (r *ZeroTrustTunnelCloudflaredResource) Update(ctx context.Context, req res
 	}
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredResultEnvelope{*data}
-	_, err = r.client.ZeroTrust.Tunnels.Edit(
+	_, err = r.client.ZeroTrust.Tunnels.Cloudflared.Edit(
 		ctx,
 		data.ID.ValueString(),
-		zero_trust.TunnelEditParams{
+		zero_trust.TunnelCloudflaredEditParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
 		option.WithRequestBody("application/json", dataBytes),
@@ -140,6 +143,8 @@ func (r *ZeroTrustTunnelCloudflaredResource) Update(ctx context.Context, req res
 		return
 	}
 	data = &env.Result
+	data.ConfigSrc = configurationSource
+	data.TunnelSecret = tunnelSecret
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -153,12 +158,15 @@ func (r *ZeroTrustTunnelCloudflaredResource) Read(ctx context.Context, req resou
 		return
 	}
 
+	configurationSource := data.ConfigSrc
+	tunnelSecret := data.TunnelSecret
+
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredResultEnvelope{*data}
-	_, err := r.client.ZeroTrust.Tunnels.Get(
+	_, err := r.client.ZeroTrust.Tunnels.Cloudflared.Get(
 		ctx,
 		data.ID.ValueString(),
-		zero_trust.TunnelGetParams{
+		zero_trust.TunnelCloudflaredGetParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
 		option.WithResponseBodyInto(&res),
@@ -174,12 +182,14 @@ func (r *ZeroTrustTunnelCloudflaredResource) Read(ctx context.Context, req resou
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
 	data = &env.Result
+	data.ConfigSrc = configurationSource
+	data.TunnelSecret = tunnelSecret
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -193,10 +203,10 @@ func (r *ZeroTrustTunnelCloudflaredResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	_, err := r.client.ZeroTrust.Tunnels.Delete(
+	_, err := r.client.ZeroTrust.Tunnels.Cloudflared.Delete(
 		ctx,
 		data.ID.ValueString(),
-		zero_trust.TunnelDeleteParams{
+		zero_trust.TunnelCloudflaredDeleteParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
 		option.WithMiddleware(logging.Middleware(ctx)),
@@ -230,10 +240,10 @@ func (r *ZeroTrustTunnelCloudflaredResource) ImportState(ctx context.Context, re
 
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredResultEnvelope{*data}
-	_, err := r.client.ZeroTrust.Tunnels.Get(
+	_, err := r.client.ZeroTrust.Tunnels.Cloudflared.Get(
 		ctx,
 		path_tunnel_id,
-		zero_trust.TunnelGetParams{
+		zero_trust.TunnelCloudflaredGetParams{
 			AccountID: cloudflare.F(path_account_id),
 		},
 		option.WithResponseBodyInto(&res),

@@ -19,18 +19,18 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "Direction to order namespaces.",
+				Description: "Direction to order namespaces.\nAvailable values: \"asc\", \"desc\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("asc", "desc"),
 				},
 			},
 			"order": schema.StringAttribute{
-				Description: "Field to order results by.",
+				Description: "Field to order results by.\nAvailable values: \"id\", \"title\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("id", "title"),
@@ -57,8 +57,12 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Description: "A human-readable string name for a Namespace.",
 							Computed:    true,
 						},
+						"beta": schema.BoolAttribute{
+							Description: "True if new beta namespace, with additional preview features.",
+							Computed:    true,
+						},
 						"supports_url_encoding": schema.BoolAttribute{
-							Description: "True if keys written on the URL will be URL-decoded before storing. For example, if set to \"true\", a key written on the URL as \"%3F\" will be stored as \"?\".",
+							Description: `True if keys written on the URL will be URL-decoded before storing. For example, if set to "true", a key written on the URL as "%3F" will be stored as "?".`,
 							Computed:    true,
 						},
 					},

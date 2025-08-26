@@ -51,7 +51,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "The maximum duration in seconds for a video upload. Can be set for a video that is not yet uploaded to limit its duration. Uploads that exceed the specified duration will fail during processing. A value of `-1` means the value is unknown.",
 				Computed:    true,
 				Validators: []validator.Int64{
-					int64validator.Between(1, 21600),
+					int64validator.Between(1, 36000),
 				},
 			},
 			"modified": schema.StringAttribute{
@@ -100,13 +100,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "A Cloudflare-generated unique identifier for a media item.",
 				Computed:    true,
 			},
-			"uploaded": schema.StringAttribute{
-				Description: "The date and time the media item was uploaded.",
+			"upload_expiry": schema.StringAttribute{
+				Description: "The date and time when the video upload URL is no longer valid for direct user uploads.",
 				Computed:    true,
 				CustomType:  timetypes.RFC3339Type{},
 			},
-			"upload_expiry": schema.StringAttribute{
-				Description: "The date and time when the video upload URL is no longer valid for direct user uploads.",
+			"uploaded": schema.StringAttribute{
+				Description: "The date and time the media item was uploaded.",
 				Computed:    true,
 				CustomType:  timetypes.RFC3339Type{},
 			},
@@ -162,7 +162,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Computed:    true,
 					},
 					"state": schema.StringAttribute{
-						Description: "Specifies the processing status for all quality levels for a video.",
+						Description: "Specifies the processing status for all quality levels for a video.\nAvailable values: \"pendingupload\", \"downloading\", \"queued\", \"inprogress\", \"ready\", \"error\", \"live-inprogress\".",
 						Computed:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(
@@ -172,6 +172,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								"inprogress",
 								"ready",
 								"error",
+								"live-inprogress",
 							),
 						},
 					},

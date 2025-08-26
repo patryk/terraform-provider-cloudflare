@@ -14,8 +14,8 @@ description: |-
 ```terraform
 resource "cloudflare_workers_route" "example_workers_route" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
-  pattern = "example.net/*"
-  script = "this-is_my_script-01"
+  pattern = "example.com/*"
+  script = "my-workers-script"
 }
 ```
 
@@ -24,36 +24,21 @@ resource "cloudflare_workers_route" "example_workers_route" {
 
 ### Required
 
-- `pattern` (String)
-- `zone_id` (String) Identifier
+- `pattern` (String) Pattern to match incoming requests against. [Learn more](https://developers.cloudflare.com/workers/configuration/routing/routes/#matching-behavior).
+- `zone_id` (String) Identifier.
 
 ### Optional
 
-- `route_id` (String) Identifier
-- `script` (String) Name of the script, used in URLs and route configuration.
+- `script` (String) Name of the script to run if the route matches.
 
 ### Read-Only
 
-- `errors` (Attributes List) (see [below for nested schema](#nestedatt--errors))
-- `id` (String) Identifier
-- `messages` (Attributes List) (see [below for nested schema](#nestedatt--messages))
-- `success` (Boolean) Whether the API call was successful
+- `id` (String) Identifier.
 
-<a id="nestedatt--errors"></a>
-### Nested Schema for `errors`
+## Import
 
-Read-Only:
+Import is supported using the following syntax:
 
-- `code` (Number)
-- `message` (String)
-
-
-<a id="nestedatt--messages"></a>
-### Nested Schema for `messages`
-
-Read-Only:
-
-- `code` (Number)
-- `message` (String)
-
-
+```shell
+$ terraform import cloudflare_workers_route.example '<zone_id>/<route_id>'
+```

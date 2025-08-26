@@ -20,7 +20,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"validation_enabled": schema.BoolAttribute{
@@ -50,7 +50,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							CustomType: timetypes.RFC3339Type{},
 						},
 						"kind": schema.StringAttribute{
-							Description: "Kind of schema",
+							Description: "Kind of schema\nAvailable values: \"openapi_v3\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("openapi_v3"),
@@ -61,7 +61,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"schema_id": schema.StringAttribute{
-							Description: "UUID",
+							Description: "UUID.",
 							Computed:    true,
 						},
 						"source": schema.StringAttribute{

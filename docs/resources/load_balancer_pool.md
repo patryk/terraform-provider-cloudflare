@@ -22,6 +22,7 @@ resource "cloudflare_load_balancer_pool" "example_load_balancer_pool" {
       host = ["example.com"]
     }
     name = "app-server-1"
+    port = 0
     virtual_network_id = "a5624d4e-044a-4ff0-b3e1-e2465353d4b4"
     weight = 0.6
   }]
@@ -59,7 +60,7 @@ resource "cloudflare_load_balancer_pool" "example_load_balancer_pool" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 - `name` (String) A short name (tag) for the pool. Only alphanumeric characters, hyphens, and underscores are allowed.
 - `origins` (Attributes List) The list of origins within this pool. Traffic directed at this pool is balanced across all currently healthy origins, provided the pool itself is healthy. (see [below for nested schema](#nestedatt--origins))
 
@@ -94,6 +95,7 @@ Optional:
 - `enabled` (Boolean) Whether to enable (the default) this origin within the pool. Disabled origins will not receive traffic and are excluded from health checks. The origin will only be disabled for the current pool.
 - `header` (Attributes) The request header is used to pass additional information with an HTTP request. Currently supported header is 'Host'. (see [below for nested schema](#nestedatt--origins--header))
 - `name` (String) A human-identifiable name for the origin.
+- `port` (Number) The port for upstream connections. A value of 0 means the default port for the protocol will be used.
 - `virtual_network_id` (String) The virtual network subnet ID the origin belongs in. Virtual network must also belong to the account.
 - `weight` (Number) The weight of this origin relative to other origins in the pool. Based on the configured weight the total traffic is distributed among origins within the pool.
 - `origin_steering.policy="least_outstanding_requests"`: Use weight to scale the origin's outstanding requests.
@@ -119,8 +121,10 @@ Optional:
 
 - `default_percent` (Number) The percent of traffic to shed from the pool, according to the default policy. Applies to new sessions and traffic without session affinity.
 - `default_policy` (String) The default policy to use when load shedding. A random policy randomly sheds a given percent of requests. A hash policy computes a hash over the CF-Connecting-IP address and sheds all requests originating from a percent of IPs.
+Available values: "random", "hash".
 - `session_percent` (Number) The percent of existing sessions to shed from the pool, according to the session policy.
 - `session_policy` (String) Only the hash policy is supported for existing sessions (to avoid exponential decay).
+Available values: "hash".
 
 
 <a id="nestedatt--notification_filter"></a>
@@ -160,6 +164,7 @@ Optional:
 - `"hash"`: Select an origin by computing a hash over the CF-Connecting-IP address.
 - `"least_outstanding_requests"`: Select an origin by taking into consideration origin weights, as well as each origin's number of outstanding requests. Origins with more pending requests are weighted proportionately less relative to others.
 - `"least_connections"`: Select an origin by taking into consideration origin weights, as well as each origin's number of open connections. Origins with more open connections are weighted proportionately less relative to others. Supported for HTTP/1 and HTTP/2 connections.
+Available values: "random", "hash", "least_outstanding_requests", "least_connections".
 
 ## Import
 

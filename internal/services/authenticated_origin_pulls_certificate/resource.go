@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
-	"github.com/cloudflare/cloudflare-go/v4/origin_tls_client_auth"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/cloudflare/cloudflare-go/v5/origin_tls_client_auth"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -61,6 +61,7 @@ func (r *AuthenticatedOriginPullsCertificateResource) Create(ctx context.Context
 		return
 	}
 
+	privateKey := data.PrivateKey
 	dataBytes, err := data.MarshalJSON()
 	if err != nil {
 		resp.Diagnostics.AddError("failed to serialize http request", err.Error())
@@ -88,56 +89,14 @@ func (r *AuthenticatedOriginPullsCertificateResource) Create(ctx context.Context
 		return
 	}
 	data = &env.Result
+	data.CertificateID = data.ID
+	data.PrivateKey = privateKey
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *AuthenticatedOriginPullsCertificateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *AuthenticatedOriginPullsCertificateModel
-
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	var state *AuthenticatedOriginPullsCertificateModel
-
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	dataBytes, err := data.MarshalJSONForUpdate(*state)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to serialize http request", err.Error())
-		return
-	}
-	res := new(http.Response)
-	env := AuthenticatedOriginPullsCertificateResultEnvelope{*data}
-	_, err = r.client.OriginTLSClientAuth.New(
-		ctx,
-		origin_tls_client_auth.OriginTLSClientAuthNewParams{
-			ZoneID: cloudflare.F(data.ZoneID.ValueString()),
-		},
-		option.WithRequestBody("application/json", dataBytes),
-		option.WithResponseBodyInto(&res),
-		option.WithMiddleware(logging.Middleware(ctx)),
-	)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to make http request", err.Error())
-		return
-	}
-	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
-		return
-	}
-	data = &env.Result
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Update is not supported for this resource
 }
 
 func (r *AuthenticatedOriginPullsCertificateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -148,7 +107,7 @@ func (r *AuthenticatedOriginPullsCertificateResource) Read(ctx context.Context, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
+	privateKey := data.PrivateKey
 	res := new(http.Response)
 	env := AuthenticatedOriginPullsCertificateResultEnvelope{*data}
 	_, err := r.client.OriginTLSClientAuth.Get(
@@ -170,12 +129,14 @@ func (r *AuthenticatedOriginPullsCertificateResource) Read(ctx context.Context, 
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
 	data = &env.Result
+	data.CertificateID = data.ID
+	data.PrivateKey = privateKey
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

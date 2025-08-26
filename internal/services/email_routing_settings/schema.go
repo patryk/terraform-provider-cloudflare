@@ -25,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
@@ -52,7 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Show the state of your account, and the type or configuration error.",
+				Description: "Show the state of your account, and the type or configuration error.\nAvailable values: \"ready\", \"unconfigured\", \"misconfigured\", \"misconfigured/locked\", \"unlocked\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -65,8 +65,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"tag": schema.StringAttribute{
-				Description: "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
-				Computed:    true,
+				Description:        "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
 			},
 		},
 	}

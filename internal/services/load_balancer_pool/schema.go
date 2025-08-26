@@ -32,7 +32,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"account_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
@@ -75,6 +75,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Description: "A human-identifiable name for the origin.",
 							Optional:    true,
 						},
+						"port": schema.Int64Attribute{
+							Description: "The port for upstream connections. A value of 0 means the default port for the protocol will be used.",
+							Computed:    true,
+							Optional:    true,
+							// Default:     int64default.StaticInt64(0),
+						},
 						"virtual_network_id": schema.StringAttribute{
 							Description: "The virtual network subnet ID the origin belongs in. Virtual network must also belong to the account.",
 							Optional:    true,
@@ -94,6 +100,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"description": schema.StringAttribute{
 				Description: "A human-readable description of the pool.",
 				Optional:    true,
+				Computed:    true,
 			},
 			"latitude": schema.Float64Attribute{
 				Description: "The latitude of the data center containing the origins used in this pool in decimal degrees. If this is set, longitude must also be set.",
@@ -110,6 +117,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"notification_email": schema.StringAttribute{
 				Description: "This field is now deprecated. It has been moved to Cloudflare's Centralized Notification service https://developers.cloudflare.com/fundamentals/notifications/. The email address to send health status notifications to. This can be an individual mailbox or a mailing list. Multiple emails can be supplied as a comma delimited list.",
 				Optional:    true,
+				Computed:    true,
 			},
 			"check_regions": schema.ListAttribute{
 				Description: "A list of regions from which to run health checks. Null means every Cloudflare data center.",
@@ -164,7 +172,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Default: float64default.StaticFloat64(0),
 					},
 					"default_policy": schema.StringAttribute{
-						Description: "The default policy to use when load shedding. A random policy randomly sheds a given percent of requests. A hash policy computes a hash over the CF-Connecting-IP address and sheds all requests originating from a percent of IPs.",
+						Description: "The default policy to use when load shedding. A random policy randomly sheds a given percent of requests. A hash policy computes a hash over the CF-Connecting-IP address and sheds all requests originating from a percent of IPs.\nAvailable values: \"random\", \"hash\".",
 						Computed:    true,
 						Optional:    true,
 						Validators: []validator.String{
@@ -182,7 +190,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Default: float64default.StaticFloat64(0),
 					},
 					"session_policy": schema.StringAttribute{
-						Description: "Only the hash policy is supported for existing sessions (to avoid exponential decay).",
+						Description: "Only the hash policy is supported for existing sessions (to avoid exponential decay).\nAvailable values: \"hash\".",
 						Computed:    true,
 						Optional:    true,
 						Validators: []validator.String{
@@ -243,7 +251,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  customfield.NewNestedObjectType[LoadBalancerPoolOriginSteeringModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"policy": schema.StringAttribute{
-						Description: "The type of origin steering policy to use.\n- `\"random\"`: Select an origin randomly.\n- `\"hash\"`: Select an origin by computing a hash over the CF-Connecting-IP address.\n- `\"least_outstanding_requests\"`: Select an origin by taking into consideration origin weights, as well as each origin's number of outstanding requests. Origins with more pending requests are weighted proportionately less relative to others.\n- `\"least_connections\"`: Select an origin by taking into consideration origin weights, as well as each origin's number of open connections. Origins with more open connections are weighted proportionately less relative to others. Supported for HTTP/1 and HTTP/2 connections.",
+						Description: "The type of origin steering policy to use.\n- `\"random\"`: Select an origin randomly.\n- `\"hash\"`: Select an origin by computing a hash over the CF-Connecting-IP address.\n- `\"least_outstanding_requests\"`: Select an origin by taking into consideration origin weights, as well as each origin's number of outstanding requests. Origins with more pending requests are weighted proportionately less relative to others.\n- `\"least_connections\"`: Select an origin by taking into consideration origin weights, as well as each origin's number of open connections. Origins with more open connections are weighted proportionately less relative to others. Supported for HTTP/1 and HTTP/2 connections.\nAvailable values: \"random\", \"hash\", \"least_outstanding_requests\", \"least_connections\".",
 						Computed:    true,
 						Optional:    true,
 						Validators: []validator.String{

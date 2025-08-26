@@ -29,7 +29,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Optional:    true,
 			},
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"app_count": schema.Int64Attribute{
@@ -45,7 +45,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType: timetypes.RFC3339Type{},
 			},
 			"decision": schema.StringAttribute{
-				Description: "The action Access will take if a user matches this policy. Infrastructure application policies can only use the Allow action.",
+				Description: "The action Access will take if a user matches this policy. Infrastructure application policies can only use the Allow action.\nAvailable values: \"allow\", \"deny\", \"non_identity\", \"bypass\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -352,12 +352,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"oidc": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyExcludeOIDCDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"claim_name": schema.StringAttribute{
+									Description: "The name of the OIDC claim.",
+									Computed:    true,
+								},
+								"claim_value": schema.StringAttribute{
+									Description: "The OIDC claim value to look for.",
+									Computed:    true,
+								},
+								"identity_provider_id": schema.StringAttribute{
+									Description: "The ID of your OIDC identity provider.",
+									Computed:    true,
+								},
+							},
+						},
 						"service_token": schema.SingleNestedAttribute{
 							Computed:   true,
 							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyExcludeServiceTokenDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"token_id": schema.StringAttribute{
 									Description: "The ID of a Service Token.",
+									Computed:    true,
+								},
+							},
+						},
+						"linked_app_token": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyExcludeLinkedAppTokenDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"app_uid": schema.StringAttribute{
+									Description: "The ID of an Access OIDC SaaS application",
 									Computed:    true,
 								},
 							},
@@ -608,12 +636,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"oidc": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyIncludeOIDCDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"claim_name": schema.StringAttribute{
+									Description: "The name of the OIDC claim.",
+									Computed:    true,
+								},
+								"claim_value": schema.StringAttribute{
+									Description: "The OIDC claim value to look for.",
+									Computed:    true,
+								},
+								"identity_provider_id": schema.StringAttribute{
+									Description: "The ID of your OIDC identity provider.",
+									Computed:    true,
+								},
+							},
+						},
 						"service_token": schema.SingleNestedAttribute{
 							Computed:   true,
 							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyIncludeServiceTokenDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"token_id": schema.StringAttribute{
 									Description: "The ID of a Service Token.",
+									Computed:    true,
+								},
+							},
+						},
+						"linked_app_token": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyIncludeLinkedAppTokenDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"app_uid": schema.StringAttribute{
+									Description: "The ID of an Access OIDC SaaS application",
 									Computed:    true,
 								},
 							},
@@ -864,12 +920,40 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"oidc": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyRequireOIDCDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"claim_name": schema.StringAttribute{
+									Description: "The name of the OIDC claim.",
+									Computed:    true,
+								},
+								"claim_value": schema.StringAttribute{
+									Description: "The OIDC claim value to look for.",
+									Computed:    true,
+								},
+								"identity_provider_id": schema.StringAttribute{
+									Description: "The ID of your OIDC identity provider.",
+									Computed:    true,
+								},
+							},
+						},
 						"service_token": schema.SingleNestedAttribute{
 							Computed:   true,
 							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyRequireServiceTokenDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"token_id": schema.StringAttribute{
 									Description: "The ID of a Service Token.",
+									Computed:    true,
+								},
+							},
+						},
+						"linked_app_token": schema.SingleNestedAttribute{
+							Computed:   true,
+							CustomType: customfield.NewNestedObjectType[ZeroTrustAccessPolicyRequireLinkedAppTokenDataSourceModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"app_uid": schema.StringAttribute{
+									Description: "The ID of an Access OIDC SaaS application",
 									Computed:    true,
 								},
 							},

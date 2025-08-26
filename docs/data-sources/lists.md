@@ -22,7 +22,7 @@ data "cloudflare_lists" "example_lists" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) The Account ID for this resource.
 
 ### Optional
 
@@ -41,9 +41,10 @@ Read-Only:
 - `description` (String) An informative summary of the list.
 - `id` (String) The unique ID of the list.
 - `kind` (String) The type of the list. Each type supports specific list items (IP addresses, ASNs, hostnames or redirects).
+Available values: "ip", "redirect", "hostname", "asn".
 - `modified_on` (String) The RFC 3339 timestamp of when the list was last modified.
 - `name` (String) An informative name for the list. Use this name in filter and rule expressions.
 - `num_items` (Number) The number of items in the list.
-- `num_referencing_filters` (Number) The number of [filters](/operations/filters-list-filters) referencing the list.
+- `num_referencing_filters` (Number) The number of [filters](/api/resources/filters/) referencing the list.
 
 

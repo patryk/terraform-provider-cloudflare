@@ -5,8 +5,8 @@ package api_shield
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/api_gateway"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/api_gateway"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -23,8 +23,14 @@ type APIShieldDataSourceModel struct {
 }
 
 func (m *APIShieldDataSourceModel) toReadParams(_ context.Context) (params api_gateway.ConfigurationGetParams, diags diag.Diagnostics) {
+	mProperties := []api_gateway.ConfigurationGetParamsProperty{}
+	for _, item := range *m.Properties {
+		mProperties = append(mProperties, api_gateway.ConfigurationGetParamsProperty(item.ValueString()))
+	}
+
 	params = api_gateway.ConfigurationGetParams{
-		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
+		ZoneID:     cloudflare.F(m.ZoneID.ValueString()),
+		Properties: cloudflare.F(mProperties),
 	}
 
 	return

@@ -20,7 +20,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"max_items": schema.Int64Attribute{
@@ -41,7 +41,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"type": schema.StringAttribute{
-							Description: "Custom page type.",
+							Description: "Custom page type.\nAvailable values: \"identity_denied\", \"forbidden\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("identity_denied", "forbidden"),
@@ -56,7 +56,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							CustomType: timetypes.RFC3339Type{},
 						},
 						"uid": schema.StringAttribute{
-							Description: "UUID",
+							Description: "UUID.",
 							Computed:    true,
 						},
 						"updated_at": schema.StringAttribute{

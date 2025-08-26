@@ -23,7 +23,7 @@ you've confirmed the certificate is available.
 ```terraform
 resource "cloudflare_certificate_pack" "example_certificate_pack" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
-  certificate_authority = "google"
+  certificate_authority = "lets_encrypt"
   hosts = ["example.com", "*.example.com", "www.example.com"]
   type = "advanced"
   validation_method = "txt"
@@ -37,11 +37,15 @@ resource "cloudflare_certificate_pack" "example_certificate_pack" {
 ### Required
 
 - `certificate_authority` (String) Certificate Authority selected for the order.  For information on any certificate authority specific details or restrictions [see this page for more details.](https://developers.cloudflare.com/ssl/reference/certificate-authorities)
+Available values: "google", "lets_encrypt", "ssl_com".
 - `hosts` (List of String) Comma separated list of valid host names for the certificate packs. Must contain the zone apex, may not contain more than 50 hosts, and may not be empty.
 - `type` (String) Type of certificate pack.
+Available values: "advanced".
 - `validation_method` (String) Validation Method selected for the order.
+Available values: "txt", "http", "email".
 - `validity_days` (Number) Validity Days selected for the order.
-- `zone_id` (String) Identifier
+Available values: 14, 30, 90, 365.
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -49,8 +53,30 @@ resource "cloudflare_certificate_pack" "example_certificate_pack" {
 
 ### Read-Only
 
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `status` (String) Status of certificate pack.
+Available values: "initializing", "pending_validation", "deleted", "pending_issuance", "pending_deployment", "pending_deletion", "pending_expiration", "expired", "active", "initializing_timed_out", "validation_timed_out", "issuance_timed_out", "deployment_timed_out", "deletion_timed_out", "pending_cleanup", "staging_deployment", "staging_active", "deactivating", "inactive", "backup_issued", "holding_deployment".
+- `validation_errors` (Attributes List) Domain validation errors that have been received by the certificate authority (CA). (see [below for nested schema](#nestedatt--validation_errors))
+- `validation_records` (Attributes List) Certificates' validation records. Only present when certificate pack is in "pending_validation" status (see [below for nested schema](#nestedatt--validation_records))
+
+<a id="nestedatt--validation_errors"></a>
+### Nested Schema for `validation_errors`
+
+Read-Only:
+
+- `message` (String) A domain validation error.
+
+
+<a id="nestedatt--validation_records"></a>
+### Nested Schema for `validation_records`
+
+Read-Only:
+
+- `emails` (List of String) The set of email addresses that the certificate authority (CA) will use to complete domain validation.
+- `http_body` (String) The content that the certificate authority (CA) will expect to find at the http_url during the domain validation.
+- `http_url` (String) The url that will be checked during domain validation.
+- `txt_name` (String) The hostname that the certificate authority (CA) will check for a TXT record during domain validation .
+- `txt_value` (String) The TXT record that the certificate authority (CA) will check during domain validation.
 
 ## Import
 

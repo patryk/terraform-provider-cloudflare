@@ -5,8 +5,8 @@ package workers_route
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/workers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/workers"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,9 +16,9 @@ type WorkersRouteResultDataSourceEnvelope struct {
 }
 
 type WorkersRouteDataSourceModel struct {
-	RouteID types.String `tfsdk:"route_id" path:"route_id,required"`
+	ID      types.String `tfsdk:"id" path:"route_id,computed"`
+	RouteID types.String `tfsdk:"route_id" path:"route_id,optional"`
 	ZoneID  types.String `tfsdk:"zone_id" path:"zone_id,required"`
-	ID      types.String `tfsdk:"id" json:"id,computed"`
 	Pattern types.String `tfsdk:"pattern" json:"pattern,computed"`
 	Script  types.String `tfsdk:"script" json:"script,computed"`
 }

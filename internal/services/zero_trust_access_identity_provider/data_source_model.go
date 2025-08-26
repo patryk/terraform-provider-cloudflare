@@ -5,8 +5,8 @@ package zero_trust_access_identity_provider
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type ZeroTrustAccessIdentityProviderResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustAccessIdentityProviderDataSourceModel struct {
-	ID                 types.String                                                                       `tfsdk:"id" json:"-,computed"`
+	ID                 types.String                                                                       `tfsdk:"id" path:"identity_provider_id,computed"`
 	IdentityProviderID types.String                                                                       `tfsdk:"identity_provider_id" path:"identity_provider_id,optional"`
 	AccountID          types.String                                                                       `tfsdk:"account_id" path:"account_id,optional"`
 	ZoneID             types.String                                                                       `tfsdk:"zone_id" path:"zone_id,optional"`

@@ -23,7 +23,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 				Required: true,
 			},
 			"type": schema.StringAttribute{
-				Description: "The type of list.",
+				Description: "The type of list.\nAvailable values: \"SERIAL\", \"URL\", \"DOMAIN\", \"EMAIL\", \"IP\".",
 				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -64,12 +64,33 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Description: "The description of the list.",
 							Computed:    true,
 						},
+						"items": schema.SetNestedAttribute{
+							Description: "The items in the list.",
+							Computed:    true,
+							CustomType:  customfield.NewNestedObjectSetType[ZeroTrustListsItemsDataSourceModel](ctx),
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"created_at": schema.StringAttribute{
+										Computed:   true,
+										CustomType: timetypes.RFC3339Type{},
+									},
+									"description": schema.StringAttribute{
+										Description: "The description of the list item, if present",
+										Computed:    true,
+									},
+									"value": schema.StringAttribute{
+										Description: "The value of the item in a list.",
+										Computed:    true,
+									},
+								},
+							},
+						},
 						"name": schema.StringAttribute{
 							Description: "The name of the list.",
 							Computed:    true,
 						},
 						"type": schema.StringAttribute{
-							Description: "The type of list.",
+							Description: "The type of list.\nAvailable values: \"SERIAL\", \"URL\", \"DOMAIN\", \"EMAIL\", \"IP\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(

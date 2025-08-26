@@ -22,32 +22,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description:   "UUID",
+				Description:   "UUID.",
 				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"operation_id": schema.StringAttribute{
-				Description:   "UUID",
+				Description:   "UUID.",
 				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"zone_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"endpoint": schema.StringAttribute{
-				Description:   "The endpoint which can contain path parameter templates in curly braces, each will be replaced from left to right with {varN}, starting with {var1}, during insertion. This will further be Cloudflare-normalized upon insertion. See: https://developers.cloudflare.com/rules/normalization/how-it-works/.",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Description: "The endpoint which can contain path parameter templates in curly braces, each will be replaced from left to right with {varN}, starting with {var1}, during insertion. This will further be Cloudflare-normalized upon insertion. See: https://developers.cloudflare.com/rules/normalization/how-it-works/.",
+				Required:    true,
 			},
 			"host": schema.StringAttribute{
-				Description:   "RFC3986-compliant host.",
-				Required:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Description: "RFC3986-compliant host.",
+				Required:    true,
 			},
 			"method": schema.StringAttribute{
-				Description: "The HTTP method used to access the endpoint.",
+				Description: "The HTTP method used to access the endpoint.\nAvailable values: \"GET\", \"POST\", \"HEAD\", \"OPTIONS\", \"PUT\", \"DELETE\", \"CONNECT\", \"PATCH\", \"TRACE\".",
 				Required:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -62,7 +60,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"TRACE",
 					),
 				},
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"last_updated": schema.StringAttribute{
 				Computed:   true,
@@ -238,7 +235,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								CustomType:  customfield.NewNestedObjectType[APIShieldOperationFeaturesSchemaInfoActiveSchemaModel](ctx),
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
-										Description: "UUID",
+										Description: "UUID.",
 										Computed:    true,
 									},
 									"created_at": schema.StringAttribute{
@@ -260,7 +257,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Computed:    true,
 							},
 							"mitigation_action": schema.StringAttribute{
-								Description: "Action taken on requests failing validation.",
+								Description: "Action taken on requests failing validation.\nAvailable values: \"none\", \"log\", \"block\".",
 								Computed:    true,
 								Validators: []validator.String{
 									stringvalidator.OneOfCaseInsensitive(

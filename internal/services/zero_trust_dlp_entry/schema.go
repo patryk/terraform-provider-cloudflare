@@ -46,7 +46,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Required: true,
 					},
 					"validation": schema.StringAttribute{
-						Optional: true,
+						Description:        `Available values: "luhn".`,
+						Optional:           true,
+						DeprecationMessage: "This attribute is deprecated.",
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive("luhn"),
 						},
@@ -54,7 +56,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"type": schema.StringAttribute{
-				Optional: true,
+				Description: `Available values: "custom", "predefined", "integration".`,
+				Optional:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"custom",
@@ -62,6 +65,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"integration",
 					),
 				},
+			},
+			"case_sensitive": schema.BoolAttribute{
+				Description: "Only applies to custom word lists.\nDetermines if the words should be matched in a case-sensitive manner\nCannot be set to false if secret is true",
+				Computed:    true,
 			},
 			"created_at": schema.StringAttribute{
 				Computed:   true,
@@ -79,10 +86,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType: customfield.NewNestedObjectType[ZeroTrustDLPEntryConfidenceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"ai_context_available": schema.BoolAttribute{
-						Computed: true,
+						Description: "Indicates whether this entry has AI remote service validation.",
+						Computed:    true,
 					},
 					"available": schema.BoolAttribute{
-						Description: "Indicates whether this entry can be made more or less sensitive by setting a confidence threshold.\nProfiles that use an entry with `available` set to true can use confidence thresholds",
+						Description: "Indicates whether this entry has any form of validation that is not an AI remote service.",
 						Computed:    true,
 					},
 				},

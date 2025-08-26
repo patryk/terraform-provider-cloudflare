@@ -5,8 +5,8 @@ package access_rule
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/firewall"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/firewall"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type AccessRuleResultDataSourceEnvelope struct {
 }
 
 type AccessRuleDataSourceModel struct {
-	ID            types.String                                                     `tfsdk:"id" json:"-,computed"`
+	ID            types.String                                                     `tfsdk:"id" path:"rule_id,computed"`
 	RuleID        types.String                                                     `tfsdk:"rule_id" path:"rule_id,optional"`
 	AccountID     types.String                                                     `tfsdk:"account_id" path:"account_id,optional"`
 	ZoneID        types.String                                                     `tfsdk:"zone_id" path:"zone_id,optional"`
@@ -83,8 +83,8 @@ func (m *AccessRuleDataSourceModel) toListParams(_ context.Context) (params fire
 }
 
 type AccessRuleConfigurationDataSourceModel struct {
-	Target types.String `tfsdk:"target" json:"target,optional"`
-	Value  types.String `tfsdk:"value" json:"value,optional"`
+	Target types.String `tfsdk:"target" json:"target,computed"`
+	Value  types.String `tfsdk:"value" json:"value,computed"`
 }
 
 type AccessRuleScopeDataSourceModel struct {
@@ -94,10 +94,10 @@ type AccessRuleScopeDataSourceModel struct {
 }
 
 type AccessRuleFindOneByDataSourceModel struct {
-	Configuration *AccessRuleConfigurationDataSourceModel `tfsdk:"configuration" query:"configuration,optional"`
-	Direction     types.String                            `tfsdk:"direction" query:"direction,optional"`
-	Match         types.String                            `tfsdk:"match" query:"match,computed_optional"`
-	Mode          types.String                            `tfsdk:"mode" query:"mode,optional"`
-	Notes         types.String                            `tfsdk:"notes" query:"notes,optional"`
-	Order         types.String                            `tfsdk:"order" query:"order,optional"`
+	Configuration *AccessRulesConfigurationDataSourceModel `tfsdk:"configuration" query:"configuration,optional"`
+	Direction     types.String                             `tfsdk:"direction" query:"direction,optional"`
+	Match         types.String                             `tfsdk:"match" query:"match,computed_optional"`
+	Mode          types.String                             `tfsdk:"mode" query:"mode,optional"`
+	Notes         types.String                             `tfsdk:"notes" query:"notes,optional"`
+	Order         types.String                             `tfsdk:"order" query:"order,optional"`
 }

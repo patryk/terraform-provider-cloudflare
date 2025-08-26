@@ -5,8 +5,8 @@ package account
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/accounts"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/accounts"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -45,8 +45,6 @@ type AccountsResultDataSourceModel struct {
 }
 
 type AccountsSettingsDataSourceModel struct {
-	AbuseContactEmail           types.String `tfsdk:"abuse_contact_email" json:"abuse_contact_email,computed"`
-	DefaultNameservers          types.String `tfsdk:"default_nameservers" json:"default_nameservers,computed"`
-	EnforceTwofactor            types.Bool   `tfsdk:"enforce_twofactor" json:"enforce_twofactor,computed"`
-	UseAccountCustomNSByDefault types.Bool   `tfsdk:"use_account_custom_ns_by_default" json:"use_account_custom_ns_by_default,computed"`
+	AbuseContactEmail types.String `tfsdk:"abuse_contact_email" json:"abuse_contact_email,computed"`
+	EnforceTwofactor  types.Bool   `tfsdk:"enforce_twofactor" json:"enforce_twofactor,computed"`
 }

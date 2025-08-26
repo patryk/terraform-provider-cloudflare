@@ -1,6 +1,6 @@
 resource "cloudflare_zero_trust_gateway_policy" "example_zero_trust_gateway_policy" {
   account_id = "699d98642c564d2e855e9661899b7252"
-  action = "on"
+  action = "allow"
   name = "block bad websites"
   description = "Block bad websites based on their host name."
   device_posture = "any(device_posture.checks.passed[*] in {\"1308749e-fcfb-4ebc-b051-fe022b632644\"})"
@@ -8,21 +8,21 @@ resource "cloudflare_zero_trust_gateway_policy" "example_zero_trust_gateway_poli
   expiration = {
     expires_at = "2014-01-01T05:20:20Z"
     duration = 10
-    expired = false
   }
   filters = ["http"]
   identity = "any(identity.groups.name[*] in {\"finance\"})"
   precedence = 0
   rule_settings = {
     add_headers = {
-      foo = "string"
+      My-Next-Header = ["foo", "bar"]
+      X-Custom-Header-Name = ["somecustomvalue"]
     }
     allow_child_bypass = false
     audit_ssh = {
       command_logging = false
     }
     biso_admin_controls = {
-      copy = "enabled"
+      copy = "remote_only"
       dcp = false
       dd = false
       dk = false
@@ -34,6 +34,10 @@ resource "cloudflare_zero_trust_gateway_policy" "example_zero_trust_gateway_poli
       printing = "enabled"
       upload = "enabled"
       version = "v1"
+    }
+    block_page = {
+      target_uri = "https://example.com"
+      include_context = true
     }
     block_page_enabled = true
     block_reason = "This website is a security risk"
@@ -71,6 +75,7 @@ resource "cloudflare_zero_trust_gateway_policy" "example_zero_trust_gateway_poli
     }
     notification_settings = {
       enabled = true
+      include_context = true
       msg = "msg"
       support_url = "support_url"
     }
@@ -82,13 +87,18 @@ resource "cloudflare_zero_trust_gateway_policy" "example_zero_trust_gateway_poli
     quarantine = {
       file_types = ["exe"]
     }
+    redirect = {
+      target_uri = "https://example.com"
+      include_context = true
+      preserve_path_and_query = true
+    }
     resolve_dns_internally = {
       fallback = "none"
       view_id = "view_id"
     }
     resolve_dns_through_cloudflare = true
     untrusted_cert = {
-      action = "pass_through"
+      action = "error"
     }
   }
   schedule = {

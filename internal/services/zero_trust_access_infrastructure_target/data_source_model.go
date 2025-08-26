@@ -5,8 +5,8 @@ package zero_trust_access_infrastructure_target
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type ZeroTrustAccessInfrastructureTargetResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustAccessInfrastructureTargetDataSourceModel struct {
-	ID         types.String                                                                   `tfsdk:"id" json:"-,computed"`
+	ID         types.String                                                                   `tfsdk:"id" path:"target_id,computed"`
 	TargetID   types.String                                                                   `tfsdk:"target_id" path:"target_id,optional"`
 	AccountID  types.String                                                                   `tfsdk:"account_id" path:"account_id,required"`
 	CreatedAt  timetypes.RFC3339                                                              `tfsdk:"created_at" json:"created_at,computed" format:"date-time"`

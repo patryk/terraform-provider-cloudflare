@@ -5,8 +5,8 @@ package zero_trust_tunnel_cloudflared_virtual_network
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type ZeroTrustTunnelCloudflaredVirtualNetworkResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustTunnelCloudflaredVirtualNetworkDataSourceModel struct {
-	ID               types.String                                                      `tfsdk:"id" json:"-,computed"`
+	ID               types.String                                                      `tfsdk:"id" path:"virtual_network_id,computed"`
 	VirtualNetworkID types.String                                                      `tfsdk:"virtual_network_id" path:"virtual_network_id,optional"`
 	AccountID        types.String                                                      `tfsdk:"account_id" path:"account_id,required"`
 	Comment          types.String                                                      `tfsdk:"comment" json:"comment,computed"`

@@ -52,7 +52,7 @@ Read-Only:
 - `script` (String) Name of a Worker
 - `script_name` (String) Name of a Worker
 - `settings` (Attributes) (see [below for nested schema](#nestedatt--consumers--settings))
-- `type` (String)
+- `type` (String) Available values: "worker", "http_pull".
 
 <a id="nestedatt--consumers--settings"></a>
 ### Nested Schema for `consumers.settings`
@@ -75,7 +75,7 @@ Read-Only:
 
 - `bucket_name` (String)
 - `script` (String)
-- `type` (String)
+- `type` (String) Available values: "worker", "r2_bucket".
 
 
 <a id="nestedatt--settings"></a>
@@ -84,6 +84,7 @@ Read-Only:
 Read-Only:
 
 - `delivery_delay` (Number) Number of seconds to delay delivery of all messages to consumers.
+- `delivery_paused` (Boolean) Indicates if message delivery to consumers is currently paused.
 - `message_retention_period` (Number) Number of seconds after which an unconsumed message will be delayed.
 
 

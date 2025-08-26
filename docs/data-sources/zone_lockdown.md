@@ -23,7 +23,7 @@ data "cloudflare_zone_lockdown" "example_zone_lockdown" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Defines an identifier.
 
 ### Optional
 
@@ -62,6 +62,7 @@ Optional:
 Read-Only:
 
 - `target` (String) The configuration target. You must set the target to `ip` when specifying an IP address in the Zone Lockdown rule.
+Available values: "ip", "ip_range".
 - `value` (String) The IP address to match. This address will be compared to the IP address of incoming requests.
 
 

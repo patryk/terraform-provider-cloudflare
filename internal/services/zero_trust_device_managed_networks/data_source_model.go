@@ -5,8 +5,8 @@ package zero_trust_device_managed_networks
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,7 +17,7 @@ type ZeroTrustDeviceManagedNetworksResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustDeviceManagedNetworksDataSourceModel struct {
-	ID        types.String                                                                  `tfsdk:"id" json:"-,computed"`
+	ID        types.String                                                                  `tfsdk:"id" path:"network_id,computed"`
 	NetworkID types.String                                                                  `tfsdk:"network_id" path:"network_id,computed_optional"`
 	AccountID types.String                                                                  `tfsdk:"account_id" path:"account_id,required"`
 	Name      types.String                                                                  `tfsdk:"name" json:"name,computed"`
@@ -27,14 +27,6 @@ type ZeroTrustDeviceManagedNetworksDataSourceModel struct {
 
 func (m *ZeroTrustDeviceManagedNetworksDataSourceModel) toReadParams(_ context.Context) (params zero_trust.DeviceNetworkGetParams, diags diag.Diagnostics) {
 	params = zero_trust.DeviceNetworkGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *ZeroTrustDeviceManagedNetworksDataSourceModel) toListParams(_ context.Context) (params zero_trust.DeviceNetworkListParams, diags diag.Diagnostics) {
-	params = zero_trust.DeviceNetworkListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

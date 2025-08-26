@@ -22,7 +22,7 @@ data "cloudflare_api_shield_schema_validation_settings" "example_api_shield_sche
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Read-Only
 
@@ -34,9 +34,11 @@ Mitigation actions are as follows:
   * `block` - deny access to the site when request does not conform to schema
 
 A special value of of `none` will skip running schema validation entirely for the request when there is no mitigation action defined on the operation
+Available values: "none", "log", "block".
 - `validation_override_mitigation_action` (String) When set, this overrides both zone level and operation level mitigation actions.
 
   - `none` will skip running schema validation entirely for the request
   - `null` indicates that no override is in place
+Available values: "none".
 
 

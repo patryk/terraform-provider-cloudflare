@@ -5,8 +5,8 @@ package email_routing_rule
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/email_routing"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/email_routing"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -51,7 +51,7 @@ type EmailRoutingRulesActionsDataSourceModel struct {
 }
 
 type EmailRoutingRulesMatchersDataSourceModel struct {
-	Field types.String `tfsdk:"field" json:"field,computed"`
 	Type  types.String `tfsdk:"type" json:"type,computed"`
+	Field types.String `tfsdk:"field" json:"field,computed"`
 	Value types.String `tfsdk:"value" json:"value,computed"`
 }

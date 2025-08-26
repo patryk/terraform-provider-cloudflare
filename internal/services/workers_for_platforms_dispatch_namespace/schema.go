@@ -20,7 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"id": schema.StringAttribute{
 				Description:   "Name of the Workers for Platforms dispatch namespace.",
 				Computed:      true,
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"namespace_name": schema.StringAttribute{
 				Description:   "Name of the Workers for Platforms dispatch namespace.",
@@ -28,17 +28,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"account_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "Identifier.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"name": schema.StringAttribute{
-				Description:   "The name of the dispatch namespace",
+				Description:   "The name of the dispatch namespace.",
 				Optional:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"created_by": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Computed:    true,
 			},
 			"created_on": schema.StringAttribute{
@@ -47,7 +47,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  timetypes.RFC3339Type{},
 			},
 			"modified_by": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Computed:    true,
 			},
 			"modified_on": schema.StringAttribute{
@@ -60,7 +60,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"script_count": schema.Int64Attribute{
-				Description: "The current number of scripts in this Dispatch Namespace",
+				Description: "The current number of scripts in this Dispatch Namespace.",
+				Computed:    true,
+			},
+			"trusted_workers": schema.BoolAttribute{
+				Description: "Whether the Workers in the namespace are executed in a \"trusted\" manner. When a Worker is trusted, it has access to the shared caches for the zone in the Cache API, and has access to the `request.cf` object on incoming Requests. When a Worker is untrusted, caches are not shared across the zone, and `request.cf` is undefined. By default, Workers in a namespace are \"untrusted\".",
 				Computed:    true,
 			},
 		},

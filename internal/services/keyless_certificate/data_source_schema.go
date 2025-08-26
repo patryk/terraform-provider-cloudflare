@@ -20,15 +20,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Computed:    true,
 			},
 			"keyless_certificate_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Optional:    true,
 			},
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"created_on": schema.StringAttribute{
@@ -58,7 +58,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Status of the Keyless SSL.",
+				Description: "Status of the Keyless SSL.\nAvailable values: \"active\", \"deleted\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("active", "deleted"),

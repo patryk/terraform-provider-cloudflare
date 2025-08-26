@@ -90,7 +90,8 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 									"type": schema.StringAttribute{
-										Computed: true,
+										Description: `Available values: "worker", "http_pull".`,
+										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive("worker", "http_pull"),
 										},
@@ -116,7 +117,8 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 										Computed: true,
 									},
 									"type": schema.StringAttribute{
-										Computed: true,
+										Description: `Available values: "worker", "r2_bucket".`,
+										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive("worker", "r2_bucket"),
 										},
@@ -142,6 +144,10 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Attributes: map[string]schema.Attribute{
 								"delivery_delay": schema.Float64Attribute{
 									Description: "Number of seconds to delay delivery of all messages to consumers.",
+									Computed:    true,
+								},
+								"delivery_paused": schema.BoolAttribute{
+									Description: "Indicates if message delivery to consumers is currently paused.",
 									Computed:    true,
 								},
 								"message_retention_period": schema.Float64Attribute{

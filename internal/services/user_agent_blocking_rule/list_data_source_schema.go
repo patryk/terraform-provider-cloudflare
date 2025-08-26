@@ -19,18 +19,18 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Defines an identifier.",
 				Required:    true,
 			},
 			"description": schema.StringAttribute{
 				Description: "A string to search for in the description of existing rules.",
 				Optional:    true,
 			},
-			"description_search": schema.StringAttribute{
-				Description: "A string to search for in the description of existing rules.",
+			"paused": schema.BoolAttribute{
+				Description: "When true, indicates that the rule is currently paused.",
 				Optional:    true,
 			},
-			"ua_search": schema.StringAttribute{
+			"user_agent": schema.StringAttribute{
 				Description: "A string to search for in the user agent values of existing rules.",
 				Optional:    true,
 			},
@@ -71,7 +71,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"mode": schema.StringAttribute{
-							Description: "The action to apply to a matched request.",
+							Description: "The action to apply to a matched request.\nAvailable values: \"block\", \"challenge\", \"js_challenge\", \"managed_challenge\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(

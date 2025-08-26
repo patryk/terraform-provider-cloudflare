@@ -5,8 +5,8 @@ package workers_custom_domain
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/workers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/workers"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,7 +16,7 @@ type WorkersCustomDomainResultDataSourceEnvelope struct {
 }
 
 type WorkersCustomDomainDataSourceModel struct {
-	ID          types.String                                 `tfsdk:"id" json:"-,computed"`
+	ID          types.String                                 `tfsdk:"id" path:"domain_id,computed"`
 	DomainID    types.String                                 `tfsdk:"domain_id" path:"domain_id,optional"`
 	AccountID   types.String                                 `tfsdk:"account_id" path:"account_id,required"`
 	Environment types.String                                 `tfsdk:"environment" json:"environment,computed"`

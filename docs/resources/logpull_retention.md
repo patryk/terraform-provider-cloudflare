@@ -23,10 +23,20 @@ resource "cloudflare_logpull_retention" "example_logpull_retention" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
 - `flag` (Boolean) The log retention flag for Logpull API.
 
+### Read-Only
 
+- `id` (String) Identifier.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+$ terraform import cloudflare_logpull_retention.example '<zone_id>'
+```

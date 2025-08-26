@@ -13,9 +13,9 @@ description: |-
 
 ```terraform
 data "cloudflare_account_members" "example_account_members" {
-  account_id = "eb78d65290b24279ba6f44721b3ea3c4"
-  direction = "asc"
-  order = "user.first_name"
+  account_id = "023e105f4ecef8ad9ca31a8372d0c353"
+  direction = "desc"
+  order = "status"
   status = "accepted"
 }
 ```
@@ -30,9 +30,12 @@ data "cloudflare_account_members" "example_account_members" {
 ### Optional
 
 - `direction` (String) Direction to order results.
+Available values: "asc", "desc".
 - `max_items` (Number) Max items to fetch, default: 1000
 - `order` (String) Field to order results by.
+Available values: "user.first_name", "user.last_name", "user.email", "status".
 - `status` (String) A member's status in the account.
+Available values: "accepted", "pending", "rejected".
 
 ### Read-Only
 
@@ -47,6 +50,7 @@ Read-Only:
 - `policies` (Attributes List) Access policy for the membership (see [below for nested schema](#nestedatt--result--policies))
 - `roles` (Attributes List) Roles assigned to this Member. (see [below for nested schema](#nestedatt--result--roles))
 - `status` (String) A member's status in the account.
+Available values: "accepted", "pending".
 - `user` (Attributes) Details of the user associated to the membership. (see [below for nested schema](#nestedatt--result--user))
 
 <a id="nestedatt--result--policies"></a>
@@ -55,6 +59,7 @@ Read-Only:
 Read-Only:
 
 - `access` (String) Allow or deny operations against the resources.
+Available values: "allow", "deny".
 - `id` (String) Policy identifier.
 - `permission_groups` (Attributes List) A set of permission groups that are specified to the policy. (see [below for nested schema](#nestedatt--result--policies--permission_groups))
 - `resource_groups` (Attributes List) A list of resource groups that the policy applies to. (see [below for nested schema](#nestedatt--result--policies--resource_groups))
@@ -64,9 +69,9 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Identifier of the group.
+- `id` (String) Identifier of the permission group.
 - `meta` (Attributes) Attributes associated to the permission group. (see [below for nested schema](#nestedatt--result--policies--permission_groups--meta))
-- `name` (String) Name of the group.
+- `name` (String) Name of the permission group.
 
 <a id="nestedatt--result--policies--permission_groups--meta"></a>
 ### Nested Schema for `result.policies.permission_groups.meta`
@@ -83,7 +88,7 @@ Read-Only:
 
 Read-Only:
 
-- `id` (String) Identifier of the group.
+- `id` (String) Identifier of the resource group.
 - `meta` (Attributes) Attributes associated to the resource group. (see [below for nested schema](#nestedatt--result--policies--resource_groups--meta))
 - `name` (String) Name of the resource group.
 - `scope` (Attributes List) The scope associated to the resource group (see [below for nested schema](#nestedatt--result--policies--resource_groups--scope))

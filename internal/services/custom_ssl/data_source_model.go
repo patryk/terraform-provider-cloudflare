@@ -5,8 +5,8 @@ package custom_ssl
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/custom_certificates"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/custom_certificates"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,9 +18,9 @@ type CustomSSLResultDataSourceEnvelope struct {
 }
 
 type CustomSSLDataSourceModel struct {
-	ID                  types.String                                                      `tfsdk:"id" json:"-,computed"`
+	ID                  types.String                                                      `tfsdk:"id" path:"custom_certificate_id,computed"`
 	CustomCertificateID types.String                                                      `tfsdk:"custom_certificate_id" path:"custom_certificate_id,optional"`
-	ZoneID              types.String                                                      `tfsdk:"zone_id" path:"zone_id,computed"`
+	ZoneID              types.String                                                      `tfsdk:"zone_id" path:"zone_id,required"`
 	BundleMethod        types.String                                                      `tfsdk:"bundle_method" json:"bundle_method,computed"`
 	ExpiresOn           timetypes.RFC3339                                                 `tfsdk:"expires_on" json:"expires_on,computed" format:"date-time"`
 	Issuer              types.String                                                      `tfsdk:"issuer" json:"issuer,computed"`

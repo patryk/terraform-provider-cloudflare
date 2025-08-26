@@ -18,7 +18,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"created": schema.StringAttribute{
@@ -48,7 +48,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Show the state of your account, and the type or configuration error.",
+				Description: "Show the state of your account, and the type or configuration error.\nAvailable values: \"ready\", \"unconfigured\", \"misconfigured\", \"misconfigured/locked\", \"unlocked\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -61,8 +61,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"tag": schema.StringAttribute{
-				Description: "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
-				Computed:    true,
+				Description:        "Email Routing settings tag. (Deprecated, replaced by Email Routing settings identifier)",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
 			},
 		},
 	}

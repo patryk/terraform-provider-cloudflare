@@ -13,7 +13,7 @@ description: |-
 
 ```terraform
 data "cloudflare_zero_trust_dex_tests" "example_zero_trust_dex_tests" {
-  account_id = "699d98642c564d2e855e9661899b7252"
+  account_id = "01a7362d577a6c3019a474fd6f485823"
 }
 ```
 
@@ -42,7 +42,7 @@ Read-Only:
 - `enabled` (Boolean) Determines whether or not the test is active.
 - `interval` (String) How often the test will run.
 - `name` (String) The name of the DEX test. Must be unique.
-- `target_policies` (Attributes List) Device settings profiles targeted by this test (see [below for nested schema](#nestedatt--result--target_policies))
+- `target_policies` (Attributes List) DEX rules targeted by this test (see [below for nested schema](#nestedatt--result--target_policies))
 - `targeted` (Boolean)
 - `test_id` (String) The unique identifier for the test.
 
@@ -61,8 +61,8 @@ Read-Only:
 
 Read-Only:
 
-- `default` (Boolean) Whether the profile is the account default
-- `id` (String) The id of the device settings profile
-- `name` (String) The name of the device settings profile
+- `default` (Boolean) Whether the DEX rule is the account default
+- `id` (String) The id of the DEX rule
+- `name` (String) The name of the DEX rule
 
 

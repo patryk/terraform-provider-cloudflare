@@ -37,6 +37,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "Cloudflare account ID",
 				Computed:    true,
 			},
+			"config_src": schema.StringAttribute{
+				Description: "Indicates if this is a locally or remotely configured tunnel. If `local`, manage the tunnel using a YAML file on the origin machine. If `cloudflare`, manage the tunnel on the Zero Trust dashboard.\nAvailable values: \"local\", \"cloudflare\".",
+				Computed:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive("local", "cloudflare"),
+				},
+			},
 			"conns_active_at": schema.StringAttribute{
 				Description: "Timestamp of when the tunnel established at least one connection to Cloudflare's edge. If `null`, the tunnel is inactive.",
 				Computed:    true,
@@ -62,11 +69,12 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"remote_config": schema.BoolAttribute{
-				Description: "If `true`, the tunnel can be configured remotely from the Zero Trust dashboard. If `false`, the tunnel must be configured locally on the origin machine.",
-				Computed:    true,
+				Description:        "If `true`, the tunnel can be configured remotely from the Zero Trust dashboard. If `false`, the tunnel must be configured locally on the origin machine.",
+				Computed:           true,
+				DeprecationMessage: "Use the config_src field instead.",
 			},
 			"status": schema.StringAttribute{
-				Description: "The status of the tunnel. Valid values are `inactive` (tunnel has never been run), `degraded` (tunnel is active and able to serve traffic but in an unhealthy state), `healthy` (tunnel is active and able to serve traffic), or `down` (tunnel can not serve traffic as it has no connections to the Cloudflare Edge).",
+				Description: "The status of the tunnel. Valid values are `inactive` (tunnel has never been run), `degraded` (tunnel is active and able to serve traffic but in an unhealthy state), `healthy` (tunnel is active and able to serve traffic), or `down` (tunnel can not serve traffic as it has no connections to the Cloudflare Edge).\nAvailable values: \"inactive\", \"degraded\", \"healthy\", \"down\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -78,12 +86,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"tun_type": schema.StringAttribute{
-				Description: "The type of tunnel.",
+				Description: "The type of tunnel.\nAvailable values: \"cfd_tunnel\", \"warp_connector\", \"warp\", \"magic\", \"ip_sec\", \"gre\", \"cni\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"cfd_tunnel",
 						"warp_connector",
+						"warp",
+						"magic",
 						"ip_sec",
 						"gre",
 						"cni",
@@ -91,9 +101,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"connections": schema.ListNestedAttribute{
-				Description: "The Cloudflare Tunnel connections between your origin and Cloudflare's edge.",
-				Computed:    true,
-				CustomType:  customfield.NewNestedObjectListType[ZeroTrustTunnelCloudflaredConnectionsDataSourceModel](ctx),
+				Description:        "The Cloudflare Tunnel connections between your origin and Cloudflare's edge.",
+				Computed:           true,
+				DeprecationMessage: "This field will start returning an empty array. To fetch the connections of a given tunnel, please use the dedicated endpoint `/accounts/{account_id}/{tunnel_type}/{tunnel_id}/connections`",
+				CustomType:         customfield.NewNestedObjectListType[ZeroTrustTunnelCloudflaredConnectionsDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -144,9 +155,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Optional: true,
 					},
 					"existed_at": schema.StringAttribute{
-						Description: "If provided, include only tunnels that were created (and not deleted) before this time.",
+						Description: "If provided, include only resources that were created (and not deleted) before this time. URL encoded.",
 						Optional:    true,
-						CustomType:  timetypes.RFC3339Type{},
 					},
 					"include_prefix": schema.StringAttribute{
 						Optional: true,
@@ -160,7 +170,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Optional:    true,
 					},
 					"status": schema.StringAttribute{
-						Description: "The status of the tunnel. Valid values are `inactive` (tunnel has never been run), `degraded` (tunnel is active and able to serve traffic but in an unhealthy state), `healthy` (tunnel is active and able to serve traffic), or `down` (tunnel can not serve traffic as it has no connections to the Cloudflare Edge).",
+						Description: "The status of the tunnel. Valid values are `inactive` (tunnel has never been run), `degraded` (tunnel is active and able to serve traffic but in an unhealthy state), `healthy` (tunnel is active and able to serve traffic), or `down` (tunnel can not serve traffic as it has no connections to the Cloudflare Edge).\nAvailable values: \"inactive\", \"degraded\", \"healthy\", \"down\".",
 						Optional:    true,
 						Validators: []validator.String{
 							stringvalidator.OneOfCaseInsensitive(

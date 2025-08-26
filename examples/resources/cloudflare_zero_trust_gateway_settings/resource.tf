@@ -10,6 +10,7 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
       fail_closed = false
       notification_settings = {
         enabled = true
+        include_context = true
         msg = "msg"
         support_url = "support_url"
       }
@@ -19,11 +20,14 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
       enabled = true
       footer_text = "--footer--"
       header_text = "--header--"
+      include_context = true
       logo_path = "https://logos.com/a.png"
       mailto_address = "admin@example.com"
       mailto_subject = "Blocked User Inquiry"
+      mode = ""
       name = "Cloudflare"
       suppress_footer = false
+      target_uri = "https://example.com"
     }
     body_scanning = {
       inspection_mode = "deep"
@@ -44,6 +48,12 @@ resource "cloudflare_zero_trust_gateway_settings" "example_zero_trust_gateway_se
     }
     fips = {
       tls = true
+    }
+    host_selector = {
+      enabled = false
+    }
+    inspection = {
+      mode = "static"
     }
     protocol_detection = {
       enabled = true

@@ -23,7 +23,7 @@ data "cloudflare_api_shield_schemas" "example_api_shield_schemas" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -42,8 +42,9 @@ Read-Only:
 
 - `created_at` (String)
 - `kind` (String) Kind of schema
+Available values: "openapi_v3".
 - `name` (String) Name of the schema
-- `schema_id` (String) UUID
+- `schema_id` (String) UUID.
 - `source` (String) Source of the schema
 - `validation_enabled` (Boolean) Flag whether schema is enabled for validation.
 

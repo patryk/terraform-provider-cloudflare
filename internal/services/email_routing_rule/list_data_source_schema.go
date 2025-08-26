@@ -21,7 +21,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"enabled": schema.BoolAttribute{
@@ -52,7 +52,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
-										Description: "Type of supported action.",
+										Description: "Type of supported action.\nAvailable values: \"drop\", \"forward\", \"worker\".",
 										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive(
@@ -80,18 +80,18 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							CustomType:  customfield.NewNestedObjectListType[EmailRoutingRulesMatchersDataSourceModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"type": schema.StringAttribute{
+										Description: "Type of matcher.\nAvailable values: \"all\", \"literal\".",
+										Computed:    true,
+										Validators: []validator.String{
+											stringvalidator.OneOfCaseInsensitive("all", "literal"),
+										},
+									},
 									"field": schema.StringAttribute{
-										Description: "Field for type matcher.",
+										Description: "Field for type matcher.\nAvailable values: \"to\".",
 										Computed:    true,
 										Validators: []validator.String{
 											stringvalidator.OneOfCaseInsensitive("to"),
-										},
-									},
-									"type": schema.StringAttribute{
-										Description: "Type of matcher.",
-										Computed:    true,
-										Validators: []validator.String{
-											stringvalidator.OneOfCaseInsensitive("literal"),
 										},
 									},
 									"value": schema.StringAttribute{
@@ -113,8 +113,9 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"tag": schema.StringAttribute{
-							Description: "Routing rule tag. (Deprecated, replaced by routing rule identifier)",
-							Computed:    true,
+							Description:        "Routing rule tag. (Deprecated, replaced by routing rule identifier)",
+							Computed:           true,
+							DeprecationMessage: "This attribute is deprecated.",
 						},
 					},
 				},

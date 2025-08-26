@@ -15,23 +15,7 @@ description: |-
 resource "cloudflare_list_item" "example_list_item" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
   list_id = "2c0fc9fa937b11eaa1b71c4d701ab86e"
-  body = [{
-    asn = 5567
-    comment = "Private IP address"
-    hostname = {
-      url_hostname = "example.com"
-    }
-    ip = "10.0.0.1"
-    redirect = {
-      source_url = "example.com/arch"
-      target_url = "https://archlinux.org/"
-      include_subdomains = true
-      preserve_path_suffix = true
-      preserve_query_string = true
-      status_code = 301
-      subpath_matching = true
-    }
-  }]
+  ip = "10.0.0.1"
 }
 ```
 
@@ -40,15 +24,15 @@ resource "cloudflare_list_item" "example_list_item" {
 
 ### Required
 
+- `account_id` (String) The Account ID for this resource.
 - `list_id` (String) The unique ID of the list.
 
 ### Optional
 
-- `account_id` (String) Identifier
 - `asn` (Number) A non-negative 32 bit integer
 - `comment` (String) An informative summary of the list item.
 - `hostname` (Attributes) Valid characters for hostnames are ASCII(7) letters from a to z, the digits from 0 to 9, wildcards (*), and the hyphen (-). (see [below for nested schema](#nestedatt--hostname))
-- `ip` (String) An IPv4 address, an IPv4 CIDR, or an IPv6 CIDR. IPv6 CIDRs are limited to a maximum of /64.
+- `ip` (String) An IPv4 address, an IPv4 CIDR, an IPv6 address, or an IPv6 CIDR.
 - `redirect` (Attributes) The definition of the redirect. (see [below for nested schema](#nestedatt--redirect))
 
 ### Read-Only
@@ -65,6 +49,10 @@ Required:
 
 - `url_hostname` (String)
 
+Optional:
+
+- `exclude_exact_hostname` (Boolean) Only applies to wildcard hostnames (e.g., *.example.com). When true (default), only subdomains are blocked. When false, both the root domain and subdomains are blocked.
+
 
 <a id="nestedatt--redirect"></a>
 ### Nested Schema for `redirect`
@@ -79,7 +67,7 @@ Optional:
 - `include_subdomains` (Boolean)
 - `preserve_path_suffix` (Boolean)
 - `preserve_query_string` (Boolean)
-- `status_code` (Number)
+- `status_code` (Number) Available values: 301, 302, 307, 308.
 - `subpath_matching` (Boolean)
 
 

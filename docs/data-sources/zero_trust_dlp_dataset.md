@@ -28,15 +28,16 @@ data "cloudflare_zero_trust_dlp_dataset" "example_zero_trust_dlp_dataset" {
 
 ### Read-Only
 
+- `case_sensitive` (Boolean)
 - `columns` (Attributes List) (see [below for nested schema](#nestedatt--columns))
 - `created_at` (String)
-- `description` (String) The description of the dataset
+- `description` (String) The description of the dataset.
 - `encoding_version` (Number)
 - `id` (String) The ID of this resource.
 - `name` (String)
 - `num_cells` (Number)
 - `secret` (Boolean)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `updated_at` (String) When the dataset was last updated.
 
 This includes name or description changes as well as uploads.
@@ -50,7 +51,7 @@ Read-Only:
 - `entry_id` (String)
 - `header_name` (String)
 - `num_cells` (Number)
-- `upload_status` (String)
+- `upload_status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 
 
 <a id="nestedatt--uploads"></a>
@@ -59,7 +60,7 @@ Read-Only:
 Read-Only:
 
 - `num_cells` (Number)
-- `status` (String)
+- `status` (String) Available values: "empty", "uploading", "pending", "processing", "failed", "complete".
 - `version` (Number)
 
 

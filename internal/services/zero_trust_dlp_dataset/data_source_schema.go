@@ -25,12 +25,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			"dataset_id": schema.StringAttribute{
 				Required: true,
 			},
+			"case_sensitive": schema.BoolAttribute{
+				Computed: true,
+			},
 			"created_at": schema.StringAttribute{
 				Computed:   true,
 				CustomType: timetypes.RFC3339Type{},
 			},
 			"description": schema.StringAttribute{
-				Description: "The description of the dataset",
+				Description: "The description of the dataset.",
 				Computed:    true,
 			},
 			"encoding_version": schema.Int64Attribute{
@@ -52,11 +55,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed: true,
 			},
 			"status": schema.StringAttribute{
-				Computed: true,
+				Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"empty",
 						"uploading",
+						"pending",
 						"processing",
 						"failed",
 						"complete",
@@ -83,11 +88,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Computed: true,
 						},
 						"upload_status": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"empty",
 									"uploading",
+									"pending",
 									"processing",
 									"failed",
 									"complete",
@@ -106,11 +113,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Computed: true,
 						},
 						"status": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "empty", "uploading", "pending", "processing", "failed", "complete".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"empty",
 									"uploading",
+									"pending",
 									"processing",
 									"failed",
 									"complete",

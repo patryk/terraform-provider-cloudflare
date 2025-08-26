@@ -34,19 +34,19 @@ resource "cloudflare_mtls_certificate" "example_mtls_certificate" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 - `ca` (Boolean) Indicates whether the certificate is a CA or leaf certificate.
 - `certificates` (String) The uploaded root CA certificate.
 
 ### Optional
 
 - `name` (String) Optional unique name for the certificate. Only used for human readability.
-- `private_key` (String) The private key for the certificate
+- `private_key` (String, Sensitive) The private key for the certificate. This field is only needed for specific use cases such as using a custom certificate with Zero Trust's block page.
 
 ### Read-Only
 
 - `expires_on` (String) When the certificate expires.
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `issuer` (String) The certificate authority that issued the certificate.
 - `serial_number` (String) The certificate serial number.
 - `signature` (String) The type of hash used for the certificate.

@@ -5,8 +5,8 @@ package zero_trust_device_default_profile_certificates
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,7 +16,8 @@ type ZeroTrustDeviceDefaultProfileCertificatesResultDataSourceEnvelope struct {
 }
 
 type ZeroTrustDeviceDefaultProfileCertificatesDataSourceModel struct {
-	ZoneID types.String `tfsdk:"zone_id" path:"zone_id,required"`
+	ZoneID  types.String `tfsdk:"zone_id" path:"zone_id,required"`
+	Enabled types.Bool   `tfsdk:"enabled" json:"enabled,computed"`
 }
 
 func (m *ZeroTrustDeviceDefaultProfileCertificatesDataSourceModel) toReadParams(_ context.Context) (params zero_trust.DevicePolicyDefaultCertificateGetParams, diags diag.Diagnostics) {

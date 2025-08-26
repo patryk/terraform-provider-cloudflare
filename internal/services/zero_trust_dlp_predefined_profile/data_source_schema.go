@@ -8,7 +8,6 @@ import (
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -32,12 +31,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			"allowed_match_count": schema.Int64Attribute{
 				Description: "Related DLP policies will trigger when the match count exceeds the number set.",
 				Computed:    true,
-				Validators: []validator.Int64{
-					int64validator.Between(0, 1000),
-				},
 			},
 			"confidence_threshold": schema.StringAttribute{
-				Computed: true,
+				Description: `Available values: "low", "medium", "high", "very_high".`,
+				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"low",
@@ -48,31 +45,32 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"created_at": schema.StringAttribute{
-				Description: "When the profile was created",
+				Description: "When the profile was created.",
 				Computed:    true,
 				CustomType:  timetypes.RFC3339Type{},
 			},
 			"description": schema.StringAttribute{
-				Description: "The description of the profile",
+				Description: "The description of the profile.",
 				Computed:    true,
 			},
 			"id": schema.StringAttribute{
-				Description: "The id of the profile (uuid)",
+				Description: "The id of the profile (uuid).",
 				Computed:    true,
 			},
 			"name": schema.StringAttribute{
-				Description: "The name of the profile",
+				Description: "The name of the profile.",
 				Computed:    true,
 			},
 			"ocr_enabled": schema.BoolAttribute{
 				Computed: true,
 			},
 			"open_access": schema.BoolAttribute{
-				Description: "Whether this profile can be accessed by anyone",
+				Description: "Whether this profile can be accessed by anyone.",
 				Computed:    true,
 			},
 			"type": schema.StringAttribute{
-				Computed: true,
+				Description: `Available values: "custom", "predefined", "integration".`,
+				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"custom",
@@ -82,14 +80,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Description: "When the profile was lasted updated",
+				Description: "When the profile was lasted updated.",
 				Computed:    true,
 				CustomType:  timetypes.RFC3339Type{},
 			},
 			"context_awareness": schema.SingleNestedAttribute{
-				Description: "Scan the context of predefined entries to only return matches surrounded by keywords.",
-				Computed:    true,
-				CustomType:  customfield.NewNestedObjectType[ZeroTrustDLPPredefinedProfileContextAwarenessDataSourceModel](ctx),
+				Description:        "Scan the context of predefined entries to only return matches surrounded by keywords.",
+				Computed:           true,
+				DeprecationMessage: "This attribute is deprecated.",
+				CustomType:         customfield.NewNestedObjectType[ZeroTrustDLPPredefinedProfileContextAwarenessDataSourceModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Description: "If true, scan the context of predefined entries to only return matches surrounded by keywords.",
@@ -134,7 +133,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed: true,
 								},
 								"validation": schema.StringAttribute{
-									Computed: true,
+									Description:        `Available values: "luhn".`,
+									Computed:           true,
+									DeprecationMessage: "This attribute is deprecated.",
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive("luhn"),
 									},
@@ -142,13 +143,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 						"type": schema.StringAttribute{
-							Computed: true,
+							Description: `Available values: "custom", "predefined", "integration", "exact_data", "document_fingerprint", "word_list".`,
+							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
 									"custom",
 									"predefined",
 									"integration",
 									"exact_data",
+									"document_fingerprint",
 									"word_list",
 								),
 							},
@@ -165,13 +168,18 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							CustomType: customfield.NewNestedObjectType[ZeroTrustDLPPredefinedProfileEntriesConfidenceDataSourceModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"ai_context_available": schema.BoolAttribute{
-									Computed: true,
+									Description: "Indicates whether this entry has AI remote service validation.",
+									Computed:    true,
 								},
 								"available": schema.BoolAttribute{
-									Description: "Indicates whether this entry can be made more or less sensitive by setting a confidence threshold.\nProfiles that use an entry with `available` set to true can use confidence thresholds",
+									Description: "Indicates whether this entry has any form of validation that is not an AI remote service.",
 									Computed:    true,
 								},
 							},
+						},
+						"case_sensitive": schema.BoolAttribute{
+							Description: "Only applies to custom word lists.\nDetermines if the words should be matched in a case-sensitive manner\nCannot be set to false if secret is true",
+							Computed:    true,
 						},
 						"secret": schema.BoolAttribute{
 							Computed: true,

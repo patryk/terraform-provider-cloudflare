@@ -23,7 +23,7 @@ data "cloudflare_stream_live_input" "example_stream_live_input" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 - `live_input_identifier` (String) A unique identifier for a live input.
 
 ### Read-Only
@@ -38,6 +38,7 @@ data "cloudflare_stream_live_input" "example_stream_live_input" {
 - `srt` (Attributes) Details for streaming to a live input using SRT. (see [below for nested schema](#nestedatt--srt))
 - `srt_playback` (Attributes) Details for playback from an live input using SRT. (see [below for nested schema](#nestedatt--srt_playback))
 - `status` (String) The connection status of a live input.
+Available values: "connected", "reconnected", "reconnecting", "client_disconnect", "ttl_exceeded", "failed_to_connect", "failed_to_reconnect", "new_configuration_accepted".
 - `uid` (String) A unique identifier for a live input.
 - `web_rtc` (Attributes) Details for streaming to a live input using WebRTC. (see [below for nested schema](#nestedatt--web_rtc))
 - `web_rtc_playback` (Attributes) Details for playback from a live input using WebRTC. (see [below for nested schema](#nestedatt--web_rtc_playback))
@@ -50,6 +51,7 @@ Read-Only:
 - `allowed_origins` (List of String) Lists the origins allowed to display videos created with this input. Enter allowed origin domains in an array and use `*` for wildcard subdomains. An empty array allows videos to be viewed on any origin.
 - `hide_live_viewer_count` (Boolean) Disables reporting the number of live viewers when this property is set to `true`.
 - `mode` (String) Specifies the recording behavior for the live input. Set this value to `off` to prevent a recording. Set the value to `automatic` to begin a recording and transition to on-demand after Stream Live stops receiving input.
+Available values: "off", "automatic".
 - `require_signed_urls` (Boolean) Indicates if a video using the live input has the `requireSignedURLs` property set. Also enforces access controls on any video recording of the livestream with the live input.
 - `timeout_seconds` (Number) Determines the amount of time a live input configured in `automatic` mode should wait before a recording transitions from live to on-demand. `0` is recommended for most use cases and indicates the platform default should be used.
 
@@ -59,8 +61,8 @@ Read-Only:
 
 Read-Only:
 
-- `stream_key` (String) The secret key to use when streaming via RTMPS to a live input.
-- `url` (String) The RTMPS URL you provide to the broadcaster, which they stream live video to.
+- `stream_key` (String, Sensitive) The secret key to use when streaming via RTMPS to a live input.
+- `url` (String, Sensitive) The RTMPS URL you provide to the broadcaster, which they stream live video to.
 
 
 <a id="nestedatt--rtmps_playback"></a>
@@ -68,8 +70,8 @@ Read-Only:
 
 Read-Only:
 
-- `stream_key` (String) The secret key to use for playback via RTMPS.
-- `url` (String) The URL used to play live video over RTMPS.
+- `stream_key` (String, Sensitive) The secret key to use for playback via RTMPS.
+- `url` (String, Sensitive) The URL used to play live video over RTMPS.
 
 
 <a id="nestedatt--srt"></a>
@@ -77,9 +79,9 @@ Read-Only:
 
 Read-Only:
 
-- `passphrase` (String) The secret key to use when streaming via SRT to a live input.
+- `passphrase` (String, Sensitive) The secret key to use when streaming via SRT to a live input.
 - `stream_id` (String) The identifier of the live input to use when streaming via SRT.
-- `url` (String) The SRT URL you provide to the broadcaster, which they stream live video to.
+- `url` (String, Sensitive) The SRT URL you provide to the broadcaster, which they stream live video to.
 
 
 <a id="nestedatt--srt_playback"></a>
@@ -87,9 +89,9 @@ Read-Only:
 
 Read-Only:
 
-- `passphrase` (String) The secret key to use for playback via SRT.
+- `passphrase` (String, Sensitive) The secret key to use for playback via SRT.
 - `stream_id` (String) The identifier of the live input to use for playback via SRT.
-- `url` (String) The URL used to play live video over SRT.
+- `url` (String, Sensitive) The URL used to play live video over SRT.
 
 
 <a id="nestedatt--web_rtc"></a>
@@ -97,7 +99,7 @@ Read-Only:
 
 Read-Only:
 
-- `url` (String) The WebRTC URL you provide to the broadcaster, which they stream live video to.
+- `url` (String, Sensitive) The WebRTC URL you provide to the broadcaster, which they stream live video to.
 
 
 <a id="nestedatt--web_rtc_playback"></a>
@@ -105,6 +107,6 @@ Read-Only:
 
 Read-Only:
 
-- `url` (String) The URL used to play live video over WebRTC.
+- `url` (String, Sensitive) The URL used to play live video over WebRTC.
 
 

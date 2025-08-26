@@ -30,17 +30,17 @@ data "cloudflare_zero_trust_dlp_predefined_profile" "example_zero_trust_dlp_pred
 
 - `ai_context_enabled` (Boolean)
 - `allowed_match_count` (Number) Related DLP policies will trigger when the match count exceeds the number set.
-- `confidence_threshold` (String)
-- `context_awareness` (Attributes) Scan the context of predefined entries to only return matches surrounded by keywords. (see [below for nested schema](#nestedatt--context_awareness))
-- `created_at` (String) When the profile was created
-- `description` (String) The description of the profile
+- `confidence_threshold` (String) Available values: "low", "medium", "high", "very_high".
+- `context_awareness` (Attributes, Deprecated) Scan the context of predefined entries to only return matches surrounded by keywords. (see [below for nested schema](#nestedatt--context_awareness))
+- `created_at` (String) When the profile was created.
+- `description` (String) The description of the profile.
 - `entries` (Attributes List) (see [below for nested schema](#nestedatt--entries))
-- `id` (String) The id of the profile (uuid)
-- `name` (String) The name of the profile
+- `id` (String) The id of the profile (uuid).
+- `name` (String) The name of the profile.
 - `ocr_enabled` (Boolean)
-- `open_access` (Boolean) Whether this profile can be accessed by anyone
-- `type` (String)
-- `updated_at` (String) When the profile was lasted updated
+- `open_access` (Boolean) Whether this profile can be accessed by anyone.
+- `type` (String) Available values: "custom", "predefined", "integration".
+- `updated_at` (String) When the profile was lasted updated.
 
 <a id="nestedatt--context_awareness"></a>
 ### Nested Schema for `context_awareness`
@@ -64,6 +64,9 @@ Read-Only:
 
 Read-Only:
 
+- `case_sensitive` (Boolean) Only applies to custom word lists.
+Determines if the words should be matched in a case-sensitive manner
+Cannot be set to false if secret is true
 - `confidence` (Attributes) (see [below for nested schema](#nestedatt--entries--confidence))
 - `created_at` (String)
 - `enabled` (Boolean)
@@ -72,7 +75,7 @@ Read-Only:
 - `pattern` (Attributes) (see [below for nested schema](#nestedatt--entries--pattern))
 - `profile_id` (String)
 - `secret` (Boolean)
-- `type` (String)
+- `type` (String) Available values: "custom", "predefined", "integration", "exact_data", "document_fingerprint", "word_list".
 - `updated_at` (String)
 - `word_list` (String)
 
@@ -81,9 +84,8 @@ Read-Only:
 
 Read-Only:
 
-- `ai_context_available` (Boolean)
-- `available` (Boolean) Indicates whether this entry can be made more or less sensitive by setting a confidence threshold.
-Profiles that use an entry with `available` set to true can use confidence thresholds
+- `ai_context_available` (Boolean) Indicates whether this entry has AI remote service validation.
+- `available` (Boolean) Indicates whether this entry has any form of validation that is not an AI remote service.
 
 
 <a id="nestedatt--entries--pattern"></a>
@@ -92,6 +94,6 @@ Profiles that use an entry with `available` set to true can use confidence thres
 Read-Only:
 
 - `regex` (String)
-- `validation` (String)
+- `validation` (String, Deprecated) Available values: "luhn".
 
 

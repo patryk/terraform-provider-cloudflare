@@ -18,15 +18,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "UUID",
+				Description: "UUID.",
 				Computed:    true,
 			},
 			"custom_page_id": schema.StringAttribute{
-				Description: "UUID",
+				Description: "UUID.",
 				Optional:    true,
 			},
 			"account_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"app_count": schema.Int64Attribute{
@@ -46,14 +46,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"type": schema.StringAttribute{
-				Description: "Custom page type.",
+				Description: "Custom page type.\nAvailable values: \"identity_denied\", \"forbidden\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("identity_denied", "forbidden"),
 				},
 			},
 			"uid": schema.StringAttribute{
-				Description: "UUID",
+				Description: "UUID.",
 				Computed:    true,
 			},
 			"updated_at": schema.StringAttribute{

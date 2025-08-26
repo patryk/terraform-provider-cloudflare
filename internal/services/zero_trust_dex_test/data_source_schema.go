@@ -69,21 +69,21 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"target_policies": schema.ListNestedAttribute{
-				Description: "Device settings profiles targeted by this test",
+				Description: "DEX rules targeted by this test",
 				Computed:    true,
 				CustomType:  customfield.NewNestedObjectListType[ZeroTrustDEXTestTargetPoliciesDataSourceModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "The id of the device settings profile",
+							Description: "The id of the DEX rule",
 							Computed:    true,
 						},
 						"default": schema.BoolAttribute{
-							Description: "Whether the profile is the account default",
+							Description: "Whether the DEX rule is the account default",
 							Computed:    true,
 						},
 						"name": schema.StringAttribute{
-							Description: "The name of the device settings profile",
+							Description: "The name of the DEX rule",
 							Computed:    true,
 						},
 					},

@@ -14,7 +14,7 @@ description: |-
 ```terraform
 resource "cloudflare_account_subscription" "example_account_subscription" {
   account_id = "023e105f4ecef8ad9ca31a8372d0c353"
-  frequency = "weekly"
+  frequency = "monthly"
   rate_plan = {
     id = "free"
     currency = "USD"
@@ -37,8 +37,8 @@ resource "cloudflare_account_subscription" "example_account_subscription" {
 ### Optional
 
 - `frequency` (String) How often the subscription is renewed automatically.
+Available values: "weekly", "monthly", "quarterly", "yearly".
 - `rate_plan` (Attributes) The rate plan applied to the subscription. (see [below for nested schema](#nestedatt--rate_plan))
-- `subscription_identifier` (String) Subscription identifier tag.
 
 ### Read-Only
 
@@ -48,6 +48,7 @@ resource "cloudflare_account_subscription" "example_account_subscription" {
 - `id` (String) Subscription identifier tag.
 - `price` (Number) The price of the subscription that will be billed, in US dollars.
 - `state` (String) The state that the subscription is in.
+Available values: "Trial", "Provisioned", "Paid", "AwaitingPayment", "Cancelled", "Failed", "Expired".
 
 <a id="nestedatt--rate_plan"></a>
 ### Nested Schema for `rate_plan`
@@ -57,9 +58,16 @@ Optional:
 - `currency` (String) The currency applied to the rate plan subscription.
 - `externally_managed` (Boolean) Whether this rate plan is managed externally from Cloudflare.
 - `id` (String) The ID of the rate plan.
+Available values: "free", "lite", "pro", "pro_plus", "business", "enterprise", "partners_free", "partners_pro", "partners_business", "partners_enterprise".
 - `is_contract` (Boolean) Whether a rate plan is enterprise-based (or newly adopted term contract).
 - `public_name` (String) The full name of the rate plan.
 - `scope` (String) The scope that this rate plan applies to.
 - `sets` (List of String) The list of sets this rate plan applies to.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+$ terraform import cloudflare_account_subscription.example '<account_id>'
+```

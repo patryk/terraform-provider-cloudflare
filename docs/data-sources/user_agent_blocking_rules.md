@@ -15,8 +15,8 @@ description: |-
 data "cloudflare_user_agent_blocking_rules" "example_user_agent_blocking_rules" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
   description = "abusive"
-  description_search = "abusive"
-  ua_search = "Safari"
+  paused = false
+  user_agent = "Safari"
 }
 ```
 
@@ -25,14 +25,14 @@ data "cloudflare_user_agent_blocking_rules" "example_user_agent_blocking_rules" 
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Defines an identifier.
 
 ### Optional
 
 - `description` (String) A string to search for in the description of existing rules.
-- `description_search` (String) A string to search for in the description of existing rules.
 - `max_items` (Number) Max items to fetch, default: 1000
-- `ua_search` (String) A string to search for in the user agent values of existing rules.
+- `paused` (Boolean) When true, indicates that the rule is currently paused.
+- `user_agent` (String) A string to search for in the user agent values of existing rules.
 
 ### Read-Only
 
@@ -47,6 +47,7 @@ Read-Only:
 - `description` (String) An informative summary of the rule.
 - `id` (String) The unique identifier of the User Agent Blocking rule.
 - `mode` (String) The action to apply to a matched request.
+Available values: "block", "challenge", "js_challenge", "managed_challenge".
 - `paused` (Boolean) When true, indicates that the rule is currently paused.
 
 <a id="nestedatt--result--configuration"></a>

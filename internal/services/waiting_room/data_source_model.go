@@ -5,8 +5,8 @@ package waiting_room
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/waiting_rooms"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/waiting_rooms"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type WaitingRoomResultDataSourceEnvelope struct {
 }
 
 type WaitingRoomDataSourceModel struct {
-	ID                         types.String                                                             `tfsdk:"id" json:"-,computed"`
+	ID                         types.String                                                             `tfsdk:"id" path:"waiting_room_id,computed"`
 	WaitingRoomID              types.String                                                             `tfsdk:"waiting_room_id" path:"waiting_room_id,optional"`
 	ZoneID                     types.String                                                             `tfsdk:"zone_id" path:"zone_id,required"`
 	CookieSuffix               types.String                                                             `tfsdk:"cookie_suffix" json:"cookie_suffix,computed"`
@@ -50,14 +50,6 @@ type WaitingRoomDataSourceModel struct {
 
 func (m *WaitingRoomDataSourceModel) toReadParams(_ context.Context) (params waiting_rooms.WaitingRoomGetParams, diags diag.Diagnostics) {
 	params = waiting_rooms.WaitingRoomGetParams{
-		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
-	}
-
-	return
-}
-
-func (m *WaitingRoomDataSourceModel) toListParams(_ context.Context) (params waiting_rooms.WaitingRoomListParams, diags diag.Diagnostics) {
-	params = waiting_rooms.WaitingRoomListParams{
 		ZoneID: cloudflare.F(m.ZoneID.ValueString()),
 	}
 

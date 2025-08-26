@@ -21,13 +21,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "A Resource identifier.",
 				Required:    true,
 			},
-			"queue_id": schema.StringAttribute{
-				Description: "A Resource identifier.",
-				Computed:    true,
-			},
 			"consumer_id": schema.StringAttribute{
 				Description: "A Resource identifier.",
-				Computed:    true,
+				Required:    true,
+			},
+			"queue_id": schema.StringAttribute{
+				Description: "A Resource identifier.",
+				Required:    true,
 			},
 			"created_on": schema.StringAttribute{
 				Computed: true,
@@ -41,7 +41,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"type": schema.StringAttribute{
-				Computed: true,
+				Description: `Available values: "worker", "http_pull".`,
+				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("worker", "http_pull"),
 				},

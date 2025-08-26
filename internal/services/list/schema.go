@@ -24,12 +24,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"account_id": schema.StringAttribute{
-				Description:   "Identifier",
+				Description:   "The Account ID for this resource.",
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"kind": schema.StringAttribute{
-				Description: "The type of the list. Each type supports specific list items (IP addresses, ASNs, hostnames or redirects).",
+				Description: "The type of the list. Each type supports specific list items (IP addresses, ASNs, hostnames or redirects).\nAvailable values: \"ip\", \"redirect\", \"hostname\", \"asn\".",
 				Required:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -63,7 +63,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"num_referencing_filters": schema.Float64Attribute{
-				Description: "The number of [filters](/operations/filters-list-filters) referencing the list.",
+				Description: "The number of [filters](/api/resources/filters/) referencing the list.",
 				Computed:    true,
 			},
 		},

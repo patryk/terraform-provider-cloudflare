@@ -5,8 +5,8 @@ package load_balancer_pool
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/load_balancers"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/load_balancers"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +18,7 @@ type LoadBalancerPoolResultDataSourceEnvelope struct {
 }
 
 type LoadBalancerPoolDataSourceModel struct {
-	ID                 types.String                                                                `tfsdk:"id" json:"-,computed"`
+	ID                 types.String                                                                `tfsdk:"id" path:"pool_id,computed"`
 	PoolID             types.String                                                                `tfsdk:"pool_id" path:"pool_id,optional"`
 	AccountID          types.String                                                                `tfsdk:"account_id" path:"account_id,required"`
 	CreatedOn          types.String                                                                `tfsdk:"created_on" json:"created_on,computed"`
@@ -93,6 +93,7 @@ type LoadBalancerPoolOriginsDataSourceModel struct {
 	Enabled          types.Bool                                                             `tfsdk:"enabled" json:"enabled,computed"`
 	Header           customfield.NestedObject[LoadBalancerPoolOriginsHeaderDataSourceModel] `tfsdk:"header" json:"header,computed"`
 	Name             types.String                                                           `tfsdk:"name" json:"name,computed"`
+	Port             types.Int64                                                            `tfsdk:"port" json:"port,computed"`
 	VirtualNetworkID types.String                                                           `tfsdk:"virtual_network_id" json:"virtual_network_id,computed"`
 	Weight           types.Float64                                                          `tfsdk:"weight" json:"weight,computed"`
 }

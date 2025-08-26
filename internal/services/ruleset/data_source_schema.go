@@ -40,12 +40,8 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Description: "The Zone ID to use for this endpoint. Mutually exclusive with the Account ID.",
 				Optional:    true,
 			},
-			"description": schema.StringAttribute{
-				Description: "An informative description of the ruleset.",
-				Computed:    true,
-			},
 			"kind": schema.StringAttribute{
-				Description: "The kind of the ruleset.",
+				Description: "The kind of the ruleset.\nAvailable values: \"managed\", \"custom\", \"root\", \"zone\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -61,7 +57,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"phase": schema.StringAttribute{
-				Description: "The phase of the ruleset.",
+				Description: "The phase of the ruleset.\nAvailable values: \"ddos_l4\", \"ddos_l7\", \"http_config_settings\", \"http_custom_errors\", \"http_log_custom_fields\", \"http_ratelimit\", \"http_request_cache_settings\", \"http_request_dynamic_redirect\", \"http_request_firewall_custom\", \"http_request_firewall_managed\", \"http_request_late_transform\", \"http_request_origin\", \"http_request_redirect\", \"http_request_sanitize\", \"http_request_sbfm\", \"http_request_transform\", \"http_response_compression\", \"http_response_firewall_managed\", \"http_response_headers_transform\", \"magic_transit\", \"magic_transit_ids_managed\", \"magic_transit_managed\", \"magic_transit_ratelimit\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -91,6 +87,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					),
 				},
 			},
+			"description": schema.StringAttribute{
+				Description: "An informative description of the ruleset.",
+				Computed:    true,
+			},
 			"rules": schema.ListNestedAttribute{
 				Description: "The list of rules in the ruleset.",
 				Computed:    true,
@@ -102,7 +102,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"action": schema.StringAttribute{
-							Description: "The action to perform when the rule matches.",
+							Description: "The action to perform when the rule matches.\nAvailable values: \"block\", \"challenge\", \"compress_response\", \"execute\", \"js_challenge\", \"log\", \"managed_challenge\", \"redirect\", \"rewrite\", \"route\", \"score\", \"serve_error\", \"set_config\", \"skip\", \"set_cache_settings\", \"log_custom_field\", \"ddos_dynamic\", \"force_connection_close\".",
 							Computed:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive(
@@ -161,7 +161,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"name": schema.StringAttribute{
-												Description: "Name of compression algorithm to enable.",
+												Description: "Name of compression algorithm to enable.\nAvailable values: \"none\", \"auto\", \"default\", \"gzip\", \"brotli\", \"zstd\".",
 												Computed:    true,
 												Validators: []validator.String{
 													stringvalidator.OneOfCaseInsensitive(
@@ -170,6 +170,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 														"default",
 														"gzip",
 														"brotli",
+														"zstd",
 													),
 												},
 											},
@@ -219,7 +220,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 														Computed:    true,
 													},
 													"sensitivity_level": schema.StringAttribute{
-														Description: "The sensitivity level to use for rules in the category.",
+														Description: "The sensitivity level to use for rules in the category.\nAvailable values: \"default\", \"medium\", \"low\", \"eoff\".",
 														Computed:    true,
 														Validators: []validator.String{
 															stringvalidator.OneOfCaseInsensitive(
@@ -260,7 +261,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 														Computed:    true,
 													},
 													"sensitivity_level": schema.StringAttribute{
-														Description: "The sensitivity level to use for the rule.",
+														Description: "The sensitivity level to use for the rule.\nAvailable values: \"default\", \"medium\", \"low\", \"eoff\".",
 														Computed:    true,
 														Validators: []validator.String{
 															stringvalidator.OneOfCaseInsensitive(
@@ -275,7 +276,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 										"sensitivity_level": schema.StringAttribute{
-											Description: "A sensitivity level to set for all rules. This option has lower precedence than rule and category overrides and is only applicable for DDoS phases.",
+											Description: "A sensitivity level to set for all rules. This option has lower precedence than rule and category overrides and is only applicable for DDoS phases.\nAvailable values: \"default\", \"medium\", \"low\", \"eoff\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -313,7 +314,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											Computed:    true,
 										},
 										"status_code": schema.Float64Attribute{
-											Description: "The status code to be used for the redirect.",
+											Description: "The status code to be used for the redirect.\nAvailable values: 301, 302, 303, 307, 308.",
 											Computed:    true,
 											Validators: []validator.Float64{
 												float64validator.OneOf(
@@ -349,9 +350,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"operation": schema.StringAttribute{
-												Computed: true,
+												Description: `Available values: "remove", "add", "set".`,
+												Computed:    true,
 												Validators: []validator.String{
-													stringvalidator.OneOfCaseInsensitive("remove", "set"),
+													stringvalidator.OneOfCaseInsensitive(
+														"remove",
+														"add",
+														"set",
+													),
 												},
 											},
 											"value": schema.StringAttribute{
@@ -444,7 +450,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"content_type": schema.StringAttribute{
-									Description: "Content-type header to set with the response.",
+									Description: "Content-type header to set with the response.\nAvailable values: \"application/json\", \"text/xml\", \"text/plain\", \"text/html\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -522,22 +528,23 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"polish": schema.StringAttribute{
-									Description: "Configure the Polish level.",
+									Description: "Configure the Polish level.\nAvailable values: \"off\", \"lossless\", \"lossy\", \"webp\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
 											"off",
 											"lossless",
 											"lossy",
+											"webp",
 										),
 									},
 								},
 								"rocket_loader": schema.BoolAttribute{
-									Description: "Turn on or off Rocket Loader",
+									Description: "Turn on or off Rocket Loader.",
 									Computed:    true,
 								},
 								"security_level": schema.StringAttribute{
-									Description: "Configure the Security Level.",
+									Description: "Configure the Security Level.\nAvailable values: \"off\", \"essentially_off\", \"low\", \"medium\", \"high\", \"under_attack\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -555,7 +562,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"ssl": schema.StringAttribute{
-									Description: "Configure the SSL level.",
+									Description: "Configure the SSL level.\nAvailable values: \"off\", \"flexible\", \"full\", \"strict\", \"origin_pull\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive(
@@ -571,8 +578,15 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Description: "Turn on or off Signed Exchanges (SXG).",
 									Computed:    true,
 								},
+								"phase": schema.StringAttribute{
+									Description: "A phase to skip the execution of. This property is only compatible with products.\nAvailable values: \"current\".",
+									Computed:    true,
+									Validators: []validator.String{
+										stringvalidator.OneOfCaseInsensitive("current"),
+									},
+								},
 								"phases": schema.ListAttribute{
-									Description: "A list of phases to skip the execution of. This option is incompatible with the ruleset and rulesets options.",
+									Description: "A list of phases to skip the execution of. This option is incompatible with the rulesets option.",
 									Computed:    true,
 									Validators: []validator.List{
 										listvalidator.ValueStringsAre(
@@ -634,7 +648,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								"ruleset": schema.StringAttribute{
-									Description: "A ruleset to skip the execution of. This option is incompatible with the rulesets, rules and phases options.",
+									Description: "A ruleset to skip the execution of. This option is incompatible with the rulesets option.\nAvailable values: \"current\".",
 									Computed:    true,
 									Validators: []validator.String{
 										stringvalidator.OneOfCaseInsensitive("current"),
@@ -658,13 +672,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									CustomType:  customfield.NewNestedObjectType[RulesetRulesActionParametersBrowserTTLDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"mode": schema.StringAttribute{
-											Description: "Determines which browser ttl mode to use.",
+											Description: "Determines which browser ttl mode to use.\nAvailable values: \"respect_origin\", \"bypass_by_default\", \"override_origin\", \"bypass\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
 													"respect_origin",
 													"bypass_by_default",
 													"override_origin",
+													"bypass",
 												),
 											},
 										},
@@ -684,11 +699,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									CustomType:  customfield.NewNestedObjectType[RulesetRulesActionParametersCacheKeyDataSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"cache_by_device_type": schema.BoolAttribute{
-											Description: "Separate cached content based on the visitor’s device type",
+											Description: "Separate cached content based on the visitor’s device type.",
 											Computed:    true,
 										},
 										"cache_deception_armor": schema.BoolAttribute{
-											Description: "Protect from web cache deception attacks while allowing static assets to be cached",
+											Description: "Protect from web cache deception attacks while allowing static assets to be cached.",
 											Computed:    true,
 										},
 										"custom_key": schema.SingleNestedAttribute{
@@ -851,7 +866,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 										"mode": schema.StringAttribute{
-											Description: "edge ttl options",
+											Description: "Edge TTL options.\nAvailable values: \"respect_origin\", \"bypass_by_default\", \"override_origin\".",
 											Computed:    true,
 											Validators: []validator.String{
 												stringvalidator.OneOfCaseInsensitive(
@@ -862,13 +877,13 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 											},
 										},
 										"status_code_ttl": schema.ListNestedAttribute{
-											Description: "List of single status codes, or status code ranges to apply the selected mode",
+											Description: "List of single status codes, or status code ranges to apply the selected mode.",
 											Computed:    true,
 											CustomType:  customfield.NewNestedObjectListType[RulesetRulesActionParametersEdgeTTLStatusCodeTTLDataSourceModel](ctx),
 											NestedObject: schema.NestedAttributeObject{
 												Attributes: map[string]schema.Attribute{
 													"value": schema.Int64Attribute{
-														Description: "Time to cache a response (in seconds). A value of 0 is equivalent to setting the Cache-Control header with the value \"no-cache\". A value of -1 is equivalent to setting Cache-Control header with the value of \"no-store\".",
+														Description: `Time to cache a response (in seconds). A value of 0 is equivalent to setting the Cache-Control header with the value "no-cache". A value of -1 is equivalent to setting Cache-Control header with the value of "no-store".`,
 														Computed:    true,
 													},
 													"status_code_range": schema.SingleNestedAttribute{
@@ -877,17 +892,17 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 														CustomType:  customfield.NewNestedObjectType[RulesetRulesActionParametersEdgeTTLStatusCodeTTLStatusCodeRangeDataSourceModel](ctx),
 														Attributes: map[string]schema.Attribute{
 															"from": schema.Int64Attribute{
-																Description: "response status code lower bound",
+																Description: "Response status code lower bound.",
 																Computed:    true,
 															},
 															"to": schema.Int64Attribute{
-																Description: "response status code upper bound",
+																Description: "Response status code upper bound.",
 																Computed:    true,
 															},
 														},
 													},
 													"status_code_value": schema.Int64Attribute{
-														Description: "Set the ttl for responses with this specific status code",
+														Description: "Set the TTL for responses with this specific status code.",
 														Computed:    true,
 													},
 												},
@@ -900,7 +915,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									Computed:    true,
 								},
 								"origin_error_page_passthru": schema.BoolAttribute{
-									Description: "Generate Cloudflare error pages from issues sent from the origin server. When on, error pages will trigger for issues from the origin",
+									Description: "Generate Cloudflare error pages from issues sent from the origin server. When on, error pages will trigger for issues from the origin.",
 									Computed:    true,
 								},
 								"read_timeout": schema.Int64Attribute{
@@ -935,8 +950,25 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 								},
+								"raw_response_fields": schema.ListNestedAttribute{
+									Description: "The raw response fields to log.",
+									Computed:    true,
+									CustomType:  customfield.NewNestedObjectListType[RulesetRulesActionParametersRawResponseFieldsDataSourceModel](ctx),
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"name": schema.StringAttribute{
+												Description: "The name of the field.",
+												Computed:    true,
+											},
+											"preserve_duplicates": schema.BoolAttribute{
+												Description: "Whether to log duplicate values of the same header.",
+												Computed:    true,
+											},
+										},
+									},
+								},
 								"request_fields": schema.ListNestedAttribute{
-									Description: "The request fields to log.",
+									Description: "The raw request fields to log.",
 									Computed:    true,
 									CustomType:  customfield.NewNestedObjectListType[RulesetRulesActionParametersRequestFieldsDataSourceModel](ctx),
 									NestedObject: schema.NestedAttributeObject{
@@ -949,9 +981,26 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 								"response_fields": schema.ListNestedAttribute{
-									Description: "The response fields to log.",
+									Description: "The transformed response fields to log.",
 									Computed:    true,
 									CustomType:  customfield.NewNestedObjectListType[RulesetRulesActionParametersResponseFieldsDataSourceModel](ctx),
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"name": schema.StringAttribute{
+												Description: "The name of the field.",
+												Computed:    true,
+											},
+											"preserve_duplicates": schema.BoolAttribute{
+												Description: "Whether to log duplicate values of the same header.",
+												Computed:    true,
+											},
+										},
+									},
+								},
+								"transformed_request_fields": schema.ListNestedAttribute{
+									Description: "The transformed request fields to log.",
+									Computed:    true,
+									CustomType:  customfield.NewNestedObjectListType[RulesetRulesActionParametersTransformedRequestFieldsDataSourceModel](ctx),
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"name": schema.StringAttribute{
@@ -1021,14 +1070,6 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								"period": schema.Int64Attribute{
 									Description: "Period in seconds over which the counter is being incremented.",
 									Computed:    true,
-									Validators: []validator.Int64{
-										int64validator.OneOf(
-											10,
-											60,
-											600,
-											3600,
-										),
-									},
 								},
 								"counting_expression": schema.StringAttribute{
 									Description: "Defines when the ratelimit counter should be incremented. It is optional and defaults to the same as the rule's expression.",
@@ -1041,6 +1082,9 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 								"requests_per_period": schema.Int64Attribute{
 									Description: "The threshold of requests per period after which the action will be executed for the first time.",
 									Computed:    true,
+									Validators: []validator.Int64{
+										int64validator.AtLeast(1),
+									},
 								},
 								"requests_to_origin": schema.BoolAttribute{
 									Description: "Defines if ratelimit counting is only done when an origin is reached.",

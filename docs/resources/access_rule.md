@@ -17,7 +17,7 @@ resource "cloudflare_access_rule" "example_access_rule" {
     target = "ip"
     value = "198.51.100.4"
   }
-  mode = "block"
+  mode = "challenge"
   zone_id = "zone_id"
   notes = "This rule is enabled because of an event that occurred on date X."
 }
@@ -30,6 +30,7 @@ resource "cloudflare_access_rule" "example_access_rule" {
 
 - `configuration` (Attributes) The rule configuration. (see [below for nested schema](#nestedatt--configuration))
 - `mode` (String) The action to apply to a matched request.
+Available values: "block", "challenge", "whitelist", "js_challenge", "managed_challenge".
 
 ### Optional
 
@@ -51,6 +52,7 @@ resource "cloudflare_access_rule" "example_access_rule" {
 Optional:
 
 - `target` (String) The configuration target. You must set the target to `ip` when specifying an IP address in the rule.
+Available values: "ip", "ip6", "ip_range", "asn", "country".
 - `value` (String) The IP address to match. This address will be compared to the IP address of incoming requests.
 
 
@@ -60,8 +62,9 @@ Optional:
 Read-Only:
 
 - `email` (String) The contact email address of the user.
-- `id` (String) Identifier
-- `type` (String) The scope of the rule.
+- `id` (String) Defines an identifier.
+- `type` (String) Defines the scope of the rule.
+Available values: "user", "organization".
 
 ## Import
 

@@ -8,9 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
-	"github.com/cloudflare/cloudflare-go/v4/zero_trust"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/cloudflare/cloudflare-go/v5/zero_trust"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/importpath"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
@@ -112,6 +112,8 @@ func (r *ZeroTrustTunnelCloudflaredVirtualNetworkResource) Update(ctx context.Co
 		return
 	}
 
+	isDefault := state.IsDefault
+
 	dataBytes, err := data.MarshalJSONForUpdate(*state)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to serialize http request", err.Error())
@@ -140,6 +142,7 @@ func (r *ZeroTrustTunnelCloudflaredVirtualNetworkResource) Update(ctx context.Co
 		return
 	}
 	data = &env.Result
+	data.IsDefault = isDefault
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -152,6 +155,8 @@ func (r *ZeroTrustTunnelCloudflaredVirtualNetworkResource) Read(ctx context.Cont
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	isDefault := data.IsDefault
 
 	res := new(http.Response)
 	env := ZeroTrustTunnelCloudflaredVirtualNetworkResultEnvelope{*data}
@@ -174,12 +179,13 @@ func (r *ZeroTrustTunnelCloudflaredVirtualNetworkResource) Read(ctx context.Cont
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
 	data = &env.Result
+	data.IsDefault = isDefault
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

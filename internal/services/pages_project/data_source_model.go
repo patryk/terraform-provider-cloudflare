@@ -5,8 +5,8 @@ package pages_project
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/pages"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/pages"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -90,8 +90,8 @@ type PagesProjectCanonicalDeploymentDeploymentTriggerMetadataDataSourceModel str
 }
 
 type PagesProjectCanonicalDeploymentEnvVarsDataSourceModel struct {
-	Value types.String `tfsdk:"value" json:"value,computed"`
 	Type  types.String `tfsdk:"type" json:"type,computed"`
+	Value types.String `tfsdk:"value" json:"value,computed"`
 }
 
 type PagesProjectCanonicalDeploymentLatestStageDataSourceModel struct {
@@ -171,8 +171,8 @@ type PagesProjectDeploymentConfigsPreviewDurableObjectNamespacesDataSourceModel 
 }
 
 type PagesProjectDeploymentConfigsPreviewEnvVarsDataSourceModel struct {
-	Value types.String `tfsdk:"value" json:"value,computed"`
 	Type  types.String `tfsdk:"type" json:"type,computed"`
+	Value types.String `tfsdk:"value" json:"value,computed"`
 }
 
 type PagesProjectDeploymentConfigsPreviewHyperdriveBindingsDataSourceModel struct {
@@ -249,8 +249,8 @@ type PagesProjectDeploymentConfigsProductionDurableObjectNamespacesDataSourceMod
 }
 
 type PagesProjectDeploymentConfigsProductionEnvVarsDataSourceModel struct {
-	Value types.String `tfsdk:"value" json:"value,computed"`
 	Type  types.String `tfsdk:"type" json:"type,computed"`
+	Value types.String `tfsdk:"value" json:"value,computed"`
 }
 
 type PagesProjectDeploymentConfigsProductionHyperdriveBindingsDataSourceModel struct {
@@ -328,8 +328,8 @@ type PagesProjectLatestDeploymentDeploymentTriggerMetadataDataSourceModel struct
 }
 
 type PagesProjectLatestDeploymentEnvVarsDataSourceModel struct {
-	Value types.String `tfsdk:"value" json:"value,computed"`
 	Type  types.String `tfsdk:"type" json:"type,computed"`
+	Value types.String `tfsdk:"value" json:"value,computed"`
 }
 
 type PagesProjectLatestDeploymentLatestStageDataSourceModel struct {

@@ -71,8 +71,9 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"exclude": schema.ListNestedAttribute{
-							Computed:   true,
-							CustomType: customfield.NewNestedObjectListType[ZeroTrustDeviceCustomProfilesExcludeDataSourceModel](ctx),
+							Description: "List of routes excluded in the WARP client's tunnel.",
+							Computed:    true,
+							CustomType:  customfield.NewNestedObjectListType[ZeroTrustDeviceCustomProfilesExcludeDataSourceModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"address": schema.StringAttribute{
@@ -120,20 +121,21 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed: true,
 						},
 						"include": schema.ListNestedAttribute{
-							Computed:   true,
-							CustomType: customfield.NewNestedObjectListType[ZeroTrustDeviceCustomProfilesIncludeDataSourceModel](ctx),
+							Description: "List of routes included in the WARP client's tunnel.",
+							Computed:    true,
+							CustomType:  customfield.NewNestedObjectListType[ZeroTrustDeviceCustomProfilesIncludeDataSourceModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"address": schema.StringAttribute{
-										Description: "The address in CIDR format to include in the tunnel. If address is present, host must not be present.",
+										Description: "The address in CIDR format to include in the tunnel. If `address` is present, `host` must not be present.",
 										Computed:    true,
 									},
 									"description": schema.StringAttribute{
-										Description: "A description of the split tunnel item, displayed in the client UI.",
+										Description: "A description of the Split Tunnel item, displayed in the client UI.",
 										Computed:    true,
 									},
 									"host": schema.StringAttribute{
-										Description: "The domain name to include in the tunnel. If host is present, address must not be present.",
+										Description: "The domain name to include in the tunnel. If `host` is present, `address` must not be present.",
 										Computed:    true,
 									},
 								},
@@ -148,7 +150,7 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"match": schema.StringAttribute{
-							Description: "The wirefilter expression to match devices.",
+							Description: `The wirefilter expression to match devices. Available values: "identity.email", "identity.groups.id", "identity.groups.name", "identity.groups.email", "identity.service_token_uuid", "identity.saml_attributes", "network", "os.name", "os.version".`,
 							Computed:    true,
 						},
 						"name": schema.StringAttribute{
@@ -156,11 +158,18 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:    true,
 						},
 						"policy_id": schema.StringAttribute{
-							Description: "Device ID.",
-							Computed:    true,
+							Computed: true,
 						},
 						"precedence": schema.Float64Attribute{
 							Description: "The precedence of the policy. Lower values indicate higher precedence. Policies will be evaluated in ascending order of this field.",
+							Computed:    true,
+						},
+						"register_interface_ip_with_dns": schema.BoolAttribute{
+							Description: "Determines if the operating system will register WARP's local interface IP with your on-premises DNS server.",
+							Computed:    true,
+						},
+						"sccm_vpn_boundary_support": schema.BoolAttribute{
+							Description: "Determines whether the WARP client indicates to SCCM that it is inside a VPN boundary. (Windows only).",
 							Computed:    true,
 						},
 						"service_mode_v2": schema.SingleNestedAttribute{
@@ -191,11 +200,11 @@ func ListDataSourceSchema(ctx context.Context) schema.Schema {
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
-										Description: "The id of the DEX test targeting this policy",
+										Description: "The id of the DEX test targeting this policy.",
 										Computed:    true,
 									},
 									"name": schema.StringAttribute{
-										Description: "The name of the DEX test targeting this policy",
+										Description: "The name of the DEX test targeting this policy.",
 										Computed:    true,
 									},
 								},

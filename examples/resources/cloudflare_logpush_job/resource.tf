@@ -3,8 +3,9 @@ resource "cloudflare_logpush_job" "example_logpush_job" {
   zone_id = "zone_id"
   dataset = "http_requests"
   enabled = false
+  filter = "{\"where\":{\"and\":[{\"key\":\"ClientRequestPath\",\"operator\":\"contains\",\"value\":\"/static\"},{\"key\":\"ClientRequestHost\",\"operator\":\"eq\",\"value\":\"example.com\"}]}}"
   frequency = "high"
-  kind = "edge"
+  kind = ""
   logpull_options = "fields=RayID,ClientIP,EdgeStartTimestamp&timestamps=rfc3339"
   max_upload_bytes = 5000000
   max_upload_interval_seconds = 30
@@ -13,7 +14,7 @@ resource "cloudflare_logpush_job" "example_logpush_job" {
   output_options = {
     batch_prefix = "batch_prefix"
     batch_suffix = "batch_suffix"
-    cve_2021_4428 = true
+    cve_2021_44228 = true
     field_delimiter = "field_delimiter"
     field_names = ["ClientIP", "EdgeStartTimestamp", "RayID"]
     output_type = "ndjson"

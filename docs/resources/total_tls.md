@@ -25,16 +25,18 @@ resource "cloudflare_total_tls" "example_total_tls" {
 ### Required
 
 - `enabled` (Boolean) If enabled, Total TLS will order a hostname specific TLS certificate for any proxied A, AAAA, or CNAME record in your zone.
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
 - `certificate_authority` (String) The Certificate Authority that Total TLS certificates will be issued through.
+Available values: "google", "lets_encrypt", "ssl_com".
 
 ### Read-Only
 
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `validity_period` (Number) The validity period in days for the certificates ordered via Total TLS.
+Available values: 90.
 
 ## Import
 

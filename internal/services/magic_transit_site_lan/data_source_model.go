@@ -5,8 +5,8 @@ package magic_transit_site_lan
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/magic_transit"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/magic_transit"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/customfield"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,10 +17,10 @@ type MagicTransitSiteLANResultDataSourceEnvelope struct {
 }
 
 type MagicTransitSiteLANDataSourceModel struct {
-	ID               types.String                                                                  `tfsdk:"id" json:"-,computed"`
+	ID               types.String                                                                  `tfsdk:"id" path:"lan_id,computed"`
 	LANID            types.String                                                                  `tfsdk:"lan_id" path:"lan_id,optional"`
 	AccountID        types.String                                                                  `tfsdk:"account_id" path:"account_id,required"`
-	SiteID           types.String                                                                  `tfsdk:"site_id" path:"site_id,computed"`
+	SiteID           types.String                                                                  `tfsdk:"site_id" path:"site_id,required"`
 	HaLink           types.Bool                                                                    `tfsdk:"ha_link" json:"ha_link,computed"`
 	Name             types.String                                                                  `tfsdk:"name" json:"name,computed"`
 	Physport         types.Int64                                                                   `tfsdk:"physport" json:"physport,computed"`
@@ -32,14 +32,6 @@ type MagicTransitSiteLANDataSourceModel struct {
 
 func (m *MagicTransitSiteLANDataSourceModel) toReadParams(_ context.Context) (params magic_transit.SiteLANGetParams, diags diag.Diagnostics) {
 	params = magic_transit.SiteLANGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *MagicTransitSiteLANDataSourceModel) toListParams(_ context.Context) (params magic_transit.SiteLANListParams, diags diag.Diagnostics) {
-	params = magic_transit.SiteLANListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

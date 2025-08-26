@@ -17,19 +17,30 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"account_id": schema.StringAttribute{
-				Description: "Account ID",
+				Description: "Account ID.",
 				Required:    true,
 			},
 			"bucket_name": schema.StringAttribute{
-				Description: "Name of the bucket",
+				Description: "Name of the bucket.",
 				Required:    true,
 			},
 			"creation_date": schema.StringAttribute{
-				Description: "Creation timestamp",
+				Description: "Creation timestamp.",
 				Computed:    true,
 			},
+			"jurisdiction": schema.StringAttribute{
+				Description: "Jurisdiction where objects in this bucket are guaranteed to be stored.\nAvailable values: \"default\", \"eu\", \"fedramp\".",
+				Computed:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"default",
+						"eu",
+						"fedramp",
+					),
+				},
+			},
 			"location": schema.StringAttribute{
-				Description: "Location of the bucket",
+				Description: "Location of the bucket.\nAvailable values: \"apac\", \"eeur\", \"enam\", \"weur\", \"wnam\", \"oc\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -38,15 +49,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						"enam",
 						"weur",
 						"wnam",
+						"oc",
 					),
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "Name of the bucket",
+				Description: "Name of the bucket.",
 				Computed:    true,
 			},
 			"storage_class": schema.StringAttribute{
-				Description: "Storage class for newly uploaded objects, unless specified otherwise.",
+				Description: "Storage class for newly uploaded objects, unless specified otherwise.\nAvailable values: \"Standard\", \"InfrequentAccess\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive("Standard", "InfrequentAccess"),

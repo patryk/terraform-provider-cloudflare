@@ -5,8 +5,8 @@ package list
 import (
 	"context"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/rules"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/rules"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,9 +16,9 @@ type ListResultDataSourceEnvelope struct {
 }
 
 type ListDataSourceModel struct {
-	ID                    types.String  `tfsdk:"id" json:"-,computed"`
-	ListID                types.String  `tfsdk:"list_id" path:"list_id,optional"`
 	AccountID             types.String  `tfsdk:"account_id" path:"account_id,required"`
+	ListID                types.String  `tfsdk:"list_id" path:"list_id,required"`
+	ID                    types.String  `tfsdk:"id" path:"list_id,computed"`
 	CreatedOn             types.String  `tfsdk:"created_on" json:"created_on,computed"`
 	Description           types.String  `tfsdk:"description" json:"description,computed"`
 	Kind                  types.String  `tfsdk:"kind" json:"kind,computed"`
@@ -30,14 +30,6 @@ type ListDataSourceModel struct {
 
 func (m *ListDataSourceModel) toReadParams(_ context.Context) (params rules.ListGetParams, diags diag.Diagnostics) {
 	params = rules.ListGetParams{
-		AccountID: cloudflare.F(m.AccountID.ValueString()),
-	}
-
-	return
-}
-
-func (m *ListDataSourceModel) toListParams(_ context.Context) (params rules.ListListParams, diags diag.Diagnostics) {
-	params = rules.ListListParams{
 		AccountID: cloudflare.F(m.AccountID.ValueString()),
 	}
 

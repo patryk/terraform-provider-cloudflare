@@ -8,10 +8,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
-	"github.com/cloudflare/cloudflare-go/v4/r2"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
+	"github.com/cloudflare/cloudflare-go/v5/r2"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
+	"github.com/cloudflare/terraform-provider-cloudflare/internal/consts"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -75,6 +76,7 @@ func (r *R2BucketEventNotificationResource) Create(ctx context.Context, req reso
 		r2.BucketEventNotificationUpdateParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
+		option.WithHeader(consts.R2JurisdictionHTTPHeaderName, data.Jurisdiction.ValueString()),
 		option.WithRequestBody("application/json", dataBytes),
 		option.WithResponseBodyInto(&res),
 		option.WithMiddleware(logging.Middleware(ctx)),
@@ -125,6 +127,7 @@ func (r *R2BucketEventNotificationResource) Update(ctx context.Context, req reso
 		r2.BucketEventNotificationUpdateParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
+		option.WithHeader(consts.R2JurisdictionHTTPHeaderName, data.Jurisdiction.ValueString()),
 		option.WithRequestBody("application/json", dataBytes),
 		option.WithResponseBodyInto(&res),
 		option.WithMiddleware(logging.Middleware(ctx)),
@@ -158,9 +161,11 @@ func (r *R2BucketEventNotificationResource) Read(ctx context.Context, req resour
 	_, err := r.client.R2.Buckets.EventNotifications.Get(
 		ctx,
 		data.BucketName.ValueString(),
+		data.QueueID.ValueString(),
 		r2.BucketEventNotificationGetParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
+		option.WithHeader(consts.R2JurisdictionHTTPHeaderName, data.Jurisdiction.ValueString()),
 		option.WithResponseBodyInto(&res),
 		option.WithMiddleware(logging.Middleware(ctx)),
 	)
@@ -174,7 +179,7 @@ func (r *R2BucketEventNotificationResource) Read(ctx context.Context, req resour
 		return
 	}
 	bytes, _ := io.ReadAll(res.Body)
-	err = apijson.UnmarshalComputed(bytes, &env)
+	err = apijson.Unmarshal(bytes, &env)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
@@ -200,6 +205,7 @@ func (r *R2BucketEventNotificationResource) Delete(ctx context.Context, req reso
 		r2.BucketEventNotificationDeleteParams{
 			AccountID: cloudflare.F(data.AccountID.ValueString()),
 		},
+		option.WithHeader(consts.R2JurisdictionHTTPHeaderName, data.Jurisdiction.ValueString()),
 		option.WithMiddleware(logging.Middleware(ctx)),
 	)
 	if err != nil {

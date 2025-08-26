@@ -30,8 +30,7 @@ resource "cloudflare_api_token" "example_api_token" {
       }
     }]
     resources = {
-      "com.cloudflare.api.account.zone.22b1de5f1c0e4b3ea97bb1e963b06a43" = "*"
-      "com.cloudflare.api.account.zone.eb78d65290b24279ba6f44721b3ea3c4" = "*"
+      foo = "string"
     }
   }]
   condition = {
@@ -59,6 +58,7 @@ resource "cloudflare_api_token" "example_api_token" {
 - `expires_on` (String) The expiration time on or after which the JWT MUST NOT be accepted for processing.
 - `not_before` (String) The time before which the token MUST NOT be accepted for processing.
 - `status` (String) Status of the token.
+Available values: "active", "disabled", "expired".
 
 ### Read-Only
 
@@ -66,7 +66,7 @@ resource "cloudflare_api_token" "example_api_token" {
 - `issued_on` (String) The time on which the token was created.
 - `last_used_on` (String) Last time the token was used.
 - `modified_on` (String) Last time the token was modified.
-- `value` (String) The token value.
+- `value` (String, Sensitive) The token value.
 
 <a id="nestedatt--policies"></a>
 ### Nested Schema for `policies`
@@ -74,7 +74,8 @@ resource "cloudflare_api_token" "example_api_token" {
 Required:
 
 - `effect` (String) Allow or deny operations against the resources.
-- `permission_groups` (Attributes List) A set of permission groups that are specified to the policy. (see [below for nested schema](#nestedatt--policies--permission_groups))
+Available values: "allow", "deny".
+- `permission_groups` (Attributes Set) A set of permission groups that are specified to the policy. (see [below for nested schema](#nestedatt--policies--permission_groups))
 - `resources` (Map of String) A list of resource names that the policy applies to.
 
 Read-Only:
@@ -86,7 +87,7 @@ Read-Only:
 
 Required:
 
-- `id` (String) Identifier of the group.
+- `id` (String) Identifier of the permission group.
 
 Optional:
 
@@ -94,7 +95,7 @@ Optional:
 
 Read-Only:
 
-- `name` (String) Name of the group.
+- `name` (String) Name of the permission group.
 
 <a id="nestedatt--policies--permission_groups--meta"></a>
 ### Nested Schema for `policies.permission_groups.meta`

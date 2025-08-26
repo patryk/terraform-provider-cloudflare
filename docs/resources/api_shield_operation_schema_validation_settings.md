@@ -15,7 +15,7 @@ description: |-
 resource "cloudflare_api_shield_operation_schema_validation_settings" "example_api_shield_operation_schema_validation_settings" {
   zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
   operation_id = "f174e90a-fafe-4643-bbbc-4a0ed4fc8415"
-  mitigation_action = "log"
+  mitigation_action = "block"
 }
 ```
 
@@ -24,8 +24,8 @@ resource "cloudflare_api_shield_operation_schema_validation_settings" "example_a
 
 ### Required
 
-- `operation_id` (String) UUID
-- `zone_id` (String) Identifier
+- `operation_id` (String) UUID.
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -35,10 +35,11 @@ resource "cloudflare_api_shield_operation_schema_validation_settings" "example_a
   - `block` deny access to the site when request does not conform to schema for this operation
   - `none` will skip mitigation for this operation
   - `null` indicates that no operation level mitigation is in place, see Zone Level Schema Validation Settings for mitigation action that will be applied
+Available values: "log", "block", "none".
 
 ### Read-Only
 
-- `id` (String) UUID
+- `id` (String) UUID.
 
 ## Import
 

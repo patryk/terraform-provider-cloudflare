@@ -18,11 +18,11 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"certificate_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"zone_id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Required:    true,
 			},
 			"certificate": schema.StringAttribute{
@@ -39,7 +39,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  timetypes.RFC3339Type{},
 			},
 			"id": schema.StringAttribute{
-				Description: "Identifier",
+				Description: "Identifier.",
 				Computed:    true,
 			},
 			"issuer": schema.StringAttribute{
@@ -49,13 +49,14 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			"private_key": schema.StringAttribute{
 				Description: "The zone's private key.",
 				Computed:    true,
+				Sensitive:   true,
 			},
 			"signature": schema.StringAttribute{
 				Description: "The type of hash used for the certificate.",
 				Computed:    true,
 			},
 			"status": schema.StringAttribute{
-				Description: "Status of the certificate activation.",
+				Description: "Status of the certificate activation.\nAvailable values: \"initializing\", \"pending_deployment\", \"pending_deletion\", \"active\", \"deleted\", \"deployment_timed_out\", \"deletion_timed_out\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(

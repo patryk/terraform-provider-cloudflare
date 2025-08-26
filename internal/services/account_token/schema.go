@@ -43,26 +43,31 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"id": schema.StringAttribute{
 							Description: "Policy identifier.",
 							Computed:    true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"effect": schema.StringAttribute{
-							Description: "Allow or deny operations against the resources.",
+							Description: "Allow or deny operations against the resources.\nAvailable values: \"allow\", \"deny\".",
 							Required:    true,
 							Validators: []validator.String{
 								stringvalidator.OneOfCaseInsensitive("allow", "deny"),
 							},
 						},
-						"permission_groups": schema.ListNestedAttribute{
+						"permission_groups": schema.SetNestedAttribute{
 							Description: "A set of permission groups that are specified to the policy.",
 							Required:    true,
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.StringAttribute{
-										Description: "Identifier of the group.",
+										Description: "Identifier of the permission group.",
 										Required:    true,
 									},
 									"meta": schema.SingleNestedAttribute{
 										Description: "Attributes associated to the permission group.",
 										Optional:    true,
+										Computed:    true,
+										CustomType:  customfield.NewNestedObjectType[AccountTokenPoliciesPermissionGroupsMetaModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"key": schema.StringAttribute{
 												Optional: true,
@@ -73,7 +78,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 									"name": schema.StringAttribute{
-										Description: "Name of the group.",
+										Description: "Name of the permission group.",
 										Computed:    true,
 									},
 								},
@@ -97,27 +102,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:    true,
 				CustomType:  timetypes.RFC3339Type{},
 			},
-			"status": schema.StringAttribute{
-				Description: "Status of the token.",
-				Optional:    true,
-				Validators: []validator.String{
-					stringvalidator.OneOfCaseInsensitive(
-						"active",
-						"disabled",
-						"expired",
-					),
-				},
-			},
 			"condition": schema.SingleNestedAttribute{
-				Computed:   true,
-				Optional:   true,
-				CustomType: customfield.NewNestedObjectType[AccountTokenConditionModel](ctx),
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"request_ip": schema.SingleNestedAttribute{
 						Description: "Client IP restrictions.",
-						Computed:    true,
 						Optional:    true,
-						CustomType:  customfield.NewNestedObjectType[AccountTokenConditionRequestIPModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"in": schema.ListAttribute{
 								Description: "List of IPv4/IPv6 CIDR addresses.",
@@ -131,6 +121,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 					},
+				},
+			},
+			"status": schema.StringAttribute{
+				Description: "Status of the token.\nAvailable values: \"active\", \"disabled\", \"expired\".",
+				Computed:    true,
+				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive(
+						"active",
+						"disabled",
+						"expired",
+					),
 				},
 			},
 			"issued_on": schema.StringAttribute{
@@ -149,8 +151,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:  timetypes.RFC3339Type{},
 			},
 			"value": schema.StringAttribute{
-				Description: "The token value.",
-				Computed:    true,
+				Description:   "The token value.",
+				Computed:      true,
+				Sensitive:     true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 		},
 	}

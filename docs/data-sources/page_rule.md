@@ -23,13 +23,13 @@ data "cloudflare_page_rule" "example_page_rule" {
 
 ### Required
 
-- `pagerule_id` (String) Identifier
-- `zone_id` (String) Identifier
+- `pagerule_id` (String) Identifier.
+- `zone_id` (String) Identifier.
 
 ### Read-Only
 
 - `created_on` (String) The timestamp of when the Page Rule was created.
-- `id` (String) Identifier
+- `id` (String) Identifier.
 - `modified_on` (String) The timestamp of when the Page Rule was last modified.
 - `priority` (Number) The priority of the rule, used to define which Page Rule is processed
 over another. A higher number indicates a higher priority. For example,
@@ -37,5 +37,6 @@ if you have a catch-all Page Rule (rule A: `/images/*`) but want a more
 specific Page Rule to take precedence (rule B: `/images/special/*`),
 specify a higher priority for rule B so it overrides rule A.
 - `status` (String) The status of the Page Rule.
+Available values: "active", "disabled".
 
 

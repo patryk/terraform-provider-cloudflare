@@ -24,7 +24,8 @@ data "cloudflare_hostname_tls_setting" "example_hostname_tls_setting" {
 ### Required
 
 - `setting_id` (String) The TLS Setting name.
-- `zone_id` (String) Identifier
+Available values: "ciphers", "min_tls_version", "http2".
+- `zone_id` (String) Identifier.
 
 ### Read-Only
 

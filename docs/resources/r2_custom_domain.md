@@ -18,6 +18,7 @@ resource "cloudflare_r2_custom_domain" "example_r2_custom_domain" {
   domain = "domain"
   enabled = true
   zone_id = "zoneId"
+  ciphers = ["string"]
   min_tls = "1.0"
 }
 ```
@@ -27,28 +28,32 @@ resource "cloudflare_r2_custom_domain" "example_r2_custom_domain" {
 
 ### Required
 
-- `account_id` (String) Account ID
-- `bucket_name` (String) Name of the bucket
-- `domain` (String) Name of the custom domain to be added
+- `account_id` (String) Account ID.
+- `bucket_name` (String) Name of the bucket.
+- `domain` (String) Name of the custom domain to be added.
 - `enabled` (Boolean) Whether to enable public bucket access at the custom domain. If undefined, the domain will be enabled.
-- `zone_id` (String) Zone ID of the custom domain
+- `zone_id` (String) Zone ID of the custom domain.
 
 ### Optional
 
-- `domain_name` (String) Name of the custom domain
+- `ciphers` (List of String) An allowlist of ciphers for TLS termination. These ciphers must be in the BoringSSL format.
+- `jurisdiction` (String) Jurisdiction of the bucket
 - `min_tls` (String) Minimum TLS Version the custom domain will accept for incoming connections. If not set, defaults to 1.0.
+Available values: "1.0", "1.1", "1.2", "1.3".
 
 ### Read-Only
 
 - `status` (Attributes) (see [below for nested schema](#nestedatt--status))
-- `zone_name` (String) Zone that the custom domain resides in
+- `zone_name` (String) Zone that the custom domain resides in.
 
 <a id="nestedatt--status"></a>
 ### Nested Schema for `status`
 
 Read-Only:
 
-- `ownership` (String) Ownership status of the domain
-- `ssl` (String) SSL certificate status
+- `ownership` (String) Ownership status of the domain.
+Available values: "pending", "active", "deactivated", "blocked", "error", "unknown".
+- `ssl` (String) SSL certificate status.
+Available values: "initializing", "pending", "active", "deactivated", "error", "unknown".
 
 

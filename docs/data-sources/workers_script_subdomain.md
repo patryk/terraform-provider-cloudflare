@@ -23,12 +23,12 @@ data "cloudflare_workers_script_subdomain" "example_workers_script_subdomain" {
 
 ### Required
 
-- `account_id` (String) Identifier
+- `account_id` (String) Identifier.
 - `script_name` (String) Name of the script, used in URLs and route configuration.
 
 ### Read-Only
 
 - `enabled` (Boolean) Whether the Worker is available on the workers.dev subdomain.
-- `previews_enabled` (Boolean) Whether the Worker's Preview URLs should be available on the workers.dev subdomain.
+- `previews_enabled` (Boolean) Whether the Worker's Preview URLs are available on the workers.dev subdomain.
 
 

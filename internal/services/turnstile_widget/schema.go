@@ -22,8 +22,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Description: "Widget item identifier tag.",
-				Computed:    true,
+				Description:   "Widget item identifier tag.",
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"sitekey": schema.StringAttribute{
 				Description:   "Widget item identifier tag.",
@@ -35,18 +36,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:      true,
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
-			"region": schema.StringAttribute{
-				Description: "Region where this widget can be used.",
-				Computed:    true,
-				Optional:    true,
-				Validators: []validator.String{
-					stringvalidator.OneOfCaseInsensitive("world"),
-				},
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
-				Default:       stringdefault.StaticString("world"),
-			},
 			"mode": schema.StringAttribute{
-				Description: "Widget Mode",
+				Description: "Widget Mode\nAvailable values: \"non-interactive\", \"invisible\", \"managed\".",
 				Required:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -57,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "Human readable widget name. Not unique. Cloudflare suggests that you\nset this to a meaningful string to make it easier to identify your\nwidget, and where it is used.\n",
+				Description: "Human readable widget name. Not unique. Cloudflare suggests that you\nset this to a meaningful string to make it easier to identify your\nwidget, and where it is used.",
 				Required:    true,
 			},
 			"domains": schema.ListAttribute{
@@ -65,13 +56,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				ElementType: types.StringType,
 			},
 			"bot_fight_mode": schema.BoolAttribute{
-				Description: "If bot_fight_mode is set to `true`, Cloudflare issues computationally\nexpensive challenges in response to malicious bots (ENT only).\n",
+				Description: "If bot_fight_mode is set to `true`, Cloudflare issues computationally\nexpensive challenges in response to malicious bots (ENT only).",
 				Optional:    true,
 				Computed:    true,
 			},
 			"clearance_level": schema.StringAttribute{
-				Description: "If Turnstile is embedded on a Cloudflare site and the widget should grant challenge clearance,\nthis setting can determine the clearance level to be set\n",
+				Description: "If Turnstile is embedded on a Cloudflare site and the widget should grant challenge clearance,\nthis setting can determine the clearance level to be set\nAvailable values: \"no_clearance\", \"jschallenge\", \"managed\", \"interactive\".",
 				Optional:    true,
+				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
 						"no_clearance",
@@ -82,13 +74,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"ephemeral_id": schema.BoolAttribute{
-				Description: "Return the Ephemeral ID in /siteverify (ENT only).\n",
-				Optional:    true,
-			},
-			"offlabel": schema.BoolAttribute{
-				Description: "Do not show any Cloudflare branding on the widget (ENT only).\n",
+				Description: "Return the Ephemeral ID in /siteverify (ENT only).",
 				Optional:    true,
 				Computed:    true,
+			},
+			"offlabel": schema.BoolAttribute{
+				Description: "Do not show any Cloudflare branding on the widget (ENT only).",
+				Optional:    true,
+				Computed:    true,
+			},
+			"region": schema.StringAttribute{
+				Description: "Region where this widget can be used. This cannot be changed after creation.\nAvailable values: \"world\", \"china\".",
+				Computed:    true,
+				Optional:    true,
+				Validators: []validator.String{
+					stringvalidator.OneOfCaseInsensitive("world", "china"),
+				},
+				Default: stringdefault.StaticString("world"),
 			},
 			"created_on": schema.StringAttribute{
 				Description: "When the widget was created.",
@@ -103,6 +105,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret": schema.StringAttribute{
 				Description: "Secret key for this widget.",
 				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

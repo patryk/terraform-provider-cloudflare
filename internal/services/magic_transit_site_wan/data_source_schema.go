@@ -31,10 +31,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"site_id": schema.StringAttribute{
 				Description: "Identifier",
-				Computed:    true,
+				Required:    true,
 			},
 			"health_check_rate": schema.StringAttribute{
-				Description: "Magic WAN health check rate for tunnels created on this link. The default value is `mid`.",
+				Description: "Magic WAN health check rate for tunnels created on this link. The default value is `mid`.\nAvailable values: \"low\", \"mid\", \"high\".",
 				Computed:    true,
 				Validators: []validator.String{
 					stringvalidator.OneOfCaseInsensitive(
@@ -55,7 +55,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Computed:    true,
 			},
 			"vlan_tag": schema.Int64Attribute{
-				Description: "VLAN port number.",
+				Description: "VLAN ID. Use zero for untagged.",
 				Computed:    true,
 			},
 			"static_addressing": schema.SingleNestedAttribute{

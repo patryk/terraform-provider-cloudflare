@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/cloudflare/cloudflare-go/v4"
-	"github.com/cloudflare/cloudflare-go/v4/option"
+	"github.com/cloudflare/cloudflare-go/v5"
+	"github.com/cloudflare/cloudflare-go/v5/option"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/apijson"
 	"github.com/cloudflare/terraform-provider-cloudflare/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -64,8 +64,8 @@ func (d *ZeroTrustTunnelCloudflaredTokenDataSource) Read(ctx context.Context, re
 	}
 
 	res := new(http.Response)
-	env := ZeroTrustTunnelCloudflaredTokenResultDataSourceEnvelope{*data}
-	_, err := d.client.ZeroTrust.Tunnels.Token.Get(
+	env := ZeroTrustTunnelCloudflaredTokenResultDataSourceEnvelope{}
+	_, err := d.client.ZeroTrust.Tunnels.Cloudflared.Token.Get(
 		ctx,
 		data.TunnelID.ValueString(),
 		params,
@@ -82,7 +82,7 @@ func (d *ZeroTrustTunnelCloudflaredTokenDataSource) Read(ctx context.Context, re
 		resp.Diagnostics.AddError("failed to deserialize http request", err.Error())
 		return
 	}
-	data = &env.Result
+	data.Token = env.Result
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

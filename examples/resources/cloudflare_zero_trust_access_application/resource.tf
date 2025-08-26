@@ -3,6 +3,7 @@ resource "cloudflare_zero_trust_access_application" "example_zero_trust_access_a
   type = "self_hosted"
   zone_id = "zone_id"
   allow_authenticate_via_warp = true
+  allow_iframe = true
   allowed_idps = ["699d98642c564d2e855e9661899b7252"]
   app_launcher_visible = true
   auto_redirect_to_identity = true
@@ -58,6 +59,7 @@ resource "cloudflare_zero_trust_access_application" "example_zero_trust_access_a
     id = "f174e90a-fafe-4643-bbbc-4a0ed4fc8415"
     precedence = 0
   }]
+  read_service_tokens_from_header = "Authorization"
   same_site_cookie_attribute = "strict"
   scim_config = {
     idp_uid = "idp_uid"

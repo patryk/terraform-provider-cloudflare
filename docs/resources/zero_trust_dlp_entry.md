@@ -37,10 +37,13 @@ resource "cloudflare_zero_trust_dlp_entry" "example_zero_trust_dlp_entry" {
 
 ### Optional
 
-- `type` (String)
+- `type` (String) Available values: "custom", "predefined", "integration".
 
 ### Read-Only
 
+- `case_sensitive` (Boolean) Only applies to custom word lists.
+Determines if the words should be matched in a case-sensitive manner
+Cannot be set to false if secret is true
 - `confidence` (Attributes) (see [below for nested schema](#nestedatt--confidence))
 - `created_at` (String)
 - `id` (String) The ID of this resource.
@@ -57,7 +60,7 @@ Required:
 
 Optional:
 
-- `validation` (String)
+- `validation` (String, Deprecated) Available values: "luhn".
 
 
 <a id="nestedatt--confidence"></a>
@@ -65,9 +68,8 @@ Optional:
 
 Read-Only:
 
-- `ai_context_available` (Boolean)
-- `available` (Boolean) Indicates whether this entry can be made more or less sensitive by setting a confidence threshold.
-Profiles that use an entry with `available` set to true can use confidence thresholds
+- `ai_context_available` (Boolean) Indicates whether this entry has AI remote service validation.
+- `available` (Boolean) Indicates whether this entry has any form of validation that is not an AI remote service.
 
 ## Import
 

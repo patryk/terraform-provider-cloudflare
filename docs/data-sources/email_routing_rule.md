@@ -23,7 +23,7 @@ data "cloudflare_email_routing_rule" "example_email_routing_rule" {
 
 ### Required
 
-- `zone_id` (String) Identifier
+- `zone_id` (String) Identifier.
 
 ### Optional
 
@@ -38,7 +38,7 @@ data "cloudflare_email_routing_rule" "example_email_routing_rule" {
 - `matchers` (Attributes List) Matching patterns to forward to your actions. (see [below for nested schema](#nestedatt--matchers))
 - `name` (String) Routing rule name.
 - `priority` (Number) Priority of the routing rule.
-- `tag` (String) Routing rule tag. (Deprecated, replaced by routing rule identifier)
+- `tag` (String, Deprecated) Routing rule tag. (Deprecated, replaced by routing rule identifier)
 
 <a id="nestedatt--filter"></a>
 ### Nested Schema for `filter`
@@ -54,6 +54,7 @@ Optional:
 Read-Only:
 
 - `type` (String) Type of supported action.
+Available values: "drop", "forward", "worker".
 - `value` (List of String)
 
 
@@ -63,7 +64,9 @@ Read-Only:
 Read-Only:
 
 - `field` (String) Field for type matcher.
+Available values: "to".
 - `type` (String) Type of matcher.
+Available values: "all", "literal".
 - `value` (String) Value for matcher.
 
 

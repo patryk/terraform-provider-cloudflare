@@ -35,12 +35,9 @@ resource "cloudflare_zero_trust_access_service_token" "example_zero_trust_access
 ### Read-Only
 
 - `client_id` (String) The Client ID for the service token. Access will check for this value in the `CF-Access-Client-ID` request header.
-- `client_secret` (String) The Client Secret for the service token. Access will check for this value in the `CF-Access-Client-Secret` request header.
-- `created_at` (String)
+- `client_secret` (String, Sensitive) The Client Secret for the service token. Access will check for this value in the `CF-Access-Client-Secret` request header.
 - `expires_at` (String)
 - `id` (String) The ID of the service token.
-- `last_seen_at` (String)
-- `updated_at` (String)
 
 ## Import
 
